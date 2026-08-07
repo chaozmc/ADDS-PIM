@@ -47,7 +47,7 @@ Full design, security, and operations documentation lives in [`docs/`](docs/READ
 Feature-complete beta: time-limited membership requests, MFA (FIDO2/WebAuthn and TOTP), an approval workflow, and admin tooling are implemented and have been exercised end to end in a test environment. Not yet fully hardened or pen-tested for production use.
 
 ## Special thanks
-ADDS-PIM exists because of @themompfdie. What began as a question in one of uncountable technical deep-dive sessions turned into arguing about trust, attack surface reduction, certificates, chain of trust and what secure-by-design actually has to mean when the thing you are securing is a Tier-0 group membership. Thanks for not letting the easy answer stand.
+ADDS-PIM exists because of [@themompfdie](https://github.com/themompfdie). What began as a question in one of uncountable technical deep-dive sessions turned into arguing about trust, attack surface reduction, certificates, chain of trust and what secure-by-design actually has to mean when the thing you are securing is a Tier-0 group membership. Thanks for not letting the easy answer stand.
 
 ## License
 

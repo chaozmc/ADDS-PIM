@@ -1,0 +1,215 @@
+@page "/requests"
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IOperatorRequestClient RequestClient
+
+<PageTitle>ADDS-PIM · Meine Requests</PageTitle>
+
+<section class="requests-page">
+    <p class="eyebrow">Request-Historie</p>
+    <h1>Meine Requests</h1>
+    @if (_loading)
+    {
+        <LoadingIndicator Message="Requests werden geladen …" />
+    }
+    else if (_error is not null)
+    {
+        <div class="submission-result failed" role="alert">@_error</div>
+    }
+    else if (_page is not null)
+    {
+        <EditForm class="request-filters" Model="_filters" OnValidSubmit="ApplyFiltersAsync">
+            <div class="field">
+                <label for="history-year">Jahr</label>
+                <InputSelect id="history-year" @bind-Value="_filters.Year">
+                    <option value="">Alle Jahre</option>
+                    @foreach (var year in _page.AvailableYears)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="field">
+                <label for="history-month">Monat</label>
+                <InputSelect id="history-month" @bind-Value="_filters.Month">
+                    <option value="">Alle Monate</option>
+                    @for (var month = 1; month <= 12; month++)
+                    {
+                        <option value="@month">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month)</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="field">
+                <label for="history-group">Gruppe</label>
+                <InputSelect id="history-group" @bind-Value="_filters.TargetGroupId">
+                    <option value="">Alle Gruppen</option>
+                    @foreach (var group in _page.TargetGroups)
+                    {
+                        <option value="@group.Id">@group.DisplayName</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="field">
+                <label for="history-entitlement">Entitlement</label>
+                <InputSelect id="history-entitlement" @bind-Value="_filters.EntitlementId">
+                    <option value="">Alle Entitlements</option>
+                    @foreach (var entitlement in _page.Entitlements)
+                    {
+                        <option value="@entitlement.Id">@entitlement.DisplayName (@ShortId(entitlement.Id))</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="field">
+                <label for="history-page-size">Einträge pro Seite</label>
+                <InputSelect id="history-page-size" @bind-Value="_filters.PageSize">
+                    @foreach (var pageSize in PageSizes)
+                    {
+                        <option value="@pageSize">@pageSize</option>
+                    }
+                </InputSelect>
+            </div>
+            <button class="submit-button" type="submit">Filtern</button>
+        </EditForm>
+
+        @if (_page.TotalCount == 0)
+        {
+            <div class="prototype-notice" role="status">
+                <strong>Keine passenden Requests vorhanden</strong>
+                <span>Passen Sie die Filter an oder fordern Sie eine Gruppenberechtigung an.</span>
+            </div>
+        }
+        else
+        {
+        <div class="request-table-wrap" role="region" aria-label="Meine Requests" tabindex="0">
+            <table class="request-table">
+                <thead>
+                    <tr><th>Datum</th><th>Gruppe</th><th>Zielkonto</th><th>Dauer</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in _page.Items)
+                    {
+                        var expanded = _expandedRequestId == request.RequestId;
+                        <tr class="request-summary-row" role="button" tabindex="0" aria-expanded="@expanded" @onclick="() => ToggleDetails(request.RequestId)" @onkeydown="args => ToggleDetailsOnKeyAsync(args, request.RequestId)">
+                            <td>@request.CreatedUtc.LocalDateTime.ToString("g")</td>
+                            <td>@request.TargetGroupDisplayName</td>
+                            <td>@request.TargetAccountDisplayName</td>
+                            <td>@FormatDuration(request.RequestedTtlSeconds)</td>
+                            <td><StatusBadge Text="@request.Status" Variant="@StatusVariant(request.Status)" /></td>
+                        </tr>
+                        @if (expanded)
+                        {
+                            <tr class="request-detail-row">
+                                <td colspan="5">
+                                    <dl>
+                                        <div><dt>Request-ID</dt><dd><code>@request.RequestId</code></dd></div>
+                                        <div><dt>Entitlement-ID</dt><dd><code>@request.EntitlementId</code></dd></div>
+                                        <div><dt>Gruppen-ID</dt><dd><code>@request.TargetGroupId</code></dd></div>
+                                        <div><dt>Begründung</dt><dd>@request.Reason</dd></div>
+                                        <div><dt>Ticket</dt><dd>@(request.TicketReference ?? "—")</dd></div>
+                                    </dl>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <nav class="history-pagination" aria-label="Seitennavigation">
+            <button type="button" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)">Zurück</button>
+            <span>Seite @_filters.PageNumber von @PageCount (@_page.TotalCount Einträge)</span>
+            <button type="button" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">Weiter</button>
+        </nav>
+        }
+    }
+    <NavLink class="request-link" href="new-request">Neue Gruppenberechtigung anfordern <span aria-hidden="true">→</span></NavLink>
+</section>
+
+@code {
+    private static readonly int[] PageSizes = [10, 20, 30, 40, 50];
+    private readonly RequestHistoryFilters _filters = new();
+    private MyMembershipRequestsPage? _page;
+    private Guid? _expandedRequestId;
+    private string? _windowsIdentity;
+    private string? _error;
+    private bool _loading = true;
+
+    private int PageCount => _page is null ? 1 : Math.Max(1, (int)Math.Ceiling(_page.TotalCount / (decimal)_filters.PageSize));
+
+    protected override async Task OnInitializedAsync()
+    {
+        _windowsIdentity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
+        if (string.IsNullOrWhiteSpace(_windowsIdentity))
+        {
+            _error = "Die Request-Historie kann ohne authentifizierte Windows-Identität nicht angezeigt werden.";
+            _loading = false;
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        _filters.PageNumber = 1;
+        await LoadAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        _filters.PageNumber--;
+        await LoadAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        _filters.PageNumber++;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        _expandedRequestId = null;
+        try
+        {
+            _page = await RequestClient.ListMyRequestsAsync(_filters.PageNumber, _filters.PageSize, _filters.Year, _filters.Month, _filters.EntitlementId, _filters.TargetGroupId, CancellationToken.None);
+        }
+        catch
+        {
+            _error = "Die Request-Historie konnte nicht geladen werden. Prüfen Sie die Request-ID und die geschützten Serverprotokolle.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ToggleDetails(Guid requestId) => _expandedRequestId = _expandedRequestId == requestId ? null : requestId;
+
+    private Task ToggleDetailsOnKeyAsync(KeyboardEventArgs args, Guid requestId)
+    {
+        if (args.Key is "Enter" or " ") ToggleDetails(requestId);
+        return Task.CompletedTask;
+    }
+
+    private static string FormatDuration(long seconds) => $"{seconds / 3600m:0.##} h";
+
+    private static StatusBadge.BadgeVariant StatusVariant(string status) => status switch
+    {
+        "Succeeded" => StatusBadge.BadgeVariant.Success,
+        "Rejected" or "Failed" or "Expired" or "Cancelled" => StatusBadge.BadgeVariant.Danger,
+        _ => StatusBadge.BadgeVariant.Warning
+    };
+
+    private static string ShortId(Guid id) => id.ToString("D")[..8];
+
+    private sealed class RequestHistoryFilters
+    {
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public int? Year { get; set; }
+        public int? Month { get; set; }
+        public Guid? EntitlementId { get; set; }
+        public Guid? TargetGroupId { get; set; }
+    }
+}

@@ -1,0 +1,138 @@
+@page "/admin/settings/totp-protection-certificate"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM – TOTP-Schutzzertifikat</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>TOTP-Schutzzertifikat</h1>
+        <p>Zertifikat, das jedes TOTP-Secret in der Datenbank verschlüsselt. Der Rollover ist eine einmalige, auditierte Re-Encryption aller gespeicherten Secrets.</p>
+    </div>
+</section>
+
+@if (_status is null)
+{
+    <LoadingIndicator Message="Zertifikatsstatus wird geladen …" />
+}
+else
+{
+    <section aria-labelledby="status-title" class="mt-4">
+        <h2 id="status-title">Aktueller Status</h2>
+        @if (!_status.Found)
+        {
+            <div class="card border-danger">
+                <div class="card-body">
+                    <StatusBadge Text="Nicht gefunden" Variant="StatusBadge.BadgeVariant.Danger" />
+                    <p class="mt-2 mb-0">Das konfigurierte Zertifikat <code>@_status.Thumbprint</code> wurde in <code>LocalMachine\My</code> nicht gefunden. TOTP-Verifikationen schlagen fehl.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card @(IsExpiringSoon ? "border-danger" : "border-success")">
+                <div class="card-body">
+                    <StatusBadge Text="@StatusText" Variant="@StatusVariant" />
+                    <dl class="row mt-3 mb-0">
+                        <dt class="col-sm-4">Thumbprint</dt>
+                        <dd class="col-sm-8"><code>@_status.Thumbprint</code></dd>
+                        <dt class="col-sm-4">Gültig bis (UTC)</dt>
+                        <dd class="col-sm-8">@_status.NotAfter?.ToString("u") (@DaysRemainingText)</dd>
+                        <dt class="col-sm-4">Privater Schlüssel zugreifbar</dt>
+                        <dd class="col-sm-8">@(_status.PrivateKeyAccessible ? "Ja" : "Nein")</dd>
+                        <dt class="col-sm-4">Geschützte TOTP-Faktoren</dt>
+                        <dd class="col-sm-8">@_status.ActiveFactorsProtected aktiv / @_status.TotalFactorsProtected gesamt (inkl. ausstehender Enrollments)</dd>
+                    </dl>
+                </div>
+            </div>
+        }
+    </section>
+
+    <section class="mt-4" aria-labelledby="rotate-title">
+        <h2 id="rotate-title">Rollover durchführen</h2>
+        <p>
+            Das neue Zertifikat muss vorab von einem Administrator in einer erhöhten PowerShell-Sitzung erzeugt und in <code>Cert:\LocalMachine\My</code> abgelegt werden;
+            die API-gMSA benötigt eine Leserechte-ACL auf dessen privaten Schlüssel. Siehe das Betriebs-Runbook. Diese Seite führt ausschließlich die Datenbank-seitige Re-Encryption aus.
+        </p>
+
+        @if (_error is not null)
+        {
+            <p class="submission-result failed" role="alert">@_error</p>
+        }
+        @if (_success is not null)
+        {
+            <p class="submission-result succeeded" role="status">@_success</p>
+        }
+
+        <div class="row g-3 align-items-end mb-3">
+            <div class="col-md-8">
+                <label class="form-label" for="incoming-thumbprint">Thumbprint des neuen Zertifikats</label>
+                <input id="incoming-thumbprint" class="form-control" @bind="_incomingThumbprint" @bind:event="oninput" placeholder="z. B. 0000000000000000000000000000000000CCCC" />
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_incomingThumbprint))
+        {
+            <DangerZonePanel Message="@($"Diese Aktion entschlüsselt alle gespeicherten TOTP-Secrets mit dem aktuellen Zertifikat und verschlüsselt sie neu mit dem angegebenen Zertifikat. Geben Sie zur Bestätigung genau ein: {ExpectedConfirmation}")"
+                              ConfirmLabel="Rollover jetzt ausführen" IsBusy="_loading" CanConfirm="@(_confirmation == ExpectedConfirmation)"
+                              OnConfirm="ExecuteAsync" OnCancel="() => _confirmation = string.Empty">
+                <input class="form-control" @bind="_confirmation" @bind:event="oninput" aria-label="Rotation confirmation" placeholder="@ExpectedConfirmation" />
+                @if (!string.IsNullOrEmpty(_confirmation) && _confirmation != ExpectedConfirmation)
+                {
+                    <div class="form-text text-danger">Der eingegebene Text stimmt noch nicht mit <code>@ExpectedConfirmation</code> überein.</div>
+                }
+            </DangerZonePanel>
+        }
+    </section>
+}
+
+@code {
+    private TotpProtectionCertificateStatus? _status;
+    private string _incomingThumbprint = string.Empty;
+    private string _confirmation = string.Empty;
+    private bool _loading;
+    private string? _error;
+    private string? _success;
+
+    private const int WarningThresholdDays = 30;
+
+    private string ExpectedConfirmation => $"ROTATE {_incomingThumbprint.Trim()}";
+
+    private bool IsExpiringSoon => _status is { Found: true, NotAfter: not null } && (_status.NotAfter.Value - DateTimeOffset.UtcNow).TotalDays <= WarningThresholdDays;
+
+    private StatusBadge.BadgeVariant StatusVariant => _status is null ? StatusBadge.BadgeVariant.Neutral : IsExpiringSoon ? StatusBadge.BadgeVariant.Danger : StatusBadge.BadgeVariant.Success;
+
+    private string StatusText => _status is null ? string.Empty : IsExpiringSoon ? $"Läuft bald ab ({DaysRemainingText})" : $"Gültig ({DaysRemainingText})";
+
+    private string DaysRemainingText
+    {
+        get
+        {
+            if (_status?.NotAfter is null) return "unbekannt";
+            var days = (int)Math.Floor((_status.NotAfter.Value - DateTimeOffset.UtcNow).TotalDays);
+            return days < 0 ? $"seit {-days} Tagen abgelaufen" : $"noch {days} Tage";
+        }
+    }
+
+    protected override async Task OnInitializedAsync() => await LoadStatusAsync();
+
+    private async Task LoadStatusAsync()
+    {
+        try { _error = null; _status = await AdministrationClient.GetTotpProtectionCertificateStatusAsync(CancellationToken.None); }
+        catch { _error = "Der Zertifikatsstatus konnte nicht geladen werden."; }
+    }
+
+    private async Task ExecuteAsync()
+    {
+        _loading = true;
+        try
+        {
+            _error = null; _success = null;
+            await AdministrationClient.RotateTotpProtectionCertificateAsync(_incomingThumbprint.Trim(), _confirmation, CancellationToken.None);
+            _success = "Der Rollover wurde ausgeführt. Alle gespeicherten TOTP-Secrets sind jetzt mit dem neuen Zertifikat verschlüsselt.";
+            _incomingThumbprint = string.Empty; _confirmation = string.Empty;
+            await LoadStatusAsync();
+        }
+        catch { _error = "Der Rollover wurde nicht ausgeführt. Prüfen Sie, ob das neue Zertifikat installiert und für die API-gMSA freigegeben ist, und ob die Bestätigung exakt übereinstimmt."; }
+        finally { _loading = false; }
+    }
+}

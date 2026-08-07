@@ -1,0 +1,24 @@
+.request-id-success {
+    color: #164c31;
+}
+
+.request-status-panel {
+    position: fixed;
+    top: 4.5rem;
+    right: 1.5rem;
+    z-index: 20;
+    width: 20rem;
+    max-width: calc(100vw - 3rem);
+    margin-top: 0;
+    box-shadow: var(--pim-shadow-md, 0 4px 12px rgba(0, 0, 0, .15));
+}
+
+@media (max-width: 48rem) {
+    .request-status-panel {
+        position: static;
+        width: auto;
+        max-width: none;
+        margin-top: var(--pim-space-4);
+        box-shadow: none;
+    }
+}

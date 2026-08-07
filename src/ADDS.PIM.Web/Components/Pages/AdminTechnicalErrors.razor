@@ -1,0 +1,180 @@
+@page "/admin/technical-errors"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM – Technische Fehler</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Technische Fehler</h1>
+        <p>Zeigt unbehandelte Ausnahmen der API an, getrennt vom sicherheitsrelevanten Audit-Log. Suchen Sie hier nach der Request-ID aus einer Fehlermeldung.</p>
+    </div>
+</section>
+
+@if (_error is not null)
+{
+    <p class="submission-result failed" role="alert">@_error</p>
+}
+else if (_page is null)
+{
+    <LoadingIndicator Message="Technische Fehler werden geladen …" />
+}
+else
+{
+    <EditForm class="row g-3 mt-2" Model="_filters" OnValidSubmit="ApplyFiltersAsync">
+        <div class="col-md-3">
+            <label for="error-request-id" class="form-label">Request-ID</label>
+            <InputText id="error-request-id" class="form-control" @bind-Value="_filters.RequestId" placeholder="z. B. 18695535-1cbd-4122-a918-ef2e361d2fda" />
+        </div>
+        <div class="col-md-2">
+            <label for="error-from" class="form-label">Von</label>
+            <InputDate id="error-from" class="form-control" @bind-Value="_filters.FromLocalDate" />
+        </div>
+        <div class="col-md-2">
+            <label for="error-to" class="form-label">Bis</label>
+            <InputDate id="error-to" class="form-control" @bind-Value="_filters.ToLocalDate" />
+        </div>
+        <div class="col-md-2">
+            <label for="error-page-size" class="form-label">Einträge pro Seite</label>
+            <InputSelect id="error-page-size" class="form-select" @bind-Value="_filters.PageSize">
+                @foreach (var pageSize in PageSizes)
+                {
+                    <option value="@pageSize">@pageSize</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Filtern</button>
+        </div>
+    </EditForm>
+
+    @if (_filterError is not null)
+    {
+        <p class="submission-result failed" role="alert">@_filterError</p>
+    }
+
+    @if (_page.TotalCount == 0)
+    {
+        <EmptyState Icon="bi-bug" Title="Keine technischen Fehler gefunden" Description="Passen Sie die Filter an, oder es sind für den gewählten Zeitraum keine unbehandelten Ausnahmen aufgetreten." />
+    }
+    else
+    {
+        <div class="table-responsive mt-3" role="region" aria-label="Technische Fehler" tabindex="0">
+            <table class="table table-sm">
+                <thead>
+                    <tr><th>Zeitpunkt (UTC)</th><th>Methode</th><th>Pfad</th><th>Ausnahmetyp</th><th>Request-ID</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in _page.Items)
+                    {
+                        var expanded = _expandedErrorId == entry.ErrorId;
+                        <tr role="button" tabindex="0" aria-expanded="@expanded" @onclick="() => ToggleDetails(entry.ErrorId)">
+                            <td><i class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-right") text-muted me-1" aria-hidden="true"></i>@entry.OccurredUtc.UtcDateTime.ToString("u")</td>
+                            <td>@entry.HttpMethod</td>
+                            <td>@entry.Path</td>
+                            <td>@entry.ExceptionType</td>
+                            <td><code>@(entry.RequestId?.ToString() ?? "—")</code></td>
+                        </tr>
+                        @if (expanded)
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    <dl class="row mb-0">
+                                        <div class="col-md-4"><dt>Error-ID</dt><dd><code>@entry.ErrorId</code></dd></div>
+                                        <div class="col-md-4"><dt>Request-ID</dt><dd><code>@(entry.RequestId?.ToString() ?? "—")</code></dd></div>
+                                        <div class="col-md-4"><dt>Correlation-ID</dt><dd><code>@(entry.CorrelationId?.ToString() ?? "—")</code></dd></div>
+                                        <div class="col-md-4"><dt>Statuscode</dt><dd>@(entry.StatusCode?.ToString() ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>Quellkomponente</dt><dd>@entry.SourceComponent</dd></div>
+                                        <div class="col-12"><dt>Meldung</dt><dd>@entry.Message</dd></div>
+                                        <div class="col-12"><dt>Stacktrace</dt><dd><pre class="mb-0">@entry.StackTrace</pre></dd></div>
+                                    </dl>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <nav class="d-flex justify-content-between align-items-center mt-2" aria-label="Seitennavigation">
+            <button type="button" class="btn btn-secondary" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> Zurück</button>
+            <span>Seite @_filters.PageNumber von @PageCount (@_page.TotalCount Einträge)</span>
+            <button type="button" class="btn btn-secondary" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">Weiter <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        </nav>
+    }
+}
+
+@code {
+    private static readonly int[] PageSizes = [10, 20, 30, 40, 50];
+    private readonly TechnicalErrorFilters _filters = new();
+    private TechnicalErrorLogPage? _page;
+    private Guid? _expandedErrorId;
+    private string? _error;
+    private string? _filterError;
+
+    private int PageCount => _page is null ? 1 : Math.Max(1, (int)Math.Ceiling(_page.TotalCount / (decimal)_filters.PageSize));
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task ApplyFiltersAsync()
+    {
+        _filters.PageNumber = 1;
+        await LoadAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        _filters.PageNumber--;
+        await LoadAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        _filters.PageNumber++;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        _filterError = null;
+        _expandedErrorId = null;
+
+        Guid? requestId = null;
+        if (!string.IsNullOrWhiteSpace(_filters.RequestId))
+        {
+            if (!Guid.TryParse(_filters.RequestId, out var parsedRequestId))
+            {
+                _filterError = "Die Request-ID ist ungültig.";
+                _page ??= new([], 0);
+                return;
+            }
+            requestId = parsedRequestId;
+        }
+
+        try
+        {
+            _page = await AdministrationClient.GetTechnicalErrorsAsync(
+                _filters.PageNumber,
+                _filters.PageSize,
+                _filters.FromLocalDate is { } from ? new DateTimeOffset(from, TimeZoneInfo.Local.GetUtcOffset(from)) : null,
+                _filters.ToLocalDate is { } to ? new DateTimeOffset(to.AddDays(1), TimeZoneInfo.Local.GetUtcOffset(to)).AddTicks(-1) : null,
+                requestId,
+                null,
+                CancellationToken.None);
+        }
+        catch
+        {
+            _error = "Die technischen Fehler konnten nicht geladen werden.";
+        }
+    }
+
+    private void ToggleDetails(Guid errorId) => _expandedErrorId = _expandedErrorId == errorId ? null : errorId;
+
+    private sealed class TechnicalErrorFilters
+    {
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string? RequestId { get; set; }
+        public DateTime? FromLocalDate { get; set; }
+        public DateTime? ToLocalDate { get; set; }
+    }
+}

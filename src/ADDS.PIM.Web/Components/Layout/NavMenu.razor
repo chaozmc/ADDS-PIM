@@ -1,0 +1,76 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">
+            <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+            ADDS-PIM
+        </a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <i class="bi bi-house-door-fill" aria-hidden="true"></i> Start
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="new-request">
+                <i class="bi bi-key-fill" aria-hidden="true"></i> Zugriff anfordern
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="requests">
+                <i class="bi bi-clock-history" aria-hidden="true"></i> Meine Requests
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="mfa">
+                <i class="bi bi-shield-check" aria-hidden="true"></i> Multi-Faktor Authentication
+            </NavLink>
+        </div>
+
+        @if (_isApprover)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="my-approvals">
+                    <i class="bi bi-check2-square" aria-hidden="true"></i> Meine Genehmigungen
+                </NavLink>
+            </div>
+        }
+
+        <div class="nav-section" aria-label="Administration">
+            <div class="nav-section-title">Admin</div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="admin" Match="NavLinkMatch.All"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i> Übersicht</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/persons"><i class="bi bi-people-fill" aria-hidden="true"></i> Personen</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/groups"><i class="bi bi-diagram-3-fill" aria-hidden="true"></i> Gruppen</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/entitlements"><i class="bi bi-person-badge-fill" aria-hidden="true"></i> Entitlements</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/directory-reconciliation"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> AD-Abgleich</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/identity-purge"><i class="bi bi-trash3-fill" aria-hidden="true"></i> Bereinigung</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/audit-log"><i class="bi bi-journal-text" aria-hidden="true"></i> Audit-Log</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/technical-errors"><i class="bi bi-bug-fill" aria-hidden="true"></i> Technische Fehler</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/settings"><i class="bi bi-gear-fill" aria-hidden="true"></i> Einstellungen</NavLink></div>
+        </div>
+    </nav>
+</div>
+
+@inject IOperatorRequestClient RequestClient
+
+@code {
+    // Deny-by-default while loading or on error: this only controls visibility of the nav
+    // entry. The "Meine Genehmigungen" page and every approve/reject API call independently
+    // re-verify the approver right - this check is never authorization evidence on its own.
+    private bool _isApprover;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _isApprover = await RequestClient.GetApproverEligibilityAsync(CancellationToken.None); }
+        catch { _isApprover = false; }
+    }
+}
+

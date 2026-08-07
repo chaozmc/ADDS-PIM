@@ -1,0 +1,58 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<script type="module" src="@Assets["Components/Shared/ConfirmDialog.razor.js"]"></script>
+
+<div class="modal fade" id="@_elementId" tabindex="-1" aria-labelledby="@_titleId" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="@_titleId">@Title</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                @ChildContent
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private static int _sequence;
+    private readonly string _elementId = $"pim-confirm-dialog-{System.Threading.Interlocked.Increment(ref _sequence)}";
+    private string _titleId => $"{_elementId}-title";
+    private DotNetObjectReference<ConfirmDialog>? _dotNetRef;
+
+    /// <summary>Modal title. Body content (typically an EditForm with its own submit button) is supplied via ChildContent.</summary>
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Fires when the dialog is dismissed by any means (ESC, backdrop click, close button, or HideAsync), so callers can reset their own "editor" state.</summary>
+    [Parameter] public EventCallback OnClosed { get; set; }
+
+    public async Task ShowAsync()
+    {
+        _dotNetRef ??= DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("pimConfirmDialog.show", _elementId, _dotNetRef);
+    }
+
+    public async Task HideAsync() => await JS.InvokeVoidAsync("pimConfirmDialog.hide", _elementId);
+
+    [JSInvokable]
+    public async Task NotifyClosedAsync() => await OnClosed.InvokeAsync();
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+        try
+        {
+            await JS.InvokeVoidAsync("pimConfirmDialog.hide", _elementId);
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (JSException)
+        {
+        }
+    }
+}

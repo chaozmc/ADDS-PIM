@@ -1,0 +1,37 @@
+@page "/Error"
+@layout MainLayout
+@using System.Diagnostics
+
+<PageTitle>ADDS-PIM · Fehler</PageTitle>
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">Fehler</p>
+        <h1>Ein unerwarteter Fehler ist aufgetreten</h1>
+        <p>Die Anfrage konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut oder wenden Sie sich mit der unten angegebenen Kennung an die Administration.</p>
+    </div>
+</section>
+
+<div class="submission-result failed" role="alert">
+    @if (ShowRequestId)
+    {
+        <p><strong>Request-ID:</strong> <code>@RequestId</code></p>
+    }
+    else
+    {
+        <p>Es liegt keine Request-ID für diesen Fehler vor.</p>
+    }
+</div>
+
+<NavLink class="btn btn-secondary mt-3" href="">Zur Startseite</NavLink>
+
+@code{
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized() =>
+        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

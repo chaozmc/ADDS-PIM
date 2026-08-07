@@ -1,0 +1,204 @@
+@page "/admin/audit-log"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM – Audit-Log</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Audit-Log</h1>
+        <p>Zeigt die unveränderlichen Auditereignisse aus der Datenbank an. Diese Ansicht ändert keine Daten.</p>
+    </div>
+</section>
+
+@if (_error is not null)
+{
+    <p class="submission-result failed" role="alert">@_error</p>
+}
+else if (_page is null)
+{
+    <LoadingIndicator Message="Audit-Log wird geladen …" />
+}
+else
+{
+    <EditForm class="row g-3 mt-2" Model="_filters" OnValidSubmit="ApplyFiltersAsync">
+        <div class="col-md-3">
+            <label for="audit-event-type" class="form-label">Ereignistyp</label>
+            <InputSelect id="audit-event-type" class="form-select" @bind-Value="_filters.EventType">
+                <option value="">Alle Ereignistypen</option>
+                @foreach (var eventType in _page.AvailableEventTypes)
+                {
+                    <option value="@eventType">@eventType</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-2">
+            <label for="audit-result" class="form-label">Ergebnis</label>
+            <InputSelect id="audit-result" class="form-select" @bind-Value="_filters.Result">
+                <option value="">Alle Ergebnisse</option>
+                @foreach (var result in _page.AvailableResults)
+                {
+                    <option value="@result">@result</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-3">
+            <label for="audit-actor" class="form-label">Angemeldeter Benutzer</label>
+            <InputSelect id="audit-actor" class="form-select" @bind-Value="_filters.ActorAccount">
+                <option value="">Alle Benutzer</option>
+                @foreach (var actorAccount in _page.AvailableActorAccounts)
+                {
+                    <option value="@actorAccount">@actorAccount</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-2">
+            <label for="audit-from" class="form-label">Von</label>
+            <InputDate id="audit-from" class="form-control" @bind-Value="_filters.FromLocalDate" />
+        </div>
+        <div class="col-md-2">
+            <label for="audit-to" class="form-label">Bis</label>
+            <InputDate id="audit-to" class="form-control" @bind-Value="_filters.ToLocalDate" />
+        </div>
+        <div class="col-md-2">
+            <label for="audit-page-size" class="form-label">Einträge pro Seite</label>
+            <InputSelect id="audit-page-size" class="form-select" @bind-Value="_filters.PageSize">
+                @foreach (var pageSize in PageSizes)
+                {
+                    <option value="@pageSize">@pageSize</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Filtern</button>
+        </div>
+    </EditForm>
+
+    @if (_page.TotalCount == 0)
+    {
+        <EmptyState Icon="bi-journal-text" Title="Keine Auditereignisse gefunden" Description="Passen Sie die Filter an, um andere Zeiträume oder Ereignistypen anzuzeigen." />
+    }
+    else
+    {
+        <div class="table-responsive mt-3" role="region" aria-label="Audit-Log" tabindex="0">
+            <table class="table table-sm">
+                <thead>
+                    <tr><th>Zeitpunkt (UTC)</th><th>Ereignis</th><th>Ergebnis</th><th>Angemeldeter Benutzer</th><th>Person / Ziel</th><th>Zielgruppe</th><th>Correlation-ID</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in _page.Items)
+                    {
+                        var expanded = _expandedEventId == entry.EventId;
+                        <tr role="button" tabindex="0" aria-expanded="@expanded" @onclick="() => ToggleDetails(entry.EventId)">
+                            <td><i class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-right") text-muted me-1" aria-hidden="true"></i>@entry.OccurredUtc.UtcDateTime.ToString("u")</td>
+                            <td>@entry.EventType</td>
+                            <td><StatusBadge Text="@entry.Result" Variant="@ResultVariant(entry.Result)" /> @(string.IsNullOrEmpty(entry.FailureCategory) ? "" : $"({entry.FailureCategory})")</td>
+                            <td>@(entry.ActorAccountDisplayNameSnapshot ?? "—")</td>
+                            <td>@(entry.PersonDisplayNameSnapshot ?? "—") @(entry.TargetAccountDisplayNameSnapshot is null ? "" : $"→ {entry.TargetAccountDisplayNameSnapshot}")</td>
+                            <td>@(entry.TargetGroupDisplayNameSnapshot ?? "—")</td>
+                            <td><code>@ShortId(entry.CorrelationId)</code></td>
+                        </tr>
+                        @if (expanded)
+                        {
+                            <tr>
+                                <td colspan="7">
+                                    <dl class="row mb-0">
+                                        <div class="col-md-4"><dt>Event-ID</dt><dd><code>@entry.EventId</code></dd></div>
+                                        <div class="col-md-4"><dt>Request-ID</dt><dd><code>@(entry.RequestId?.ToString() ?? "—")</code></dd></div>
+                                        <div class="col-md-4"><dt>Correlation-ID</dt><dd><code>@entry.CorrelationId</code></dd></div>
+                                        <div class="col-md-4"><dt>Person</dt><dd>@(entry.PersonDisplayNameSnapshot ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>Angemeldeter Benutzer (Actor-Konto)</dt><dd>@(entry.ActorAccountDisplayNameSnapshot ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>Ziel-Konto</dt><dd>@(entry.TargetAccountDisplayNameSnapshot ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>Frontend Instanz</dt><dd>@entry.FrontendClientId</dd></div>
+                                        <div class="col-md-4"><dt>Quell-IP (Web-Instanz)</dt><dd>@(entry.SourceIpAddress ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>Client-IP (Browser)</dt><dd>@(entry.ClientSourceIpAddress ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>Authentifizierungsmethode</dt><dd>@entry.AuthenticationMethod</dd></div>
+                                        <div class="col-md-4"><dt>Angeforderte TTL</dt><dd>@(entry.RequestedTtlSeconds is null ? "—" : $"{entry.RequestedTtlSeconds / 3600m:0.##} h")</dd></div>
+                                    </dl>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <nav class="d-flex justify-content-between align-items-center mt-2" aria-label="Seitennavigation">
+            <button type="button" class="btn btn-secondary" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> Zurück</button>
+            <span>Seite @_filters.PageNumber von @PageCount (@_page.TotalCount Einträge)</span>
+            <button type="button" class="btn btn-secondary" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">Weiter <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        </nav>
+    }
+}
+
+@code {
+    private static readonly int[] PageSizes = [10, 20, 30, 40, 50];
+    private readonly AuditLogFilters _filters = new();
+    private AuditLogPage? _page;
+    private Guid? _expandedEventId;
+    private string? _error;
+
+    private int PageCount => _page is null ? 1 : Math.Max(1, (int)Math.Ceiling(_page.TotalCount / (decimal)_filters.PageSize));
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task ApplyFiltersAsync()
+    {
+        _filters.PageNumber = 1;
+        await LoadAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        _filters.PageNumber--;
+        await LoadAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        _filters.PageNumber++;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        _expandedEventId = null;
+        try
+        {
+            _page = await AdministrationClient.GetAuditLogAsync(
+                _filters.PageNumber,
+                _filters.PageSize,
+                _filters.FromLocalDate is { } from ? new DateTimeOffset(from, TimeZoneInfo.Local.GetUtcOffset(from)) : null,
+                _filters.ToLocalDate is { } to ? new DateTimeOffset(to.AddDays(1), TimeZoneInfo.Local.GetUtcOffset(to)).AddTicks(-1) : null,
+                string.IsNullOrWhiteSpace(_filters.EventType) ? null : _filters.EventType,
+                string.IsNullOrWhiteSpace(_filters.Result) ? null : _filters.Result,
+                string.IsNullOrWhiteSpace(_filters.ActorAccount) ? null : _filters.ActorAccount,
+                CancellationToken.None);
+        }
+        catch
+        {
+            _error = "Das Audit-Log konnte nicht geladen werden.";
+        }
+    }
+
+    private void ToggleDetails(Guid eventId) => _expandedEventId = _expandedEventId == eventId ? null : eventId;
+
+    private static string ShortId(Guid id) => id.ToString("D")[..8];
+
+    private static StatusBadge.BadgeVariant ResultVariant(string result) => result switch
+    {
+        var value when value.Contains("Succeed", StringComparison.OrdinalIgnoreCase) => StatusBadge.BadgeVariant.Success,
+        var value when value.Contains("Fail", StringComparison.OrdinalIgnoreCase) || value.Contains("Reject", StringComparison.OrdinalIgnoreCase) => StatusBadge.BadgeVariant.Danger,
+        _ => StatusBadge.BadgeVariant.Neutral
+    };
+
+    private sealed class AuditLogFilters
+    {
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string? EventType { get; set; }
+        public string? Result { get; set; }
+        public string? ActorAccount { get; set; }
+        public DateTime? FromLocalDate { get; set; }
+        public DateTime? ToLocalDate { get; set; }
+    }
+}

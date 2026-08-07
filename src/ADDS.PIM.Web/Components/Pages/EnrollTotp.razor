@@ -1,0 +1,140 @@
+@page "/mfa/totp/enroll"
+@inject IOperatorRequestClient RequestClient
+
+<PageTitle>ADDS-PIM · TOTP-Faktor einrichten</PageTitle>
+
+<div class="page-header">
+    <section class="hero" aria-labelledby="page-title">
+        <div>
+            <p class="eyebrow">Multi-Factor Authentication</p>
+            <h1 id="page-title">TOTP-Faktor einrichten</h1>
+            <p>Richten Sie einen zeitbasierten Einmalcode-Faktor ein, um Gruppenanfragen zu bestätigen, die einen zweiten Faktor erfordern.</p>
+        </div>
+    </section>
+    <NavLink class="back-link" href="/mfa"><i class="bi bi-arrow-left" aria-hidden="true"></i> Zur MFA-Übersicht</NavLink>
+</div>
+
+@if (_loadingStatus)
+{
+    <LoadingIndicator Message="Status wird geladen …" />
+}
+else if (_error is not null)
+{
+    <div class="submission-result failed" role="alert">@_error</div>
+}
+else if (_confirmed || _alreadyEnrolled)
+{
+    <div class="submission-result accepted" role="status">
+        <h3>Faktor eingerichtet</h3>
+        <p>
+            @if (_confirmed)
+            {
+                <text>Der TOTP-Faktor ist aktiv und kann ab sofort zur Bestätigung von Gruppenanfragen verwendet werden.</text>
+            }
+            else
+            {
+                <text>Für Ihr Konto ist bereits ein aktiver TOTP-Faktor eingerichtet. Ein erneutes Einrichten ist erst möglich, nachdem ein Administrator den bestehenden Faktor zurückgesetzt hat.</text>
+            }
+        </p>
+        <NavLink href="/mfa">Zurück zur MFA-Übersicht</NavLink>
+    </div>
+}
+else if (_enrollment is null)
+{
+    <section class="request-form" aria-labelledby="start-title">
+        <h2 id="start-title">Faktor starten</h2>
+        <p>Es wird ein neues, verschlüsselt gespeichertes Secret erzeugt. Es wird nur auf dieser Seite einmalig angezeigt.</p>
+        <button class="submit-button" type="button" disabled="@_starting" @onclick="StartEnrollmentAsync">@(_starting ? "Wird erzeugt …" : "Faktor erzeugen")</button>
+    </section>
+}
+else
+{
+    <section class="request-form" aria-labelledby="confirm-title">
+        <h2 id="confirm-title">In der Authenticator-App hinterlegen</h2>
+        <p>Scannen Sie den QR-Code mit Ihrer Authenticator-App (z. B. Microsoft/Google Authenticator, Authy). Dieser Code wird nach dem Verlassen der Seite nicht erneut angezeigt.</p>
+        <div class="totp-qr-code" role="img" aria-label="QR-Code zur Einrichtung des TOTP-Faktors">
+            @((MarkupString)_qrCodeSvg!)
+        </div>
+        <div class="field">
+            <label for="manual-secret">Geht das Scannen nicht? Manuell eingeben</label>
+            <input id="manual-secret" type="text" readonly value="@FormatSecretForDisplay(_enrollment.Secret)" class="totp-manual-secret" />
+            <span class="hint">Kontotyp: zeitbasiert, 6 Stellen, 30 Sekunden.</span>
+        </div>
+        <EditForm Model="_confirmForm" OnValidSubmit="ConfirmAsync">
+            <div class="field">
+                <label for="confirm-code">Code aus der Authenticator-App</label>
+                <InputText id="confirm-code" @bind-Value="_confirmForm.Code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" />
+            </div>
+            @if (_confirmError is not null)
+            {
+                <div class="submission-result failed" role="alert">@_confirmError</div>
+            }
+            <button class="submit-button" type="submit" disabled="@_confirming">@(_confirming ? "Wird bestätigt …" : "Faktor bestätigen")</button>
+        </EditForm>
+        <p class="hint">Die Einrichtung läuft ab: @_enrollment.ExpiresUtc.ToLocalTime().ToString("t")</p>
+    </section>
+}
+
+@code {
+    private readonly ConfirmForm _confirmForm = new();
+    private TotpEnrollmentStarted? _enrollment;
+    private string? _qrCodeSvg;
+    private string? _error;
+    private string? _confirmError;
+    private bool _starting, _confirming, _confirmed, _alreadyEnrolled;
+    private bool _loadingStatus = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var status = await RequestClient.GetMfaStatusAsync(CancellationToken.None);
+            _alreadyEnrolled = status?.TotpEnrolled ?? false;
+        }
+        catch { _error = "Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        finally { _loadingStatus = false; }
+    }
+
+    private async Task StartEnrollmentAsync()
+    {
+        _starting = true; _error = null;
+        try
+        {
+            _enrollment = await RequestClient.EnrollTotpFactorAsync(CancellationToken.None);
+            if (_enrollment is null) { _alreadyEnrolled = true; return; }
+            _qrCodeSvg = GenerateQrCodeSvg(_enrollment.ProvisioningUri);
+        }
+        catch { _error = "Der Faktor konnte nicht erzeugt werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        finally { _starting = false; }
+    }
+
+    private static string GenerateQrCodeSvg(string content)
+    {
+        using var generator = new QRCoder.QRCodeGenerator();
+        using var data = generator.CreateQrCode(content, QRCoder.QRCodeGenerator.ECCLevel.Q);
+        var svgQrCode = new QRCoder.SvgQRCode(data);
+        // ViewBoxAttribute renders only a "viewBox" (no fixed width/height) so the CSS width:100%/height:auto
+        // below rescales the whole graphic responsively. The default WidthHeightAttribute mode emits fixed
+        // pixel width/height with no viewBox at all - shrinking that via CSS clips the coordinate space
+        // instead of rescaling it, which is what caused the QR code to render cropped.
+        return svgQrCode.GetGraphic(6, System.Drawing.Color.Black, System.Drawing.Color.White, drawQuietZones: true, sizingMode: QRCoder.SvgQRCode.SizingMode.ViewBoxAttribute);
+    }
+
+    private static string FormatSecretForDisplay(string secret)
+        => string.Join(' ', Enumerable.Range(0, (secret.Length + 3) / 4).Select(i => secret.Substring(i * 4, Math.Min(4, secret.Length - i * 4))));
+
+    private async Task ConfirmAsync()
+    {
+        if (_enrollment is null || string.IsNullOrWhiteSpace(_confirmForm.Code)) return;
+        _confirming = true; _confirmError = null;
+        try
+        {
+            _confirmed = await RequestClient.ConfirmTotpEnrollmentAsync(_enrollment.TotpFactorId, _confirmForm.Code, CancellationToken.None);
+            if (!_confirmed) _confirmError = "Der Code ist ungültig oder die Einrichtung ist abgelaufen.";
+        }
+        catch { _confirmError = "Der Code konnte nicht bestätigt werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        finally { _confirming = false; }
+    }
+
+    private sealed class ConfirmForm { public string Code { get; set; } = string.Empty; }
+}

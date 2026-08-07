@@ -1,0 +1,271 @@
+@page "/admin/entitlements"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM - Entitlements</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Direkte Entitlements</h1>
+        <p>Ein Entitlement berechtigt eine Person, genau ein ihr zugeordnetes Privilegien-Zielkonto für eine Zielgruppe zu verwenden.</p>
+    </div>
+</section>
+
+@if (_error is not null)
+{
+    <p class="submission-result failed" role="alert">@_error</p>
+}
+@if (_success is not null)
+{
+    <p class="submission-result succeeded" role="status">@_success</p>
+}
+
+@if (_groups is null || _entitlements is null || _subjects is null)
+{
+    <LoadingIndicator Message="Entitlements werden geladen …" />
+}
+else
+{
+    <section class="d-flex justify-content-between align-items-center mb-4" aria-label="Entitlement-Aktionen">
+        <div>
+            <h2 class="h4 mb-1">Bestehende Entitlements</h2>
+            <p class="text-muted mb-0">Person, Privilegien-Zielkonto und Zielgruppe werden immer gemeinsam autorisiert.</p>
+        </div>
+        <button class="btn btn-primary" @onclick="OpenCreateDialogAsync" disabled="@(_subjects.Count == 0)"><i class="bi bi-plus-lg" aria-hidden="true"></i> Entitlement anlegen</button>
+    </section>
+
+    @if (_subjects.Count == 0)
+    {
+        <p class="submission-result failed">Es gibt kein aktives Privilegien-Zielkonto. Ordnen Sie zuerst unter <a href="/admin/persons">Personen</a> ein aktives AD-Konto mit dem Zweck "Darf TTL-Privilegien empfangen" zu.</p>
+    }
+
+    <section aria-labelledby="list-title">
+        <h2 id="list-title" class="visually-hidden">Aktive Entitlements</h2>
+        @{
+            var activeEntitlements = _entitlements.Where(entitlement => entitlement.IsActive).ToArray();
+        }
+        @if (activeEntitlements.Length == 0)
+        {
+            <EmptyState Icon="bi-person-badge" Title="Keine aktiven Entitlements" Description="Legen Sie ein Entitlement an, um einer Person Zugriff auf eine Zielgruppe zu ermöglichen." />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Person</th><th>Privilegien-Zielkonto</th><th>Zielgruppe</th><th>Gültigkeit</th><th>Status</th><th>Aktionen</th></tr></thead>
+                    <tbody>
+                        @foreach (var entitlement in activeEntitlements)
+                        {
+                            <tr>
+                                <td>@entitlement.PersonDisplayName</td>
+                                <td>@entitlement.TargetAccountDisplayName</td>
+                                <td>@entitlement.TargetGroupDisplayName</td>
+                                <td>@entitlement.ValidFromUtc.ToLocalTime().ToString("g") - @(entitlement.ValidUntilUtc?.ToLocalTime().ToString("g") ?? "offen")</td>
+                                <td>
+                                    @if (IsExpired(entitlement))
+                                    {
+                                        <StatusBadge Text="Abgelaufen" Variant="StatusBadge.BadgeVariant.Warning" />
+                                    }
+                                    else
+                                    {
+                                        <StatusBadge Text="Aktiv" Variant="StatusBadge.BadgeVariant.Success" />
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" @onclick="() => OpenValidityDialogAsync(entitlement)"><i class="bi bi-calendar-event" aria-hidden="true"></i> Gültigkeit ändern</button>
+                                        <button class="btn btn-outline-danger" @onclick="() => _pending = entitlement"><i class="bi bi-slash-circle" aria-hidden="true"></i> Deaktivieren</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        @if (_pending is not null)
+        {
+            <DangerZonePanel Message="@($"Entitlement für {_pending.TargetAccountDisplayName} wirklich deaktivieren?")"
+                              ConfirmLabel="Endgültig deaktivieren" IsBusy="_saving"
+                              OnConfirm="DeactivateAsync" OnCancel="() => _pending = null" />
+        }
+    </section>
+}
+
+<ConfirmDialog @ref="_createDialog" Title="Entitlement anlegen" OnClosed="CloseCreateDialog">
+    @if (_dialogError is not null)
+    {
+        <p class="alert alert-danger" role="alert">@_dialogError</p>
+    }
+    <p>Die Person wird über ihr Anmeldekonto identifiziert. Das Privileg wird ausschließlich dem gewählten Zielkonto erteilt; es kann mit dem Anmeldekonto identisch sein, muss es aber nicht.</p>
+    <div class="mb-3">
+        <label for="entitlement-person" class="form-label">1. Berechtigte Person</label>
+        <select id="entitlement-person" class="form-select" @bind="SelectedPersonId">
+            <option value="">Bitte Person wählen</option>
+            @foreach (var person in AvailablePersons)
+            {
+                <option value="@person.PersonId">@person.PersonDisplayName</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="entitlement-target-account" class="form-label">2. Privilegien-Zielkonto</label>
+        <select id="entitlement-target-account" class="form-select" @bind="_selectedTargetAccountId" disabled="@string.IsNullOrWhiteSpace(_selectedPersonId)">
+            <option value="">Bitte Zielkonto wählen</option>
+            @foreach (var subject in SelectedPersonSubjects)
+            {
+                <option value="@subject.TargetAccountId">@subject.TargetAccountDisplayName</option>
+            }
+        </select>
+        <div class="form-text">Es werden nur aktive, dieser Person zugeordnete Konten angezeigt, die TTL-Privilegien empfangen dürfen.</div>
+    </div>
+    <div class="mb-3">
+        <label for="entitlement-target-group" class="form-label">3. Zielgruppe</label>
+        <select id="entitlement-target-group" class="form-select" @bind="_selectedGroupId">
+            <option value="">Bitte Zielgruppe wählen</option>
+            @foreach (var group in (_groups ?? []).Where(group => group.IsEnabledForRequests && group.PolicyIsActive))
+            {
+                <option value="@group.TargetGroupId">@group.DomainQualifiedName</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="entitlement-valid-until" class="form-label">Gültig bis (optional)</label>
+        <div class="input-group">
+            <InputDate id="entitlement-valid-until" class="form-control" Type="InputDateType.DateTimeLocal" @bind-Value="_validUntilLocal" />
+            <button class="btn btn-outline-secondary" type="button" @onclick="() => _validUntilLocal = null" title="Zeitpunkt löschen"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+        <div class="form-text">Ohne Endzeitpunkt bleibt das Entitlement aktiv, bis es deaktiviert wird.</div>
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
+        <button class="btn btn-primary" @onclick="CreateAsync" disabled="@(_saving || !CanCreate)">Entitlement anlegen</button>
+    </div>
+</ConfirmDialog>
+
+<ConfirmDialog @ref="_validityDialog" Title="Gültigkeit ändern" OnClosed="() => { _validityTarget = null; _validityError = null; }">
+    @if (_validityTarget is not null)
+    {
+        @if (_validityError is not null)
+        {
+            <p class="alert alert-danger" role="alert">@_validityError</p>
+        }
+        <p><strong>@_validityTarget.PersonDisplayName</strong> → @_validityTarget.TargetGroupDisplayName (@_validityTarget.TargetAccountDisplayName)</p>
+        <div class="mb-3">
+            <label for="entitlement-edit-valid-until" class="form-label">Gültig bis</label>
+            <div class="input-group">
+                <InputDate id="entitlement-edit-valid-until" class="form-control" Type="InputDateType.DateTimeLocal" @bind-Value="_validityUntilLocal" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="() => _validityUntilLocal = null" title="Kein Ablaufdatum"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            </div>
+            <div class="form-text">Leer lassen für ein unbefristet aktives Entitlement.</div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
+            <button class="btn btn-primary" @onclick="SaveValidityAsync" disabled="@_saving">Speichern</button>
+        </div>
+    }
+</ConfirmDialog>
+
+@code {
+    private IReadOnlyList<ManagedTargetGroup>? _groups;
+    private IReadOnlyList<ManagedDirectEntitlement>? _entitlements;
+    private IReadOnlyList<EntitlementSubject>? _subjects;
+    private string? _error;
+    private string? _dialogError;
+    private string? _success;
+    private bool _saving;
+    private string _selectedPersonId = string.Empty;
+    private string _selectedTargetAccountId = string.Empty;
+    private string _selectedGroupId = string.Empty;
+    private DateTime? _validUntilLocal;
+    private ManagedDirectEntitlement? _pending;
+    private ConfirmDialog? _createDialog;
+    private ConfirmDialog? _validityDialog;
+    private ManagedDirectEntitlement? _validityTarget;
+    private DateTime? _validityUntilLocal;
+    private string? _validityError;
+
+    private string SelectedPersonId { get => _selectedPersonId; set { if (_selectedPersonId != value) { _selectedPersonId = value; _selectedTargetAccountId = string.Empty; } } }
+    private IEnumerable<EntitlementSubject> AvailablePersons => (_subjects ?? []).GroupBy(subject => subject.PersonId).Select(group => group.First()).OrderBy(subject => subject.PersonDisplayName);
+    private IEnumerable<EntitlementSubject> SelectedPersonSubjects => Guid.TryParse(_selectedPersonId, out var personId) ? (_subjects ?? []).Where(subject => subject.PersonId == personId).OrderBy(subject => subject.TargetAccountDisplayName) : [];
+    private bool CanCreate => Guid.TryParse(_selectedPersonId, out _) && Guid.TryParse(_selectedTargetAccountId, out _) && Guid.TryParse(_selectedGroupId, out _);
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error = null;
+            _groups = await AdministrationClient.GetTargetGroupsAsync(CancellationToken.None);
+            _entitlements = await AdministrationClient.GetEntitlementsAsync(CancellationToken.None);
+            _subjects = await AdministrationClient.GetEligibleEntitlementSubjectsAsync(CancellationToken.None);
+        }
+        catch { _error = "Verwaltungsdaten konnten nicht geladen werden. Prüfen Sie Ihre Berechtigung und die geschützten Serverprotokolle."; }
+    }
+
+    private async Task OpenCreateDialogAsync()
+    {
+        _error = null; _dialogError = null; _success = null; _selectedPersonId = _selectedTargetAccountId = _selectedGroupId = string.Empty; _validUntilLocal = null;
+        StateHasChanged();
+        await _createDialog!.ShowAsync();
+    }
+
+    private void CloseCreateDialog() { }
+
+    private async Task CreateAsync()
+    {
+        var subject = SelectedPersonSubjects.SingleOrDefault(subject => subject.TargetAccountId.ToString("D") == _selectedTargetAccountId);
+        if (subject is null || !Guid.TryParse(_selectedGroupId, out var groupId)) { _dialogError = "Bitte Person, Privilegien-Zielkonto und Zielgruppe auswählen."; return; }
+        var until = _validUntilLocal is null ? (DateTimeOffset?)null : new DateTimeOffset(DateTime.SpecifyKind(_validUntilLocal.Value, DateTimeKind.Unspecified), TimeZoneInfo.Local.GetUtcOffset(_validUntilLocal.Value)).ToUniversalTime();
+        _saving = true;
+        try
+        {
+            _dialogError = null;
+            await AdministrationClient.CreateDirectEntitlementAsync(subject.PersonId, subject.TargetAccountId, groupId, DateTimeOffset.UtcNow, until, CancellationToken.None);
+            await _createDialog!.HideAsync();
+            _success = "Das Entitlement wurde angelegt.";
+            await LoadAsync();
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _dialogError = "Für diese Person, dieses Zielkonto und diese Zielgruppe besteht bereits ein aktives Entitlement."; }
+        catch { _dialogError = "Das Entitlement konnte nicht angelegt werden. Das Zielkonto, die Gruppe oder die Berechtigung wurde möglicherweise inzwischen geändert."; }
+        finally { _saving = false; }
+    }
+
+    private static bool IsExpired(ManagedDirectEntitlement entitlement) => entitlement.ValidUntilUtc is not null && entitlement.ValidUntilUtc <= DateTimeOffset.UtcNow;
+
+    private async Task OpenValidityDialogAsync(ManagedDirectEntitlement entitlement)
+    {
+        _validityTarget = entitlement; _validityError = null;
+        _validityUntilLocal = entitlement.ValidUntilUtc?.ToLocalTime().DateTime;
+        StateHasChanged();
+        await _validityDialog!.ShowAsync();
+    }
+
+    private async Task SaveValidityAsync()
+    {
+        if (_validityTarget is null) return;
+        var until = _validityUntilLocal is null ? (DateTimeOffset?)null : new DateTimeOffset(DateTime.SpecifyKind(_validityUntilLocal.Value, DateTimeKind.Unspecified), TimeZoneInfo.Local.GetUtcOffset(_validityUntilLocal.Value)).ToUniversalTime();
+        _saving = true;
+        try
+        {
+            _validityError = null;
+            await AdministrationClient.UpdateDirectEntitlementValidityAsync(_validityTarget, until, CancellationToken.None);
+            await _validityDialog!.HideAsync();
+            _success = "Die Gültigkeit wurde aktualisiert.";
+            await LoadAsync();
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _validityError = "Das Entitlement wurde zwischenzeitlich geändert oder deaktiviert. Schließen Sie den Dialog und versuchen Sie es mit dem aktuellen Stand erneut."; }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _validityError = "Das Ablaufdatum muss nach dem Gültigkeitsbeginn liegen."; }
+        catch { _validityError = "Die Gültigkeit konnte nicht gespeichert werden. Prüfen Sie Ihre Berechtigung und die geschützten Serverprotokolle."; }
+        finally { _saving = false; }
+    }
+
+    private async Task DeactivateAsync()
+    {
+        if (_pending is null) return;
+        _saving = true;
+        try { await AdministrationClient.DeactivateDirectEntitlementAsync(_pending, CancellationToken.None); _pending = null; _success = "Das Entitlement wurde deaktiviert."; await LoadAsync(); }
+        catch { _error = "Das Entitlement konnte nicht deaktiviert werden. Die Daten wurden möglicherweise parallel geändert."; }
+        finally { _saving = false; }
+    }
+}

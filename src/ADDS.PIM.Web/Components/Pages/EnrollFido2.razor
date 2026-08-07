@@ -1,0 +1,146 @@
+@page "/mfa/fido2/enroll"
+@inject IOperatorRequestClient RequestClient
+@inject IJSRuntime JS
+
+<Fido2Interop />
+
+<PageTitle>ADDS-PIM · Passkey einrichten</PageTitle>
+
+<div class="page-header">
+    <section class="hero" aria-labelledby="page-title">
+        <div>
+            <p class="eyebrow">Multi-Factor Authentication</p>
+            <h1 id="page-title">Passkey einrichten</h1>
+            <p>Richten Sie einen FIDO2-Passkey ein, um Gruppenanfragen zu bestätigen, die einen zweiten Faktor erfordern. Sie können mehrere Passkeys hinterlegen.</p>
+        </div>
+    </section>
+    <NavLink class="back-link" href="/mfa"><i class="bi bi-arrow-left" aria-hidden="true"></i> Zur MFA-Übersicht</NavLink>
+</div>
+
+@if (_loadingStatus)
+{
+    <LoadingIndicator Message="Status wird geladen …" />
+}
+else
+{
+    @if (_credentials.Count > 0)
+    {
+        <section class="request-form" aria-labelledby="existing-title">
+            <h2 id="existing-title">Eingerichtete Passkeys</h2>
+            <ul>
+                @foreach (var credential in _credentials)
+                {
+                    <li>@(string.IsNullOrWhiteSpace(credential.Label) ? "Passkey" : credential.Label) &middot; eingerichtet am @credential.CreatedUtc.ToLocalTime().ToString("g")</li>
+                }
+            </ul>
+            <p class="hint">Zum Entfernen eines Passkeys wenden Sie sich an einen Administrator.</p>
+        </section>
+    }
+
+    @if (_error is not null)
+    {
+        <div class="submission-result failed" role="alert">@_error</div>
+    }
+
+    @if (_stepUpRequired)
+    {
+        <section class="request-form" aria-labelledby="stepup-title">
+            <h2 id="stepup-title">Bestätigen Sie einen vorhandenen Faktor</h2>
+            <p>Für die Einrichtung eines weiteren Passkeys müssen Sie zunächst einen bereits eingerichteten Faktor bestätigen.</p>
+            @if (_stepUpAssertionOptionsJson is not null)
+            {
+                <button class="submit-button" type="button" disabled="@_busy" @onclick="StepUpWithPasskeyAsync">@(_busy ? "Wird bestätigt …" : "Mit vorhandenem Passkey bestätigen")</button>
+            }
+            @if (_stepUpTotpAllowed)
+            {
+                <EditForm Model="_stepUpForm" OnValidSubmit="StepUpWithTotpAsync">
+                    <div class="field">
+                        <label for="stepup-code">TOTP-Code</label>
+                        <InputText id="stepup-code" @bind-Value="_stepUpForm.Code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" />
+                    </div>
+                    <button class="submit-button" type="submit" disabled="@_busy">@(_busy ? "Wird bestätigt …" : "Mit TOTP bestätigen")</button>
+                </EditForm>
+            }
+        </section>
+    }
+    else
+    {
+        <section class="request-form" aria-labelledby="add-title">
+            <h2 id="add-title">Neuen Passkey hinzufügen</h2>
+            <div class="field">
+                <label for="label">Bezeichnung (optional)</label>
+                <input id="label" type="text" @bind="_label" placeholder="z. B. YubiKey Büro" maxlength="128" />
+            </div>
+            <button class="submit-button" type="button" disabled="@_busy" @onclick="StartAsync">@(_busy ? "Wird eingerichtet …" : "Passkey hinzufügen")</button>
+        </section>
+    }
+}
+
+@code {
+    private IReadOnlyList<Fido2CredentialSummary> _credentials = [];
+    private bool _loadingStatus = true;
+    private bool _busy;
+    private string? _error;
+    private string? _label;
+
+    private bool _stepUpRequired;
+    private bool _stepUpTotpAllowed;
+    private Guid? _stepUpChallengeId;
+    private string? _stepUpAssertionOptionsJson;
+    private readonly StepUpForm _stepUpForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var status = await RequestClient.GetMfaStatusAsync(CancellationToken.None);
+            _credentials = status?.Fido2Credentials ?? [];
+        }
+        catch { _error = "Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        finally { _loadingStatus = false; }
+    }
+
+    private async Task StartAsync() => await RequestRegistrationAsync(null, null, null);
+
+    private async Task StepUpWithTotpAsync() => await RequestRegistrationAsync(_stepUpChallengeId, _stepUpForm.Code, null);
+
+    private async Task StepUpWithPasskeyAsync()
+    {
+        if (_stepUpAssertionOptionsJson is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            var assertionJson = await JS.InvokeAsync<string>("pimFido2.authenticate", _stepUpAssertionOptionsJson);
+            await RequestRegistrationAsync(_stepUpChallengeId, null, assertionJson);
+        }
+        catch { _error = "Der vorhandene Passkey konnte nicht bestätigt werden."; _busy = false; }
+    }
+
+    private async Task RequestRegistrationAsync(Guid? stepUpChallengeId, string? stepUpTotpCode, string? stepUpAssertionResponseJson)
+    {
+        _busy = true; _error = null;
+        try
+        {
+            var result = await RequestClient.StartFido2RegistrationAsync(stepUpChallengeId, stepUpTotpCode, stepUpAssertionResponseJson, CancellationToken.None);
+            if (result.StepUpRequired)
+            {
+                _stepUpRequired = true;
+                _stepUpTotpAllowed = result.StepUpTotpAllowed;
+                _stepUpChallengeId = result.StepUpChallengeId;
+                _stepUpAssertionOptionsJson = result.StepUpAssertionOptionsJson;
+                if (stepUpChallengeId is not null) _error = "Die Bestätigung ist fehlgeschlagen. Versuchen Sie es erneut.";
+                return;
+            }
+
+            _stepUpRequired = false;
+            var attestationJson = await JS.InvokeAsync<string>("pimFido2.register", result.RegistrationOptionsJson);
+            await RequestClient.CompleteFido2RegistrationAsync(result.RegistrationChallengeId!.Value, attestationJson, string.IsNullOrWhiteSpace(_label) ? null : _label.Trim(), CancellationToken.None);
+            _credentials = (await RequestClient.GetMfaStatusAsync(CancellationToken.None))?.Fido2Credentials ?? _credentials;
+            _label = null;
+        }
+        catch { _error = "Der Passkey konnte nicht eingerichtet werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        finally { _busy = false; }
+    }
+
+    private sealed class StepUpForm { public string Code { get; set; } = string.Empty; }
+}

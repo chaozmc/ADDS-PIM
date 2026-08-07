@@ -1,0 +1,231 @@
+@page "/admin/settings/ticket-reference-patterns"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM - Ticket-Patterns</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Ticket-Referenz-Patterns</h1>
+        <p>Aktive Patterns werden serverseitig mit begrenzter, nicht-backtracking Regex-Prüfung verwendet.</p>
+    </div>
+</section>
+
+@if (_error is not null)
+{
+    <p class="submission-result failed" role="alert">@_error</p>
+}
+else if (_patterns is null || _groups is null)
+{
+    <LoadingIndicator Message="Einstellungen werden geladen …" />
+}
+else
+{
+    <section>
+        <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
+            <button class="btn btn-primary" @onclick="New"><i class="bi bi-plus-lg" aria-hidden="true"></i> Pattern hinzufügen</button>
+            <div>
+                <label for="pattern-group-filter" class="form-label">Gruppe filtern</label>
+                <input id="pattern-group-filter" class="form-control" @bind="_groupFilter" @bind:event="oninput" placeholder="Gruppenname eingeben ..." />
+            </div>
+        </div>
+
+        @if (FilteredGroups.Count == 0)
+        {
+            <EmptyState Icon="bi-ticket-perforated" Title="Keine Ticket-Patterns gefunden" Description="Legen Sie ein Pattern an oder passen Sie den Gruppenfilter an." />
+        }
+        else
+        {
+            @foreach (var group in FilteredGroups)
+            {
+                var groupExpanded = _expandedGroupId == group.TargetGroupId;
+                <div class="card mb-2">
+                    <div class="card-header" role="button" tabindex="0" aria-expanded="@groupExpanded" @onclick="() => ToggleGroup(group.TargetGroupId)">
+                        <i class="bi @(groupExpanded ? "bi-chevron-down" : "bi-chevron-right") me-1" aria-hidden="true"></i>
+                        <strong>@group.TargetGroupDisplayName</strong>
+                        <span class="ms-2 text-muted">(@group.Patterns.Count Pattern@(group.Patterns.Count == 1 ? "" : "s"))</span>
+                    </div>
+                    @if (groupExpanded)
+                    {
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>Bezeichnung</th><th>Regex</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var pattern in group.Patterns)
+                                    {
+                                        <tr>
+                                            <td>@pattern.Label</td>
+                                            <td><code>@pattern.Expression</code></td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-secondary" @onclick="() => _editor = new(pattern)"><i class="bi bi-pencil-square" aria-hidden="true"></i> Bearbeiten</button>
+                                                <button class="btn btn-sm btn-outline-primary ms-2" @onclick="() => CopyToNewGroup(pattern)"><i class="bi bi-copy" aria-hidden="true"></i> Kopieren</button>
+                                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => _pendingDeletion = pattern"><i class="bi bi-trash3" aria-hidden="true"></i> Löschen</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        @if (_pendingDeletion is not null)
+        {
+            <DangerZonePanel Message="@($"{_pendingDeletion.Label} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.")"
+                              ConfirmLabel="Endgültig löschen" IsBusy="_saving"
+                              OnConfirm="DeleteAsync" OnCancel="() => _pendingDeletion = null" />
+        }
+
+        @if (_editor is not null)
+        {
+            <EditForm Model="_editor" OnValidSubmit="SaveAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="h4">@(_editor.IsNew ? "Pattern hinzufügen" : "Pattern bearbeiten")</h2>
+                        <div class="mb-3">
+                            <label>Gruppe</label>
+                            <InputSelect class="form-select" @bind-Value="_editor.TargetGroupId" disabled="@(!_editor.IsNew)">
+                                <option value="">Bitte wählen</option>
+                                @foreach (var group in _groups)
+                                {
+                                    <option value="@group.TargetGroupId">@group.DomainQualifiedName</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="mb-3">
+                            <label>Bezeichnung</label>
+                            <InputText class="form-control" @bind-Value="_editor.Label" />
+                        </div>
+                        <div class="mb-3">
+                            <label>Regulärer Ausdruck</label>
+                            <InputText class="form-control" @bind-Value="_editor.Expression" />
+                            <div class="form-text">Der gesamte Ticketwert sollte mit <code>^</code> und <code>$</code> begrenzt werden, z. B. <code>@("^CHG-[0-9]{5}$")</code>.</div>
+                        </div>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" @bind-Value="_editor.IsActive" />
+                            <label class="form-check-label">Aktiv</label>
+                        </div>
+                        <p class="mt-3">
+                            <button class="btn btn-primary" type="submit" disabled="@_saving">Speichern</button>
+                            <button class="btn btn-secondary ms-2" type="button" @onclick="() => _editor = null">Abbrechen</button>
+                        </p>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </section>
+}
+
+@code {
+    private IReadOnlyList<ManagedTicketReferencePattern>? _patterns;
+    private IReadOnlyList<ManagedTargetGroup>? _groups;
+    private string? _error;
+    private bool _saving;
+    private Editor? _editor;
+    private ManagedTicketReferencePattern? _pendingDeletion;
+    private string _groupFilter = string.Empty;
+    private Guid? _expandedGroupId;
+
+    private IReadOnlyList<GroupPatterns> FilteredGroups => (_patterns ?? [])
+        .Where(pattern => pattern.IsActive)
+        .GroupBy(pattern => pattern.TargetGroupId)
+        .Select(group => new GroupPatterns(group.Key, group.First().TargetGroupDisplayName, group.OrderBy(pattern => pattern.Label).ToArray()))
+        .Where(group => string.IsNullOrWhiteSpace(_groupFilter) || group.TargetGroupDisplayName.Contains(_groupFilter, StringComparison.OrdinalIgnoreCase))
+        .OrderBy(group => group.TargetGroupDisplayName)
+        .ToArray();
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error = null;
+            _patterns = await AdministrationClient.GetTicketReferencePatternsAsync(CancellationToken.None);
+            _groups = await AdministrationClient.GetTargetGroupsAsync(CancellationToken.None);
+        }
+        catch
+        {
+            _error = "Die Ticket-Patterns konnten nicht geladen werden.";
+        }
+    }
+
+    private void New() => _editor = new Editor();
+
+    private void CopyToNewGroup(ManagedTicketReferencePattern source) => _editor = new Editor(source.Label, source.Expression);
+
+    private void ToggleGroup(Guid targetGroupId) => _expandedGroupId = _expandedGroupId == targetGroupId ? null : targetGroupId;
+
+    private async Task SaveAsync()
+    {
+        if (_editor is null || !Guid.TryParse(_editor.TargetGroupId, out var groupId))
+        {
+            _error = "Bitte wählen Sie eine Zielgruppe.";
+            return;
+        }
+        _saving = true;
+        try
+        {
+            await AdministrationClient.UpsertTicketReferencePatternAsync(_editor.ToContract(groupId), CancellationToken.None);
+            _editor = null;
+            await LoadAsync();
+        }
+        catch
+        {
+            _error = "Das Pattern konnte nicht gespeichert werden. Prüfen Sie Format, Eindeutigkeit und parallele Änderungen.";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_pendingDeletion is null) return;
+        _saving = true;
+        try
+        {
+            await AdministrationClient.DeleteTicketReferencePatternAsync(_pendingDeletion, CancellationToken.None);
+            _pendingDeletion = null;
+            await LoadAsync();
+        }
+        catch
+        {
+            _error = "Das Pattern konnte nicht gelöscht werden; es wurde möglicherweise zwischenzeitlich geändert.";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed record GroupPatterns(Guid TargetGroupId, string TargetGroupDisplayName, IReadOnlyList<ManagedTicketReferencePattern> Patterns);
+
+    private sealed class Editor
+    {
+        public Editor() { IsNew = true; }
+        public Editor(ManagedTicketReferencePattern source) { Source = source; TargetGroupId = source.TargetGroupId.ToString(); Label = source.Label; Expression = source.Expression; IsActive = source.IsActive; }
+        public Editor(string label, string expression) { IsNew = true; Label = label; Expression = expression; }
+
+        public bool IsNew { get; }
+        public ManagedTicketReferencePattern? Source { get; }
+
+        [System.ComponentModel.DataAnnotations.Required]
+        public string TargetGroupId { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(128)]
+        public string Label { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(512)]
+        public string Expression { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; } = true;
+
+        public ManagedTicketReferencePattern ToContract(Guid groupId)
+            => new(Source?.TicketReferencePatternId ?? Guid.Empty, groupId, string.Empty, Label, Expression, IsActive, Source?.RowVersion ?? string.Empty);
+    }
+}

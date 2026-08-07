@@ -1,0 +1,39 @@
+@page "/"
+
+<PageTitle>ADDS-PIM · Willkommen</PageTitle>
+
+<section class="welcome-hero">
+    <p class="welcome-eyebrow">Willkommen, @(string.IsNullOrWhiteSpace(DisplayName) ? "bei ADDS-PIM" : DisplayName)</p>
+    <h1 class="welcome-title">ADDS-PIM</h1>
+    <p class="welcome-subtitle">
+        Privileged Identity Management<br />
+        <em class="welcome-subtitle-for">for</em><br />
+        <span class="welcome-subtitle-ad">Active Directory</span>
+    </p>
+
+    <div class="welcome-visual">
+        <img src="img/adds-pim-hero.svg" alt="ADDS-PIM – Privileged Identity Management for Active Directory" />
+    </div>
+
+    <p class="welcome-tagline">
+        Zeitlich begrenzter, nachvollziehbarer Zugriff auf privilegierte AD-Gruppen –
+        mit Multi-Faktor-Bestätigung, lückenlosem Audit-Trail und automatischer Ablaufkontrolle.
+    </p>
+
+    <div class="welcome-actions">
+        <NavLink class="submit-button welcome-cta" href="new-request">
+            <i class="bi bi-key-fill" aria-hidden="true"></i> Zugriff anfordern
+        </NavLink>
+        <NavLink class="welcome-secondary-button" href="requests">
+            <i class="bi bi-clock-history" aria-hidden="true"></i> Meine Requests
+        </NavLink>
+        <NavLink class="welcome-secondary-button" href="mfa">
+            <i class="bi bi-shield-check" aria-hidden="true"></i> Multi-Faktor Authentication
+        </NavLink>
+    </div>
+</section>
+
+@code {
+    [CascadingParameter(Name = "CurrentUserDisplayName")]
+    private string? DisplayName { get; set; }
+}

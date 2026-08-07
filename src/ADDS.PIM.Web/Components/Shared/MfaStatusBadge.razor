@@ -1,0 +1,69 @@
+@inject NavigationManager NavigationManager
+
+@if (Status is not null)
+{
+    @if (Status.TotpEnrolled)
+    {
+        <button type="button" class="pim-badge pim-badge-success" @onclick="ShowTotpDialogAsync">
+            <i class="bi bi-shield-check" aria-hidden="true"></i> TOTP eingerichtet
+        </button>
+    }
+    else
+    {
+        <button type="button" class="pim-badge pim-badge-warning" @onclick="NavigateToTotpEnrollment">
+            <i class="bi bi-shield-exclamation" aria-hidden="true"></i> TOTP nicht eingerichtet
+        </button>
+    }
+    @if (Status.Fido2Available)
+    {
+        @if (Status.Fido2Enrolled)
+        {
+            <button type="button" class="pim-badge pim-badge-success" @onclick="ShowFido2DialogAsync">
+                <i class="bi bi-shield-check" aria-hidden="true"></i> Passkey eingerichtet
+            </button>
+        }
+        else
+        {
+            <button type="button" class="pim-badge pim-badge-warning" @onclick="NavigateToFido2Enrollment">
+                <i class="bi bi-shield-exclamation" aria-hidden="true"></i> Passkey nicht eingerichtet
+            </button>
+        }
+    }
+
+    <ConfirmDialog @ref="_totpDialog" Title="TOTP-Faktor">
+        <div class="mfa-status-modal">
+            <i class="bi bi-check-circle-fill mfa-status-modal-icon" aria-hidden="true"></i>
+            <p>TOTP ist eingerichtet und schützt Ihre Gruppenanfragen.</p>
+            @if (Status.TotpConfirmedUtc is { } confirmedUtc)
+            {
+                <p class="hint">Eingerichtet am @confirmedUtc.ToLocalTime().ToString("g")</p>
+            }
+        </div>
+    </ConfirmDialog>
+
+    @if (Status.Fido2Available)
+    {
+        <ConfirmDialog @ref="_fido2Dialog" Title="Passkey">
+            <div class="mfa-status-modal">
+                <i class="bi bi-check-circle-fill mfa-status-modal-icon" aria-hidden="true"></i>
+                <p>Ein Passkey ist eingerichtet und schützt Ihre Gruppenanfragen.</p>
+                @if (Status.Fido2ConfirmedUtc is { } fido2ConfirmedUtc)
+                {
+                    <p class="hint">Eingerichtet am @fido2ConfirmedUtc.ToLocalTime().ToString("g")</p>
+                }
+            </div>
+        </ConfirmDialog>
+    }
+}
+
+@code {
+    [Parameter] public MyMfaStatusResponse? Status { get; set; }
+
+    private ConfirmDialog? _totpDialog;
+    private ConfirmDialog? _fido2Dialog;
+
+    private void NavigateToTotpEnrollment() => NavigationManager.NavigateTo("/mfa/totp/enroll");
+    private void NavigateToFido2Enrollment() => NavigationManager.NavigateTo("/mfa/fido2/enroll");
+    private Task ShowTotpDialogAsync() => _totpDialog?.ShowAsync() ?? Task.CompletedTask;
+    private Task ShowFido2DialogAsync() => _fido2Dialog?.ShowAsync() ?? Task.CompletedTask;
+}

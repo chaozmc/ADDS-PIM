@@ -1,0 +1,70 @@
+@page "/mfa"
+@inject IOperatorRequestClient RequestClient
+
+<PageTitle>ADDS-PIM · Multi-Faktor Authentication</PageTitle>
+
+<section class="hero" aria-labelledby="page-title">
+    <div>
+        <p class="eyebrow">Multi-Factor Authentication</p>
+        <h1 id="page-title">Multi-Faktor Authentication</h1>
+        <p>Übersicht Ihrer eingerichteten zweiten Faktoren. Ein zweiter Faktor wird für Gruppen benötigt, deren Policy dies verlangt.</p>
+    </div>
+</section>
+
+@if (_loading)
+{
+    <LoadingIndicator Message="Status wird geladen …" />
+}
+else if (_error is not null)
+{
+    <div class="submission-result failed" role="alert">@_error</div>
+}
+else
+{
+    <div class="mfa-tiles">
+        <section class="mfa-tile" aria-labelledby="totp-title">
+            <h2 id="totp-title"><i class="bi bi-phone" aria-hidden="true"></i> TOTP</h2>
+            @if (_status is { TotpEnrolled: true })
+            {
+                <p>Ein TOTP-Faktor ist eingerichtet@(_status.TotpConfirmedUtc is { } confirmedUtc ? $" (seit {confirmedUtc.ToLocalTime():g})" : "").</p>
+            }
+            else
+            {
+                <p>Kein TOTP-Faktor eingerichtet.</p>
+            }
+            <NavLink class="submit-button" href="/mfa/totp/enroll">TOTP verwalten</NavLink>
+        </section>
+
+        <section class="mfa-tile" aria-labelledby="fido2-title">
+            <h2 id="fido2-title"><i class="bi bi-fingerprint" aria-hidden="true"></i> FIDO2-Passkeys</h2>
+            @if (_status is { Fido2Enrolled: true })
+            {
+                <p>@_status.Fido2Credentials.Count Passkey(s) eingerichtet.</p>
+                <ul>
+                    @foreach (var credential in _status.Fido2Credentials)
+                    {
+                        <li>@(string.IsNullOrWhiteSpace(credential.Label) ? "Passkey" : credential.Label) &middot; seit @credential.CreatedUtc.ToLocalTime().ToString("g")</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>Kein Passkey eingerichtet.</p>
+            }
+            <NavLink class="submit-button" href="/mfa/fido2/enroll">Passkeys verwalten</NavLink>
+        </section>
+    </div>
+}
+
+@code {
+    private MyMfaStatusResponse? _status;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _status = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
+        catch { _error = "Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        finally { _loading = false; }
+    }
+}

@@ -1,0 +1,152 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+@inject IOperatorRequestClient RequestClient
+@inject ICurrentPimActorContext CurrentActor
+@inject ADDS.PIM.Application.Administration.IDirectoryAccountResolver DirectoryAccountResolver
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            @if (_isAdminSection)
+            {
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        @for (var i = 0; i < _breadcrumbs.Count; i++)
+                        {
+                            var crumb = _breadcrumbs[i];
+                            var isLast = i == _breadcrumbs.Count - 1;
+                            <li class="breadcrumb-item @(isLast ? "active" : "")" aria-current="@(isLast ? "page" : null)">
+                                @if (isLast)
+                                {
+                                    @crumb.Label
+                                }
+                                else
+                                {
+                                    <a href="@crumb.Href">@crumb.Label</a>
+                                }
+                            </li>
+                        }
+                    </ol>
+                </nav>
+            }
+            else
+            {
+                <span></span>
+            }
+            <span class="welcome-message">
+                <span>Willkommen, @_displayName</span>
+                <span class="welcome-message-badges"><MfaStatusBadge Status="_mfaStatus" /></span>
+            </span>
+        </div>
+
+        <article class="content px-4">
+            <CascadingValue Value="_displayName" Name="CurrentUserDisplayName">
+                @Body
+            </CascadingValue>
+        </article>
+    </main>
+</div>
+
+@code {
+    private static readonly Dictionary<string, string> SegmentLabels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["admin"] = "Administration",
+        ["persons"] = "Personen",
+        ["groups"] = "Gruppenverwaltung",
+        ["entitlements"] = "Direkte Entitlements",
+        ["identity-purge"] = "Bereinigung",
+        ["settings"] = "Einstellungen",
+        ["directory-reconciliation"] = "AD-Abgleich",
+        ["audit-log"] = "Audit-Log",
+        ["technical-errors"] = "Technische Fehler",
+        ["ticket-reference-patterns"] = "Ticket-Referenzmuster",
+    };
+
+    private string _displayName = "";
+    private bool _isAdminSection;
+    private List<(string Label, string Href)> _breadcrumbs = [];
+    private MyMfaStatusResponse? _mfaStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var identity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
+        _displayName = string.IsNullOrWhiteSpace(identity) ? "bei ADDS-PIM" : identity.Split('\\').Last();
+        await ResolveFriendlyDisplayNameAsync();
+        UpdateSection();
+        NavigationManager.LocationChanged += OnLocationChanged;
+        await RefreshMfaStatusAsync();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateSection();
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshMfaStatusAsync();
+            StateHasChanged();
+        });
+    }
+
+    /// <summary>Best-effort: replaces the SAM-derived fallback with the current actor's AD display name. Never blocks or fails the page if the lookup is unavailable.</summary>
+    private async Task ResolveFriendlyDisplayNameAsync()
+    {
+        try
+        {
+            var actor = await CurrentActor.ResolveAsync(CancellationToken.None);
+            if (actor is null) return;
+            var account = await DirectoryAccountResolver.ResolveAccountAsync(actor.ObjectGuid, CancellationToken.None);
+            if (!string.IsNullOrWhiteSpace(account?.DisplayName)) _displayName = account.DisplayName;
+        }
+        catch { /* keep the SAM-derived fallback */ }
+    }
+
+    private async Task RefreshMfaStatusAsync()
+    {
+        try { _mfaStatus = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
+        catch { _mfaStatus = null; }
+    }
+
+    private void UpdateSection()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).TrimEnd('/');
+        var queryIndex = relativePath.IndexOf('?');
+        if (queryIndex >= 0)
+        {
+            relativePath = relativePath[..queryIndex];
+        }
+
+        _isAdminSection = relativePath.StartsWith("admin", StringComparison.OrdinalIgnoreCase);
+        _breadcrumbs = _isAdminSection ? BuildBreadcrumbs(relativePath) : [];
+    }
+
+    private static List<(string Label, string Href)> BuildBreadcrumbs(string relativePath)
+    {
+        var segments = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var crumbs = new List<(string Label, string Href)>();
+        var href = "";
+
+        foreach (var segment in segments)
+        {
+            href += "/" + segment;
+            var label = Guid.TryParse(segment, out _) ? "Details" : SegmentLabels.GetValueOrDefault(segment, segment);
+            crumbs.Add((label, href));
+        }
+
+        return crumbs;
+    }
+
+    public void Dispose() => NavigationManager.LocationChanged -= OnLocationChanged;
+}
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

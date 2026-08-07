@@ -1,0 +1,11 @@
+.mfa-status-modal {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.mfa-status-modal-icon {
+    font-size: 3rem;
+    color: var(--pim-success-fg);
+    display: block;
+    margin-bottom: .75rem;
+}

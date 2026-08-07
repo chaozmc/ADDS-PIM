@@ -1,0 +1,148 @@
+@page "/my-approvals"
+@inject IOperatorRequestClient RequestClient
+
+<PageTitle>ADDS-PIM · Meine Genehmigungen</PageTitle>
+
+<section class="requests-page">
+    <p class="eyebrow">Approval Workflow</p>
+    <h1>Meine Genehmigungen</h1>
+    @if (_loading)
+    {
+        <LoadingIndicator Message="Offene Genehmigungen werden geladen …" />
+    }
+    else if (_error is not null)
+    {
+        <div class="submission-result failed" role="alert">@_error</div>
+    }
+    else if (_page is null || _page.TotalCount == 0)
+    {
+        <EmptyState Icon="bi-check2-square" Title="Keine offenen Genehmigungen" Description="Für die Gruppen, denen Sie als Approver zugeordnet sind, liegen derzeit keine wartenden Anfragen vor." />
+    }
+    else
+    {
+        <div class="request-table-wrap" role="region" aria-label="Meine Genehmigungen" tabindex="0">
+            <table class="request-table">
+                <thead>
+                    <tr><th>Datum</th><th>Person</th><th>Gruppe</th><th>Zielkonto</th><th>Dauer</th><th>Begründung</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _page.Items)
+                    {
+                        <tr>
+                            <td>@item.CreatedUtc.LocalDateTime.ToString("g")</td>
+                            <td>@item.PersonDisplayName</td>
+                            <td>@item.TargetGroupDisplayName</td>
+                            <td>@item.TargetAccountDisplayName</td>
+                            <td>@FormatDuration(item.RequestedTtlSeconds)</td>
+                            <td>@item.Reason</td>
+                            <td class="request-actions">
+                                <button class="btn btn-success btn-sm" disabled="@_deciding" @onclick="() => ApproveAsync(item.RequestId)">Genehmigen</button>
+                                <button class="btn btn-outline-danger btn-sm" disabled="@_deciding" @onclick="() => OpenRejectDialogAsync(item)">Ablehnen</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<ConfirmDialog @ref="_rejectDialog" Title="Anfrage ablehnen" OnClosed="() => { _rejectTarget = null; _rejectReason = string.Empty; _rejectError = null; }">
+    @if (_rejectTarget is not null)
+    {
+        <p>@_rejectTarget.PersonDisplayName · @_rejectTarget.TargetGroupDisplayName</p>
+        @if (_rejectError is not null)
+        {
+            <p class="alert alert-danger" role="alert">@_rejectError</p>
+        }
+        <div class="field">
+            <label for="reject-reason">Ablehnungsgrund</label>
+            <textarea id="reject-reason" class="form-control" rows="3" @bind="_rejectReason"></textarea>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_deciding">Abbrechen</button>
+            <button class="btn btn-danger" @onclick="RejectAsync" disabled="@_deciding">Ablehnen</button>
+        </div>
+    }
+</ConfirmDialog>
+
+@code {
+    private PendingApprovalsPage? _page;
+    private string? _error;
+    private bool _loading = true;
+    private bool _deciding;
+    private PendingApprovalItem? _rejectTarget;
+    private string _rejectReason = string.Empty;
+    private string? _rejectError;
+    private ConfirmDialog? _rejectDialog;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _page = await RequestClient.ListPendingApprovalsAsync(1, 50, CancellationToken.None);
+        }
+        catch
+        {
+            _error = "Die offenen Genehmigungen konnten nicht geladen werden.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ApproveAsync(Guid requestId)
+    {
+        _deciding = true;
+        try
+        {
+            await RequestClient.ApproveMembershipRequestAsync(requestId, CancellationToken.None);
+            await LoadAsync();
+        }
+        catch
+        {
+            _error = "Die Genehmigung konnte nicht übernommen werden. Möglicherweise wurde die Anfrage bereits entschieden oder die Zuordnung wurde geändert.";
+        }
+        finally
+        {
+            _deciding = false;
+        }
+    }
+
+    private async Task OpenRejectDialogAsync(PendingApprovalItem item)
+    {
+        _rejectTarget = item;
+        _rejectReason = string.Empty;
+        _rejectError = null;
+        StateHasChanged();
+        await _rejectDialog!.ShowAsync();
+    }
+
+    private async Task RejectAsync()
+    {
+        if (_rejectTarget is null || string.IsNullOrWhiteSpace(_rejectReason)) { _rejectError = "Ein Ablehnungsgrund ist erforderlich."; return; }
+        _deciding = true;
+        try
+        {
+            _rejectError = null;
+            await RequestClient.RejectMembershipRequestAsync(_rejectTarget.RequestId, _rejectReason, CancellationToken.None);
+            await _rejectDialog!.HideAsync();
+            await LoadAsync();
+        }
+        catch
+        {
+            _rejectError = "Die Ablehnung konnte nicht übernommen werden. Möglicherweise wurde die Anfrage bereits entschieden oder die Zuordnung wurde geändert.";
+        }
+        finally
+        {
+            _deciding = false;
+        }
+    }
+
+    private static string FormatDuration(long seconds) => $"{seconds / 3600m:0.##} h";
+}

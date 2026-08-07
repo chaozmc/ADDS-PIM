@@ -1,0 +1,8 @@
+<span class="pim-badge pim-badge-@Variant.ToString().ToLowerInvariant()">@Text</span>
+
+@code {
+    public enum BadgeVariant { Success, Danger, Warning, Neutral, Critical }
+
+    [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
+    [Parameter] public BadgeVariant Variant { get; set; } = BadgeVariant.Neutral;
+}

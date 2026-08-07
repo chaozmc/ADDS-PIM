@@ -1,0 +1,118 @@
+THIRD-PARTY NOTICES
+===================
+
+ADDS-PIM is licensed under the Prosperity Public License 3.0.0 (see LICENSE.md).
+It depends on the third-party software listed below, obtained via NuGet and/or
+the .NET tool manifest. Each package remains under its own license, listed here
+with its SPDX identifier and project URL. None of these projects are affiliated
+with or endorse ADDS-PIM.
+
+This file is generated from the PackageReference entries in the .csproj files
+under src/ and tests/, and the .NET local tool manifest (dotnet-tools.json).
+Update it whenever a dependency is added, upgraded, or removed (see
+docs/dependencies.md for the policy governing when a new dependency is added).
+
+
+APPLICATION (RUNTIME) DEPENDENCIES
+-----------------------------------
+
+Fido2
+  Version:  4.0.1
+  License:  MIT
+  Project:  https://github.com/passwordless-lib/fido2-net-lib
+  Used by:  ADDS.PIM.Infrastructure
+
+QRCoder
+  Version:  1.6.0
+  License:  MIT
+  Project:  https://github.com/codebude/QRCoder
+  Used by:  ADDS.PIM.Web
+
+Microsoft.EntityFrameworkCore.Design
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/efcore
+  Used by:  ADDS.PIM.Api, ADDS.PIM.Infrastructure 
+
+
+Microsoft.EntityFrameworkCore.SqlServer
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/efcore
+  Used by:  ADDS.PIM.Infrastructure
+
+Microsoft.Extensions.Configuration.Binder
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/runtime
+  Used by:  ADDS.PIM.Infrastructure
+
+Microsoft.Extensions.Hosting.WindowsServices
+  Version:  10.0.10
+  License:  MIT
+  Project:  https://github.com/dotnet/runtime
+  Used by:  ADDS.PIM.AdWorker
+
+Microsoft.Extensions.Http
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/runtime
+  Used by:  ADDS.PIM.Infrastructure
+
+System.DirectoryServices.Protocols
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/runtime
+  Used by:  ADDS.PIM.AdWorker, ADDS.PIM.Web, ADDS.PIM.Infrastructure 
+
+
+System.Diagnostics.EventLog
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/runtime
+  Used by:  ADDS.PIM.Infrastructure
+
+
+TEST-ONLY DEPENDENCIES
+-----------------------
+(Not included in any published/deployed output.)
+
+xunit
+  Version:  2.9.3
+  License:  Apache-2.0
+  Project:  https://github.com/xunit/xunit
+
+xunit.runner.visualstudio
+  Version:  3.1.4
+  License:  Apache-2.0
+  Project:  https://github.com/xunit/visualstudio.xunit
+
+Microsoft.NET.Test.Sdk
+  Version:  17.14.1
+  License:  MIT
+  Project:  https://github.com/microsoft/vstest
+
+coverlet.collector
+  Version:  6.0.4
+  License:  MIT
+  Project:  https://github.com/coverlet-coverage/coverlet
+
+
+DEVELOPMENT-TIME TOOLS
+-----------------------
+(Local .NET tools used to develop/maintain the project; not part of the
+application itself.)
+
+dotnet-ef
+  Version:  10.0.2
+  License:  MIT
+  Project:  https://github.com/dotnet/efcore
+  Used for: applying/generating EF Core migrations (see dotnet-tools.json)
+
+
+NOT BUNDLED OR SUBLICENSED
+----------------------------
+
+ADDS-PIM does not bundle, redistribute, or sublicense Microsoft Windows Server,
+Active Directory Domain Services, SQL Server, IIS, or the .NET runtime itself.
+These must be licensed separately by whoever operates a deployment.

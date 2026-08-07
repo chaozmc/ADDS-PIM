@@ -1,0 +1,35 @@
+<div class="danger-zone" role="alert">
+    <p>@Message</p>
+    @if (ChildContent is not null)
+    {
+        <div class="mb-3">@ChildContent</div>
+    }
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-danger" @onclick="() => OnConfirm.InvokeAsync()" disabled="@(IsBusy || !CanConfirm)">
+            @if (IsBusy)
+            {
+                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            }
+            @ConfirmLabel
+        </button>
+        <button type="button" class="btn btn-secondary" @onclick="() => OnCancel.InvokeAsync()" disabled="@IsBusy">@CancelLabel</button>
+    </div>
+</div>
+
+@code {
+    /// <summary>Inline (non-modal) confirmation panel for destructive actions, kept maximally visible in-flow rather than behind a dialog.</summary>
+    [Parameter] public string Message { get; set; } = string.Empty;
+
+    /// <summary>Optional extra content (e.g. a "type the exact phrase to confirm" input) rendered between the message and the action buttons.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public string ConfirmLabel { get; set; } = "Bestätigen";
+    [Parameter] public string CancelLabel { get; set; } = "Abbrechen";
+    [Parameter] public bool IsBusy { get; set; }
+
+    /// <summary>Set to false to keep the confirm button disabled until an extra precondition (e.g. a typed confirmation phrase) is met.</summary>
+    [Parameter] public bool CanConfirm { get; set; } = true;
+
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

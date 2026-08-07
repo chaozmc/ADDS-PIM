@@ -1,0 +1,508 @@
+/* ====================================================================
+   ADDS-PIM design tokens
+   Single non-scoped stylesheet loaded by Components/App.razor, after
+   Bootstrap's own CSS. Blazor CSS isolation means scoped *.razor.css
+   files never apply outside their own component, so any class shared
+   across multiple pages (.hero, .eyebrow, .submission-result, ...)
+   must live here, not in a page-scoped file.
+   ==================================================================== */
+
+:root {
+    /* Brand */
+    --pim-primary: #0B2E5C;
+    --pim-primary-hover: #082347;
+    --pim-accent: #D97706;
+    --pim-accent-hover: #B45309;
+
+    /* Neutrals */
+    --pim-text: #1E293B;
+    --pim-text-muted: #64748B;
+    --pim-surface: #F8FAFC;
+    --pim-surface-alt: #FFFFFF;
+    --pim-border: #CBD5E1;
+    --pim-border-subtle: #E2E8F0;
+
+    /* Semantic */
+    --pim-success-fg: #16A34A;
+    --pim-success-bg: #F0FDF4;
+    --pim-danger-fg: #DC2626;
+    --pim-danger-bg: #FEF2F2;
+    --pim-warning-fg: #B45309;
+    --pim-warning-bg: #FFFBEB;
+    --pim-critical-fg: #FEF2F2;
+    --pim-critical-bg: #7F1D1D;
+    --pim-focus-ring: rgba(11, 46, 92, 0.25);
+
+    /* Spacing */
+    --pim-space-1: .25rem;
+    --pim-space-2: .5rem;
+    --pim-space-3: 1rem;
+    --pim-space-4: 1.5rem;
+    --pim-space-5: 2rem;
+    --pim-space-6: 3rem;
+
+    /* Radius */
+    --pim-radius-sm: .25rem;
+    --pim-radius-md: .5rem;
+
+    /* Retheme Bootstrap's own semantic color variables so components this
+       stylesheet doesn't touch directly (form-check, .text-primary,
+       .bg-primary, .border-primary, .link-primary, spinners, ...) pick up
+       the new palette automatically instead of Bootstrap's stock blue. */
+    --bs-primary: var(--pim-accent);
+    --bs-primary-rgb: 217, 119, 6;
+    --bs-primary-text-emphasis: #78350F;
+    --bs-primary-bg-subtle: #FEF3C7;
+    --bs-primary-border-subtle: #FDE68A;
+    --bs-link-color: var(--pim-primary);
+    --bs-link-color-rgb: 11, 46, 92;
+    --bs-link-hover-color: var(--pim-primary-hover);
+    --bs-link-hover-color-rgb: 8, 35, 71;
+    --bs-success: var(--pim-success-fg);
+    --bs-success-rgb: 22, 163, 74;
+    --bs-danger: var(--pim-danger-fg);
+    --bs-danger-rgb: 220, 38, 38;
+}
+
+html, body {
+    font-family: var(--bs-font-sans-serif);
+    color: var(--pim-text);
+    background: var(--pim-surface);
+}
+
+a, .btn-link {
+    color: var(--pim-primary);
+}
+
+    a:hover, .btn-link:hover {
+        color: var(--pim-primary-hover);
+    }
+
+/* Bootstrap 5.3's CSS-variable button API: overriding these instead of
+   the base .btn-primary declaration keeps hover/active/focus in sync. */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--pim-accent);
+    --bs-btn-border-color: var(--pim-accent);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--pim-accent-hover);
+    --bs-btn-hover-border-color: var(--pim-accent-hover);
+    --bs-btn-active-bg: var(--pim-accent-hover);
+    --bs-btn-active-border-color: var(--pim-accent-hover);
+    --bs-btn-focus-shadow-rgb: 217, 119, 6;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--pim-accent);
+    --bs-btn-border-color: var(--pim-accent);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--pim-accent);
+    --bs-btn-hover-border-color: var(--pim-accent);
+    --bs-btn-active-bg: var(--pim-accent);
+    --bs-btn-active-border-color: var(--pim-accent);
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 .2rem var(--pim-focus-ring);
+}
+
+.alert-success {
+    --bs-alert-bg: var(--pim-success-bg);
+    --bs-alert-border-color: var(--pim-success-fg);
+    --bs-alert-color: var(--pim-success-fg);
+}
+
+.alert-danger {
+    --bs-alert-bg: var(--pim-danger-bg);
+    --bs-alert-border-color: var(--pim-danger-fg);
+    --bs-alert-color: var(--pim-danger-fg);
+}
+
+.card {
+    border-color: var(--pim-border-subtle);
+    border-radius: var(--pim-radius-md);
+    transition: box-shadow .15s ease-in-out;
+}
+
+    .card:has(a.btn):hover {
+        box-shadow: 0 .25rem .75rem rgba(11, 46, 92, .08);
+    }
+
+.table > :not(caption) > thead > tr > th {
+    background: var(--pim-surface);
+    color: var(--pim-text-muted);
+    font-size: .85rem;
+    font-weight: 600;
+    border-bottom-color: var(--pim-border);
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+h1:focus {
+    outline: none;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid var(--pim-success-fg);
+}
+
+.invalid {
+    outline: 1px solid var(--pim-danger-fg);
+}
+
+.validation-message {
+    color: var(--pim-danger-fg);
+}
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "Ein unerwarteter Fehler ist aufgetreten."
+    }
+
+.darker-border-checkbox.form-check-input {
+    border-color: #929292;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* ====================================================================
+   Shared page components
+   ==================================================================== */
+
+.hero {
+    padding: var(--pim-space-5) 0 var(--pim-space-4);
+    margin-bottom: var(--pim-space-4);
+    border-bottom: 1px solid var(--pim-border-subtle);
+}
+
+    .hero h1 {
+        margin: .25rem 0 .5rem;
+        color: var(--pim-text);
+        font-weight: 700;
+        font-size: 1.75rem;
+    }
+
+    .hero p:not(.eyebrow) {
+        color: var(--pim-text-muted);
+        margin: 0;
+        max-width: 60ch;
+    }
+
+    .hero .btn {
+        margin-top: var(--pim-space-3);
+    }
+
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--pim-space-3);
+}
+
+    .page-header .hero {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+.back-link {
+    flex-shrink: 0;
+    margin-top: var(--pim-space-5);
+    color: var(--pim-text-muted);
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .back-link:hover {
+        color: var(--pim-primary);
+        text-decoration: underline;
+    }
+
+    .back-link .bi {
+        margin-right: .35rem;
+    }
+
+.nav-tabs {
+    border-bottom-color: var(--pim-border);
+    margin-bottom: 0;
+    gap: var(--pim-space-2);
+}
+
+    .nav-tabs .nav-link {
+        background: transparent;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        margin-bottom: -1px;
+        padding: .6rem .25rem;
+        color: var(--pim-text-muted);
+        font-weight: 600;
+        transition: color .15s ease-in-out, border-color .15s ease-in-out;
+    }
+
+        .nav-tabs .nav-link:hover, .nav-tabs .nav-link:focus {
+            color: var(--pim-primary);
+            border-color: var(--pim-border);
+            isolation: isolate;
+        }
+
+        .nav-tabs .nav-link:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 .2rem var(--pim-focus-ring);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--pim-primary);
+            background: transparent;
+            border-color: var(--pim-accent);
+        }
+
+.eyebrow {
+    display: inline-block;
+    color: var(--pim-accent);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 0 0 .35rem;
+}
+
+.submission-result {
+    margin-top: var(--pim-space-4);
+    padding: var(--pim-space-3) var(--pim-space-4);
+    border-left: 4px solid;
+    border-radius: var(--pim-radius-sm);
+}
+
+    .submission-result h3, .submission-result p {
+        margin: 0 0 .5rem;
+    }
+
+    .submission-result p:last-child {
+        margin-bottom: 0;
+    }
+
+    .submission-result.accepted, .submission-result.succeeded {
+        border-color: var(--pim-success-fg);
+        background: var(--pim-success-bg);
+        color: var(--pim-success-fg);
+    }
+
+    .submission-result.failed {
+        border-color: var(--pim-danger-fg);
+        background: var(--pim-danger-bg);
+        color: var(--pim-danger-fg);
+    }
+
+    .submission-result.pending {
+        border-color: var(--pim-warning-fg);
+        background: var(--pim-warning-bg);
+        color: var(--pim-warning-fg);
+    }
+
+.request-id-success {
+    color: var(--pim-success-fg);
+}
+
+.prototype-notice {
+    padding: var(--pim-space-3) var(--pim-space-4);
+    border: 1px dashed var(--pim-border);
+    border-radius: var(--pim-radius-md);
+    background: var(--pim-surface-alt);
+    color: var(--pim-text-muted);
+    display: grid;
+    gap: .25rem;
+}
+
+    .prototype-notice strong {
+        color: var(--pim-text);
+    }
+
+.field {
+    display: grid;
+    gap: .45rem;
+    margin: var(--pim-space-3) 0;
+}
+
+    .field label {
+        color: var(--pim-text);
+        font-weight: 600;
+    }
+
+    .field input, .field select, .field textarea {
+        width: 100%;
+        padding: .6rem .75rem;
+        border: 1px solid var(--pim-border);
+        border-radius: var(--pim-radius-sm);
+        color: var(--pim-text);
+        font: inherit;
+        background: var(--pim-surface-alt);
+    }
+
+        .field input:focus, .field select:focus, .field textarea:focus {
+            outline: none;
+            border-color: var(--pim-primary);
+            box-shadow: 0 0 0 .2rem var(--pim-focus-ring);
+        }
+
+.hint, .optional {
+    color: var(--pim-text-muted);
+    font-size: .85rem;
+    font-weight: 400;
+}
+
+.submit-button {
+    display: inline-block;
+    padding: .7rem 1.25rem;
+    border: 0;
+    border-radius: var(--pim-radius-sm);
+    background: var(--pim-accent);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+}
+
+    .submit-button:hover:not(:disabled) {
+        background: var(--pim-accent-hover);
+    }
+
+    .submit-button:disabled {
+        opacity: .65;
+        cursor: wait;
+    }
+
+.empty-state {
+    padding: var(--pim-space-6) var(--pim-space-4);
+    text-align: center;
+    color: var(--pim-text-muted);
+    border: 1px dashed var(--pim-border);
+    border-radius: var(--pim-radius-md);
+    background: var(--pim-surface-alt);
+}
+
+    .empty-state .bi {
+        font-size: 2rem;
+        color: var(--pim-border);
+        display: block;
+        margin-bottom: var(--pim-space-2);
+    }
+
+    .empty-state h3 {
+        color: var(--pim-text);
+        font-size: 1.05rem;
+        margin: 0 0 .35rem;
+    }
+
+    .empty-state p {
+        margin: 0 0 var(--pim-space-3);
+    }
+
+.danger-zone {
+    padding: var(--pim-space-3) var(--pim-space-4);
+    border: 1px solid var(--pim-danger-fg);
+    border-left-width: 4px;
+    border-radius: var(--pim-radius-sm);
+    background: var(--pim-danger-bg);
+    margin-top: var(--pim-space-3);
+}
+
+    .danger-zone > p:first-child {
+        color: var(--pim-danger-fg);
+        margin: 0 0 var(--pim-space-3);
+        font-weight: 600;
+    }
+
+.pim-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .65rem;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pim-badge-success {
+    background: var(--pim-success-bg);
+    color: var(--pim-success-fg);
+}
+
+.pim-badge-danger {
+    background: var(--pim-danger-bg);
+    color: var(--pim-danger-fg);
+}
+
+.pim-badge-warning {
+    background: var(--pim-warning-bg);
+    color: var(--pim-warning-fg);
+}
+
+.pim-badge-neutral {
+    background: var(--pim-surface);
+    color: var(--pim-text-muted);
+    border: 1px solid var(--pim-border);
+}
+
+.pim-badge-critical {
+    background: var(--pim-critical-bg);
+    color: var(--pim-critical-fg);
+}
+
+.pim-cert-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    font-size: .95rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pim-cert-icon:hover,
+.pim-cert-icon:focus-visible {
+    filter: brightness(0.93);
+    outline: 2px solid var(--pim-focus-ring);
+    outline-offset: 1px;
+}
+
+.pim-cert-icon-lg {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.3rem;
+}
+
+.cert-status-card {
+    flex: 0 0 auto;
+    min-width: 260px;
+    align-self: center;
+}
+
+.cert-status-title {
+    margin: 0 0 .6rem;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--pim-accent);
+}

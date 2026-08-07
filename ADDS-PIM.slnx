@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ADDS.PIM.AdWorker/ADDS.PIM.AdWorker.csproj" />
+    <Project Path="src/ADDS.PIM.Api/ADDS.PIM.Api.csproj" />
+    <Project Path="src/ADDS.PIM.Application/ADDS.PIM.Application.csproj" />
+    <Project Path="src/ADDS.PIM.Contracts/ADDS.PIM.Contracts.csproj" />
+    <Project Path="src/ADDS.PIM.Domain/ADDS.PIM.Domain.csproj" />
+    <Project Path="src/ADDS.PIM.Infrastructure/ADDS.PIM.Infrastructure.csproj" />
+    <Project Path="src/ADDS.PIM.Shared/ADDS.PIM.Shared.csproj" />
+    <Project Path="src/ADDS.PIM.Web/ADDS.PIM.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ADDS.PIM.Application.Tests/ADDS.PIM.Application.Tests.csproj" />
+    <Project Path="tests/ADDS.PIM.AdWorker.Tests/ADDS.PIM.AdWorker.Tests.csproj" />
+    <Project Path="tests/ADDS.PIM.Contracts.Tests/ADDS.PIM.Contracts.Tests.csproj" />
+    <Project Path="tests/ADDS.PIM.Domain.Tests/ADDS.PIM.Domain.Tests.csproj" />
+    <Project Path="tests/ADDS.PIM.Infrastructure.Tests/ADDS.PIM.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

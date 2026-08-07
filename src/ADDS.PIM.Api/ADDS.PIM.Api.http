@@ -1,0 +1,6 @@
+@ADDS.PIM.Api_HostAddress = http://localhost:5195
+
+GET {{ADDS.PIM.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

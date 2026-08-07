@@ -1,0 +1,326 @@
+@page "/admin/identity-purge"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM – Bereinigung</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Bereinigung</h1>
+        <p>Administrative Bereinigungsfunktionen. Auditdaten bleiben in beiden Funktionen vollständig erhalten.</p>
+    </div>
+</section>
+
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(_activeTab == Tab.IdentityPurge ? "active" : null)" type="button" role="tab" aria-selected="@(_activeTab == Tab.IdentityPurge)" @onclick="() => _activeTab = Tab.IdentityPurge">
+            <i class="bi bi-trash3-fill" aria-hidden="true"></i> Identitäten bereinigen
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(_activeTab == Tab.OrphanedMfa ? "active" : null)" type="button" role="tab" aria-selected="@(_activeTab == Tab.OrphanedMfa)" @onclick="() => _activeTab = Tab.OrphanedMfa">
+            <i class="bi bi-shield-exclamation" aria-hidden="true"></i> Offene MFA-Bestätigungen
+            @if (_orphanedRequests is { Count: > 0 })
+            {
+                <span class="badge text-bg-danger ms-1">@_orphanedRequests.Count</span>
+            }
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(_activeTab == Tab.OrphanedApprovals ? "active" : null)" type="button" role="tab" aria-selected="@(_activeTab == Tab.OrphanedApprovals)" @onclick="() => _activeTab = Tab.OrphanedApprovals">
+            <i class="bi bi-check2-square" aria-hidden="true"></i> Offene Genehmigungen
+            @if (_orphanedApprovals is { Count: > 0 })
+            {
+                <span class="badge text-bg-danger ms-1">@_orphanedApprovals.Count</span>
+            }
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content pt-4">
+    @if (_activeTab == Tab.IdentityPurge)
+    {
+        <div role="tabpanel">
+            <p>Prüft und bereinigt ausschließlich inaktive lokale PIM-Objekte. AD-Objekte und Auditdaten bleiben erhalten.</p>
+            <section aria-labelledby="scope-title">
+                <h2 id="scope-title">Inaktives Objekt auswählen</h2>
+                <p>Wählen Sie ein bereits deaktiviertes Objekt. Die PIM-ID bleibt ein interner Schlüssel und muss nicht manuell eingegeben werden.</p>
+                @if (_candidates is null)
+                {
+                    <LoadingIndicator Message="Bereinigbare Objekte werden geladen …" />
+                }
+                else if (_candidates.Count == 0)
+                {
+                    <EmptyState Icon="bi-check-circle" Title="Nichts zu bereinigen" Description="Derzeit gibt es keine inaktiven PIM-Objekte zur Bereinigung." />
+                }
+                else
+                {
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-8">
+                            <label class="form-label" for="initiator">Objekt</label>
+                            <select id="initiator" class="form-select" @bind="_selected">
+                                <option value="">Bitte auswählen</option>
+                                @foreach (var candidate in _candidates)
+                                {
+                                    <option value="@Key(candidate)">@Label(candidate)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary" @onclick="LoadPreviewAsync" disabled="@_loading"><i class="bi bi-search" aria-hidden="true"></i> Scope berechnen</button>
+                        </div>
+                    </div>
+                }
+            </section>
+
+            @if (_error is not null)
+            {
+                <p class="submission-result failed mt-4" role="alert">@_error</p>
+            }
+            @if (_success is not null)
+            {
+                <p class="submission-result succeeded mt-4" role="status">@_success</p>
+            }
+
+            @if (_preview is not null)
+            {
+                <section class="mt-4" aria-labelledby="result-title">
+                    <h2 id="result-title">Serverseitiges Ergebnis</h2>
+                    <p><strong>@_preview.DisplayName</strong> (@_preview.InitiatorType)</p>
+                    @if (_preview.IsEligible)
+                    {
+                        <p class="submission-result succeeded">Der aktuell berechnete Scope ist bereinigbar. Es wurde noch nichts gelöscht.</p>
+                    }
+                    else
+                    {
+                        <p class="submission-result failed">Nicht bereinigbar: @_preview.BlockingReason</p>
+                    }
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th>Entität</th><th>Anzahl</th></tr></thead>
+                            <tbody>
+                                <tr><td>Personen</td><td>@_preview.Persons</td></tr>
+                                <tr><td>Directory Accounts</td><td>@_preview.DirectoryAccounts</td></tr>
+                                <tr><td>Person-Konto-Verknüpfungen</td><td>@_preview.PersonAccountLinks</td></tr>
+                                <tr><td>Zielgruppen / Policies</td><td>@_preview.TargetGroups / @_preview.GroupPolicies</td></tr>
+                                <tr><td>Direkte Entitlements</td><td>@_preview.DirectEntitlements</td></tr>
+                                <tr><td>Membership Requests / Historie</td><td>@_preview.MembershipRequests / @_preview.MembershipRequestStatusHistory</td></tr>
+                                <tr><td>MFA-Transaktionen</td><td>@_preview.MfaTransactions</td></tr>
+                                <tr><td>TOTP-Faktoren / verwendete Schritte</td><td>@_preview.TotpFactors / @_preview.TotpUsedTimeSteps</td></tr>
+                                <tr><td>FIDO2-Credentials</td><td>@_preview.Fido2Credentials</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_preview.IsEligible)
+                    {
+                        <DangerZonePanel Message="@($"Diese Aktion löscht den angezeigten lokalen PIM-Graphen unwiderruflich. Geben Sie zur Bestätigung genau ein: PURGE {_preview.InitiatorId}")"
+                                          ConfirmLabel="Lokalen PIM-Graphen endgültig löschen" IsBusy="_loading" CanConfirm="@(_confirmation == ExpectedConfirmation)"
+                                          OnConfirm="ExecuteAsync" OnCancel="() => _confirmation = string.Empty">
+                            <input class="form-control" @bind="_confirmation" @bind:event="oninput" aria-label="Purge confirmation" placeholder="@ExpectedConfirmation" />
+                            @if (!string.IsNullOrEmpty(_confirmation) && _confirmation != ExpectedConfirmation)
+                            {
+                                <div class="form-text text-danger">Der eingegebene Text stimmt noch nicht mit <code>@ExpectedConfirmation</code> überein.</div>
+                            }
+                        </DangerZonePanel>
+                    }
+                </section>
+            }
+        </div>
+    }
+    else if (_activeTab == Tab.OrphanedMfa)
+    {
+        <div role="tabpanel">
+            <p>Requests, deren Bestätigungsfenster für den zweiten Faktor bereits abgelaufen ist, ohne dass sie abgeschlossen wurden. Der Request wird auf <code>Expired</code> gesetzt; Request, Historie und Audit-Log bleiben vollständig erhalten.</p>
+            @if (_orphanedError is not null)
+            {
+                <p class="submission-result failed" role="alert">@_orphanedError</p>
+            }
+            else if (_orphanedSuccess is not null)
+            {
+                <p class="submission-result succeeded" role="status">@_orphanedSuccess</p>
+            }
+            @if (_orphanedRequests is null)
+            {
+                <LoadingIndicator Message="Offene MFA-Bestätigungen werden geladen …" />
+            }
+            else if (_orphanedRequests.Count == 0)
+            {
+                <EmptyState Icon="bi-check-circle" Title="Nichts zu bereinigen" Description="Derzeit gibt es keine abgelaufenen, unbestätigten MFA-Requests." />
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Person</th><th>Ziel</th><th>Gruppe</th><th>Erstellt (UTC)</th><th>Fenster abgelaufen (UTC)</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var request in _orphanedRequests)
+                            {
+                                <tr>
+                                    <td>@request.PersonDisplayName</td>
+                                    <td>@request.TargetAccountDisplayName</td>
+                                    <td>@request.TargetGroupDisplayName</td>
+                                    <td>@request.CreatedUtc.ToString("u")</td>
+                                    <td>@request.TransactionExpiresUtc.ToString("u")</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-danger" disabled="@_orphanedBusy" @onclick="() => ExpireOrphanedRequestAsync(request.RequestId)">
+                                            <i class="bi bi-x-circle" aria-hidden="true"></i> Bereinigen
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div role="tabpanel">
+            <p>Genehmigungspflichtige Requests, deren zugeordnete(r) Approver zwischenzeitlich entfernt wurde, sodass niemand mehr entscheiden kann. Der Request wird auf <code>Expired</code> gesetzt; Request, Historie und Audit-Log bleiben vollständig erhalten. Es gibt kein automatisches Timeout für <code>AwaitingApproval</code> — diese Bereinigung ist der einzige Weg, einen solchen Request abzuschließen.</p>
+            @if (_orphanedApprovalError is not null)
+            {
+                <p class="submission-result failed" role="alert">@_orphanedApprovalError</p>
+            }
+            else if (_orphanedApprovalSuccess is not null)
+            {
+                <p class="submission-result succeeded" role="status">@_orphanedApprovalSuccess</p>
+            }
+            @if (_orphanedApprovals is null)
+            {
+                <LoadingIndicator Message="Offene Genehmigungen werden geladen …" />
+            }
+            else if (_orphanedApprovals.Count == 0)
+            {
+                <EmptyState Icon="bi-check-circle" Title="Nichts zu bereinigen" Description="Derzeit gibt es keine verwaisten, wartenden Genehmigungen." />
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Person</th><th>Ziel</th><th>Gruppe</th><th>Erstellt (UTC)</th><th>Wartet seit (UTC)</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var request in _orphanedApprovals)
+                            {
+                                <tr>
+                                    <td>@request.PersonDisplayName</td>
+                                    <td>@request.TargetAccountDisplayName</td>
+                                    <td>@request.TargetGroupDisplayName</td>
+                                    <td>@request.CreatedUtc.ToString("u")</td>
+                                    <td>@request.EnteredAwaitingApprovalUtc.ToString("u")</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-danger" disabled="@_orphanedApprovalBusy" @onclick="() => ExpireOrphanedApprovalAsync(request.RequestId)">
+                                            <i class="bi bi-x-circle" aria-hidden="true"></i> Bereinigen
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private enum Tab { IdentityPurge, OrphanedMfa, OrphanedApprovals }
+    private Tab _activeTab = Tab.IdentityPurge;
+
+    private IReadOnlyList<IdentityPurgeCandidate>? _candidates;
+    private string _selected = string.Empty;
+    private bool _loading;
+    private string? _error;
+    private string? _success;
+    private IdentityPurgeScopePreview? _preview;
+    private string _confirmation = string.Empty;
+    private IReadOnlyList<ManagedOrphanedSecondFactorRequest>? _orphanedRequests;
+    private string? _orphanedError;
+    private string? _orphanedSuccess;
+    private bool _orphanedBusy;
+    private IReadOnlyList<ManagedOrphanedApprovalRequest>? _orphanedApprovals;
+    private string? _orphanedApprovalError;
+    private string? _orphanedApprovalSuccess;
+    private bool _orphanedApprovalBusy;
+
+    private string ExpectedConfirmation => _preview is null ? string.Empty : $"PURGE {_preview.InitiatorId}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _candidates = await AdministrationClient.GetIdentityPurgeCandidatesAsync(CancellationToken.None); }
+        catch { _error = "Die Liste der bereinigbaren Objekte konnte nicht geladen werden."; _candidates = []; }
+        await LoadOrphanedRequestsAsync();
+        await LoadOrphanedApprovalsAsync();
+    }
+
+    private async Task LoadOrphanedRequestsAsync()
+    {
+        try { _orphanedError = null; _orphanedRequests = await AdministrationClient.GetOrphanedSecondFactorRequestsAsync(CancellationToken.None); }
+        catch { _orphanedError = "Die Liste der offenen MFA-Bestätigungen konnte nicht geladen werden."; _orphanedRequests = []; }
+    }
+
+    private async Task ExpireOrphanedRequestAsync(Guid requestId)
+    {
+        _orphanedBusy = true;
+        try
+        {
+            _orphanedError = null; _orphanedSuccess = null;
+            await AdministrationClient.ExpireOrphanedSecondFactorRequestAsync(requestId, CancellationToken.None);
+            _orphanedSuccess = "Der Request wurde als abgelaufen markiert.";
+            await LoadOrphanedRequestsAsync();
+        }
+        catch { _orphanedError = "Der Request konnte nicht bereinigt werden. Er wurde möglicherweise zwischenzeitlich abgeschlossen oder existiert nicht mehr."; }
+        finally { _orphanedBusy = false; }
+    }
+
+    private async Task LoadOrphanedApprovalsAsync()
+    {
+        try { _orphanedApprovalError = null; _orphanedApprovals = await AdministrationClient.GetOrphanedApprovalRequestsAsync(CancellationToken.None); }
+        catch { _orphanedApprovalError = "Die Liste der offenen Genehmigungen konnte nicht geladen werden."; _orphanedApprovals = []; }
+    }
+
+    private async Task ExpireOrphanedApprovalAsync(Guid requestId)
+    {
+        _orphanedApprovalBusy = true;
+        try
+        {
+            _orphanedApprovalError = null; _orphanedApprovalSuccess = null;
+            await AdministrationClient.ExpireOrphanedApprovalRequestAsync(requestId, CancellationToken.None);
+            _orphanedApprovalSuccess = "Der Request wurde als abgelaufen markiert.";
+            await LoadOrphanedApprovalsAsync();
+        }
+        catch { _orphanedApprovalError = "Der Request konnte nicht bereinigt werden. Er wurde möglicherweise zwischenzeitlich entschieden oder existiert nicht mehr."; }
+        finally { _orphanedApprovalBusy = false; }
+    }
+
+    private async Task LoadPreviewAsync()
+    {
+        if (!TrySelected(out var type, out var id)) { _error = "Wählen Sie ein Objekt aus."; return; }
+        _loading = true;
+        try { _error = null; _success = null; _confirmation = string.Empty; _preview = await AdministrationClient.GetIdentityPurgeScopePreviewAsync(type, id, CancellationToken.None); }
+        catch { _error = "Der Bereinigungsumfang konnte nicht geladen werden."; _preview = null; }
+        finally { _loading = false; }
+    }
+
+    private async Task ExecuteAsync()
+    {
+        if (_preview is null) return;
+        _loading = true;
+        try
+        {
+            _error = null;
+            await AdministrationClient.ExecuteIdentityPurgeAsync(_preview.InitiatorType, _preview.InitiatorId, _confirmation, CancellationToken.None);
+            _preview = null; _confirmation = string.Empty; _selected = string.Empty;
+            _candidates = await AdministrationClient.GetIdentityPurgeCandidatesAsync(CancellationToken.None);
+            _success = "Der lokale PIM-Graph wurde gelöscht. AD-Objekte und Auditdaten bleiben erhalten.";
+        }
+        catch { _error = "Die Bereinigung wurde nicht ausgeführt. Der Scope kann sich geändert haben oder die Bestätigung war ungültig."; }
+        finally { _loading = false; }
+    }
+
+    private bool TrySelected(out string type, out Guid id)
+    {
+        var parts = _selected.Split('|', 2); type = parts[0]; id = Guid.Empty; return parts.Length == 2 && Guid.TryParse(parts[1], out id);
+    }
+    private static string Key(IdentityPurgeCandidate candidate) => $"{candidate.InitiatorType}|{candidate.InitiatorId:D}";
+    private static string Label(IdentityPurgeCandidate candidate) => $"{candidate.InitiatorType}: {candidate.DisplayName}";
+}

@@ -1,0 +1,25 @@
+.vs/
+.obsidian/
+**/bin/
+**/obj/
+TestResults/
+
+# Local IDE state
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local environment configuration; committed examples must use explicit names.
+.env
+.env.*
+
+# Private signing keys and certificate containers
+*.pfx
+*.p12
+*.key
+*.snk
+
+# Build and publish output
+artifacts/
+**/publish/

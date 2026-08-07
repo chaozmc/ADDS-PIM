@@ -1,0 +1,14 @@
+@page "/request/{GroupId:guid}"
+
+<PageTitle>ADDS-PIM · Berechtigung anfordern</PageTitle>
+
+<section class="empty-state">
+    <h1>Dieser Demo-Link ist nicht mehr verfügbar</h1>
+    <p>Wählen Sie die Gruppenberechtigung aus Ihren aktuellen Entitlements auf der Anfrageseite.</p>
+    <NavLink href="new-request">Zu meinen Gruppenberechtigungen</NavLink>
+</section>
+
+@code {
+    [Parameter]
+    public Guid GroupId { get; set; }
+}

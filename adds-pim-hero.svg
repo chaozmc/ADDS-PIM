@@ -1,0 +1,137 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="55%" stop-color="#111a2e"/>
+      <stop offset="100%" stop-color="#0a1f2e"/>
+    </linearGradient>
+    <radialGradient id="glowCyan" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowGreen" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="820" cy="430" r="420" fill="url(#glowCyan)"/>
+  <circle cx="1180" cy="220" r="260" fill="url(#glowGreen)"/>
+
+  <!-- Subtle grid -->
+  <g stroke="#1e293b" stroke-width="1" opacity="0.35">
+    <line x1="0" y1="150" x2="1600" y2="150"/>
+    <line x1="0" y1="300" x2="1600" y2="300"/>
+    <line x1="0" y1="450" x2="1600" y2="450"/>
+    <line x1="0" y1="600" x2="1600" y2="600"/>
+    <line x1="0" y1="750" x2="1600" y2="750"/>
+    <line x1="200" y1="0" x2="200" y2="900"/>
+    <line x1="450" y1="0" x2="450" y2="900"/>
+    <line x1="700" y1="0" x2="700" y2="900"/>
+    <line x1="950" y1="0" x2="950" y2="900"/>
+    <line x1="1200" y1="0" x2="1200" y2="900"/>
+    <line x1="1450" y1="0" x2="1450" y2="900"/>
+  </g>
+
+  <!-- Directory tree structure (left side) -->
+  <g stroke="#334155" stroke-width="2" fill="none" opacity="0.9">
+    <line x1="260" y1="200" x2="410" y2="330"/>
+    <line x1="260" y1="330" x2="410" y2="330"/>
+    <line x1="260" y1="460" x2="410" y2="330"/>
+    <line x1="410" y1="330" x2="560" y2="430"/>
+    <line x1="260" y1="600" x2="410" y2="600"/>
+    <line x1="410" y1="600" x2="560" y2="430"/>
+  </g>
+  <g>
+    <circle cx="260" cy="200" r="14" fill="url(#nodeGrad)" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="260" cy="330" r="14" fill="url(#nodeGrad)" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="260" cy="460" r="14" fill="url(#nodeGrad)" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="260" cy="600" r="14" fill="url(#nodeGrad)" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="410" cy="330" r="18" fill="url(#nodeGrad)" stroke="#34d399" stroke-width="2.5"/>
+    <circle cx="410" cy="600" r="14" fill="url(#nodeGrad)" stroke="#38bdf8" stroke-width="2"/>
+  </g>
+
+  <!-- Connection line into central shield -->
+  <path d="M 560 430 C 640 430 660 430 700 430" stroke="#22d3ee" stroke-width="2.5" fill="none" opacity="0.8" stroke-dasharray="2 6"/>
+
+  <!-- Central privileged-identity shield -->
+  <g filter="url(#softGlow)">
+    <path d="M 800 260 L 900 300 L 900 420 C 900 500 855 555 800 585 C 745 555 700 500 700 420 L 700 300 Z"
+          fill="url(#shieldGrad)" opacity="0.18" stroke="#22d3ee" stroke-width="3"/>
+    <!-- lock body -->
+    <rect x="762" y="410" width="76" height="62" rx="8" fill="#0f172a" stroke="#67e8f9" stroke-width="2.5"/>
+    <path d="M 776 410 L 776 388 C 776 368 790 354 800 354 C 810 354 824 368 824 388 L 824 410"
+          fill="none" stroke="#67e8f9" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="800" cy="436" r="7" fill="#22d3ee"/>
+    <rect x="797" y="440" width="6" height="16" fill="#22d3ee"/>
+  </g>
+
+  <!-- Orbit ring: time-based membership -->
+  <ellipse cx="800" cy="430" rx="230" ry="230" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6 10" opacity="0.7"/>
+  <g transform="translate(1030,430)">
+    <circle r="34" fill="url(#nodeGrad)" stroke="#fbbf24" stroke-width="2.5"/>
+    <circle r="0" />
+    <!-- clock hands -->
+    <line x1="0" y1="0" x2="0" y2="-18" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="0" x2="12" y2="6" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+    <circle r="24" fill="none" stroke="#fbbf24" stroke-width="2"/>
+  </g>
+
+  <!-- Audit log node (bottom) -->
+  <g transform="translate(800,760)">
+    <rect x="-46" y="-38" width="92" height="76" rx="10" fill="url(#nodeGrad)" stroke="#34d399" stroke-width="2.5"/>
+    <line x1="-26" y1="-14" x2="26" y2="-14" stroke="#34d399" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-26" y1="2" x2="26" y2="2" stroke="#34d399" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-26" y1="18" x2="8" y2="18" stroke="#34d399" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="26" cy="18" r="10" fill="#0f172a" stroke="#34d399" stroke-width="2.5"/>
+    <path d="M 21 18 L 25 22 L 32 13" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <path d="M 800 585 C 800 650 800 700 800 722" stroke="#34d399" stroke-width="2.5" fill="none" opacity="0.8" stroke-dasharray="2 6"/>
+
+  <!-- MFA: TOTP key + FIDO2 fingerprint (right side) -->
+  <path d="M 900 380 C 1000 340 1080 300 1160 280" stroke="#a78bfa" stroke-width="2.5" fill="none" opacity="0.8" stroke-dasharray="2 6"/>
+  <g transform="translate(1230,255)">
+    <circle r="46" fill="url(#nodeGrad)" stroke="#a78bfa" stroke-width="2.5"/>
+    <!-- key icon -->
+    <circle cx="-12" cy="-6" r="10" fill="none" stroke="#c4b5fd" stroke-width="3.5"/>
+    <line x1="-4" y1="2" x2="18" y2="24" stroke="#c4b5fd" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="10" y1="16" x2="16" y2="10" stroke="#c4b5fd" stroke-width="3" stroke-linecap="round"/>
+    <line x1="16" y1="22" x2="22" y2="16" stroke="#c4b5fd" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <path d="M 900 470 C 1000 500 1080 520 1150 545" stroke="#f472b6" stroke-width="2.5" fill="none" opacity="0.8" stroke-dasharray="2 6"/>
+  <g transform="translate(1220,565)">
+    <circle r="46" fill="url(#nodeGrad)" stroke="#f472b6" stroke-width="2.5"/>
+    <!-- fingerprint icon (concentric arcs) -->
+    <path d="M -18 -6 C -18 -22 18 -22 18 -6 C 18 6 12 10 12 20" fill="none" stroke="#f9a8d4" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M -12 -6 C -12 -16 12 -16 12 -6 C 12 2 6 6 6 16" fill="none" stroke="#f9a8d4" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M -6 -4 C -6 -10 6 -10 6 -4 C 6 2 2 4 0 12" fill="none" stroke="#f9a8d4" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+
+  <!-- small floating data particles -->
+  <g fill="#38bdf8" opacity="0.6">
+    <circle cx="180" cy="700" r="3"/>
+    <circle cx="1380" cy="700" r="3"/>
+    <circle cx="1400" cy="400" r="3"/>
+    <circle cx="150" cy="120" r="3"/>
+    <circle cx="1300" cy="750" r="3"/>
+    <circle cx="120" cy="480" r="3"/>
+  </g>
+</svg>

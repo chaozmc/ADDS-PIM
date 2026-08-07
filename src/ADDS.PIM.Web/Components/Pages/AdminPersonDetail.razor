@@ -1,0 +1,280 @@
+@page "/admin/persons/{PersonId:guid}"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM - Personenkonten</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Konten der Person</h1>
+        <p>Ein Konto darf genau einer PIM-Person zugeordnet sein. Zweck und Aktivierung werden explizit verwaltet.</p>
+    </div>
+</section>
+
+@if (_error is not null)
+{
+    <p class="submission-result failed" role="alert">@_error</p>
+}
+else if (_detail is null)
+{
+    <LoadingIndicator Message="Person und Konten werden geladen …" />
+}
+else
+{
+    <section>
+        <h2>@_detail.Person.DisplayName</h2>
+        <p>Status: <StatusBadge Text="@(_detail.Person.IsActive ? "aktiv" : "deaktiviert")" Variant="@(_detail.Person.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></p>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Verknüpfte AD-Konten</h3>
+            <button class="btn btn-primary" @onclick="OpenAddDialogAsync" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-link-45deg" aria-hidden="true"></i> Konto zuordnen</button>
+        </div>
+        @if (!_detail.Person.IsActive)
+        {
+            <p class="text-muted"><i class="bi bi-info-circle" aria-hidden="true"></i> Für eine deaktivierte Person können keine Konten aktiviert oder neu zugeordnet werden.</p>
+        }
+
+        @if (_detail.Accounts.Count == 0)
+        {
+            <EmptyState Icon="bi-person-lines-fill" Title="Keine verknüpften Konten" Description="Ordnen Sie ein AD-Konto zu, um Anmeldung und/oder Privilegienziel für diese Person zu ermöglichen." />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Konto</th><th>AD-Status</th><th>Zwecke</th><th>Status</th><th>Aktionen</th></tr></thead>
+                    <tbody>
+                        @foreach (var link in _detail.Accounts)
+                        {
+                            <tr>
+                                <td><strong>@link.DomainQualifiedName</strong><br /><small>@link.DisplayName · @link.UserPrincipalName</small></td>
+                                <td><StatusBadge Text="@(link.IsEnabledInDirectory ? "aktiv" : "deaktiviert")" Variant="@(link.IsEnabledInDirectory ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></td>
+                                <td>@PurposeText(link)</td>
+                                <td><StatusBadge Text="@(link.IsActive ? "zugeordnet" : "deaktiviert")" Variant="@(link.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" @onclick="() => OpenPurposeDialogAsync(link)" disabled="@(!link.IsActive || !_detail.Person.IsActive)"><i class="bi bi-sliders" aria-hidden="true"></i> Zweck ändern</button>
+                                        @if (link.IsActive)
+                                        {
+                                            <button class="btn btn-outline-danger" @onclick="() => _pendingDeactivate = link"><i class="bi bi-slash-circle" aria-hidden="true"></i> Deaktivieren</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-primary" @onclick="() => _pendingReactivate = link" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reaktivieren</button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (_pendingDeactivate is not null)
+        {
+            <DangerZonePanel Message="@($"{_pendingDeactivate.DomainQualifiedName} wirklich deaktivieren? Bestehende Entitlements und Historie bleiben erhalten, neue Requests werden verhindert.")"
+                              ConfirmLabel="Deaktivieren" IsBusy="_saving"
+                              OnConfirm="() => SetLinkActiveAsync(false)" OnCancel="() => _pendingDeactivate = null" />
+        }
+
+        @if (_pendingReactivate is not null)
+        {
+            <div class="alert alert-primary d-flex justify-content-between align-items-center mt-3">
+                <span>@_pendingReactivate.DomainQualifiedName nach erneuter AD-Verifikation reaktivieren?</span>
+                <span class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" @onclick="() => SetLinkActiveAsync(true)" disabled="@_saving">Reaktivieren</button>
+                    <button class="btn btn-secondary btn-sm" @onclick="() => _pendingReactivate = null" disabled="@_saving">Abbrechen</button>
+                </span>
+            </div>
+        }
+    </section>
+}
+
+<ConfirmDialog @ref="_addDialog" Title="AD-Konto zuordnen" OnClosed="CloseAddDialog">
+    <p>Die Suche ist nicht auf die ADDS-PIM-User-Gruppe beschränkt. Wählen Sie das Konto bewusst aus; es muss in AD aktiv und bislang keiner anderen PIM-Person zugeordnet sein.</p>
+    <div class="input-group">
+        <input class="form-control" @bind="_searchTerm" placeholder="Name oder sAMAccountName" />
+        <button class="btn btn-outline-secondary" @onclick="SearchAsync" disabled="@_saving">Suchen</button>
+    </div>
+    @if (_searchError is not null)
+    {
+        <p class="text-danger mt-2">@_searchError</p>
+    }
+    @if (_searchResults is not null)
+    {
+        <table class="table mt-3">
+            <thead><tr><th>Name</th><th>Konto</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var account in _searchResults)
+                {
+                    <tr>
+                        <td>@account.DisplayName</td>
+                        <td><strong>@account.DomainQualifiedName</strong><br /><small>@account.UserPrincipalName</small></td>
+                        <td><button class="btn btn-primary" @onclick="() => SelectAccount(account)">Auswählen</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    @if (_selectedAccount is not null)
+    {
+        <hr />
+        <p><strong>Ausgewählt:</strong> @_selectedAccount.DomainQualifiedName</p>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="new-may-authenticate" @bind="_newMayAuthenticate" disabled="@HasActiveAuthenticationAccount" />
+            <label class="form-check-label" for="new-may-authenticate">Darf die Person interaktiv authentifizieren</label>
+            <i class="bi bi-info-circle text-muted ms-1" title="@AuthenticationPurposeTooltip"></i>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="new-may-receive-privileges" @bind="_newMayReceivePrivileges" />
+            <label class="form-check-label" for="new-may-receive-privileges">Darf TTL-Privilegien empfangen</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="new-may-approve" @bind="_newMayApprove" disabled="@(!_newMayAuthenticate)" />
+            <label class="form-check-label" for="new-may-approve">Darf Genehmigungen entscheiden (Approver)</label>
+            <i class="bi bi-info-circle text-muted ms-1" title="Nur auf dem Anmeldekonto (interaktive Authentifizierung) zulässig."></i>
+        </div>
+        <p class="text-muted mt-2">Mindestens ein Zweck ist erforderlich.</p>
+    }
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
+        <button class="btn btn-primary" @onclick="CreateLinkAsync" disabled="@(_saving || _selectedAccount is null)">Konto zuordnen</button>
+    </div>
+</ConfirmDialog>
+
+<ConfirmDialog @ref="_purposeDialog" Title="Kontozwecke ändern" OnClosed="() => { _purposeLink = null; _purposeError = null; }">
+    @if (_purposeLink is not null)
+    {
+        <p>@_purposeLink.DomainQualifiedName</p>
+        @if (_purposeError is not null)
+        {
+            <p class="alert alert-danger" role="alert">@_purposeError</p>
+        }
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="edit-may-authenticate" @bind="_editMayAuthenticate" disabled="@HasAnotherActiveAuthenticationAccount" />
+            <label class="form-check-label" for="edit-may-authenticate">Interaktive Authentifizierung</label>
+            <i class="bi bi-info-circle text-muted ms-1" title="@AuthenticationPurposeTooltip"></i>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="edit-may-receive-privileges" @bind="_editMayReceivePrivileges" />
+            <label class="form-check-label" for="edit-may-receive-privileges">TTL-Privilegien empfangen</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="edit-may-approve" @bind="_editMayApprove" disabled="@(!_editMayAuthenticate)" />
+            <label class="form-check-label" for="edit-may-approve">Genehmigungen entscheiden (Approver)</label>
+            <i class="bi bi-info-circle text-muted ms-1" title="Nur auf dem Anmeldekonto (interaktive Authentifizierung) zulässig."></i>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
+            <button class="btn btn-primary" @onclick="SavePurposesAsync" disabled="@_saving">Speichern</button>
+        </div>
+    }
+</ConfirmDialog>
+
+@code {
+    [Parameter] public Guid PersonId { get; set; }
+    private ManagedPersonDetail? _detail;
+    private string? _error;
+    private bool _saving;
+    private string _searchTerm = string.Empty;
+    private string? _searchError;
+    private IReadOnlyList<DirectoryUserSearchResult>? _searchResults;
+    private DirectoryUserSearchResult? _selectedAccount;
+    private bool _newMayAuthenticate;
+    private bool _newMayReceivePrivileges = true;
+    private bool _newMayApprove;
+    private ManagedPersonAccountLink? _purposeLink;
+    private string? _purposeError;
+    private bool _editMayAuthenticate;
+    private bool _editMayReceivePrivileges;
+    private bool _editMayApprove;
+    private ManagedPersonAccountLink? _pendingDeactivate;
+    private ManagedPersonAccountLink? _pendingReactivate;
+    private ConfirmDialog? _addDialog;
+    private ConfirmDialog? _purposeDialog;
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try { _error = null; _detail = await AdministrationClient.GetPersonDetailAsync(PersonId, CancellationToken.None); }
+        catch { _error = "Person oder Konten konnten nicht geladen werden."; }
+    }
+
+    private async Task OpenAddDialogAsync()
+    {
+        _searchTerm = string.Empty; _searchError = null; _searchResults = null; _selectedAccount = null; _newMayAuthenticate = false; _newMayReceivePrivileges = true; _newMayApprove = false;
+        StateHasChanged();
+        await _addDialog!.ShowAsync();
+    }
+
+    private void CloseAddDialog() { _searchResults = null; _selectedAccount = null; _searchError = null; }
+
+    private async Task SearchAsync()
+    {
+        if (_searchTerm.Trim().Length < 2) { _searchError = "Bitte mindestens zwei Zeichen eingeben."; return; }
+        _saving = true;
+        try
+        {
+            _searchError = null;
+            _searchResults = await AdministrationClient.SearchDirectoryAccountsAsync(_searchTerm, CancellationToken.None);
+            if (_searchResults.Count == 0) _searchError = "Kein passendes AD-Benutzerkonto gefunden.";
+        }
+        catch { _searchError = "Die AD-Suche ist fehlgeschlagen."; }
+        finally { _saving = false; }
+    }
+
+    private void SelectAccount(DirectoryUserSearchResult account) { _selectedAccount = account; _searchError = null; }
+
+    private async Task CreateLinkAsync()
+    {
+        if (_selectedAccount is null || (!_newMayAuthenticate && !_newMayReceivePrivileges)) { _searchError = "Wählen Sie mindestens einen Zweck."; return; }
+        if (!_newMayAuthenticate) _newMayApprove = false;
+        _saving = true;
+        try
+        {
+            await AdministrationClient.CreatePersonAccountLinkAsync(PersonId, _selectedAccount.ObjectGuid, _newMayAuthenticate, _newMayReceivePrivileges, _newMayApprove, CancellationToken.None);
+            await _addDialog!.HideAsync();
+            await LoadAsync();
+        }
+        catch { _searchError = "Das Konto konnte nicht zugeordnet werden. Es ist möglicherweise bereits zugeordnet, deaktiviert oder nicht mehr verifizierbar."; }
+        finally { _saving = false; }
+    }
+
+    private async Task OpenPurposeDialogAsync(ManagedPersonAccountLink link)
+    {
+        _purposeLink = link; _purposeError = null; _editMayAuthenticate = link.MayAuthenticate; _editMayReceivePrivileges = link.MayReceivePrivileges; _editMayApprove = link.MayApprove;
+        StateHasChanged();
+        await _purposeDialog!.ShowAsync();
+    }
+
+    private async Task SavePurposesAsync()
+    {
+        if (_purposeLink is null || (!_editMayAuthenticate && !_editMayReceivePrivileges)) { _purposeError = "Mindestens ein Kontozweck ist erforderlich."; return; }
+        if (!_editMayAuthenticate) _editMayApprove = false;
+        _saving = true;
+        try
+        {
+            _purposeError = null;
+            await AdministrationClient.UpdatePersonAccountLinkPurposesAsync(PersonId, _purposeLink, _editMayAuthenticate, _editMayReceivePrivileges, _editMayApprove, CancellationToken.None);
+            await _purposeDialog!.HideAsync();
+            await LoadAsync();
+        }
+        catch { _purposeError = "Die Kontozwecke konnten nicht geändert werden. Die Daten wurden möglicherweise parallel geändert."; }
+        finally { _saving = false; }
+    }
+
+    private async Task SetLinkActiveAsync(bool active)
+    {
+        var link = active ? _pendingReactivate : _pendingDeactivate;
+        if (link is null) return;
+        _saving = true;
+        try { await AdministrationClient.SetPersonAccountLinkActiveAsync(PersonId, link, active, CancellationToken.None); _pendingDeactivate = null; _pendingReactivate = null; await LoadAsync(); }
+        catch { _error = "Der Kontostatus konnte nicht geändert werden. Das Konto muss für eine Reaktivierung aktuell in AD verifizierbar und aktiv sein."; }
+        finally { _saving = false; }
+    }
+
+    private static string PurposeText(ManagedPersonAccountLink link) => string.Join(", ", new[] { link.MayAuthenticate ? "Anmeldung" : null, link.MayReceivePrivileges ? "Privilegienziel" : null }.Where(value => value is not null));
+    private bool HasActiveAuthenticationAccount => _detail?.Accounts.Any(link => link.IsActive && link.MayAuthenticate) ?? false;
+    private bool HasAnotherActiveAuthenticationAccount => _purposeLink is not null && (_detail?.Accounts.Any(link => link.IsActive && link.MayAuthenticate && link.PersonAccountLinkId != _purposeLink.PersonAccountLinkId) ?? false);
+    private string AuthenticationPurposeTooltip => "Pro Person darf genau ein aktives Konto zur Anmeldung verwendet werden.";
+}

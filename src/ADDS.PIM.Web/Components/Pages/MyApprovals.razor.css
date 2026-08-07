@@ -1,0 +1,8 @@
+.requests-page { max-width: 72rem; padding: 2rem 0; }
+.requests-page h1 { margin: .2rem 0 1.25rem; color: var(--pim-text); }
+.request-table-wrap { overflow-x: auto; border: 1px solid var(--pim-border); border-radius: var(--pim-radius-md); margin-bottom: .75rem; }
+.request-table { width: 100%; border-collapse: collapse; min-width: 46rem; }
+.request-table th, .request-table td { padding: .75rem; text-align: left; border-bottom: 1px solid var(--pim-border-subtle); vertical-align: top; }
+.request-table th { background: var(--pim-surface); color: var(--pim-text-muted); font-size: .875rem; }
+.request-table tbody tr:last-child td { border-bottom: none; }
+.request-actions { display: flex; gap: .5rem; white-space: nowrap; }

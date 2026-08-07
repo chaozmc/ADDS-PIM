@@ -1,0 +1,33 @@
+.mfa-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.mfa-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: 1.5rem;
+    background: var(--pim-surface);
+    border: 1px solid var(--pim-border-subtle);
+    border-radius: var(--pim-radius-md);
+}
+
+    .mfa-tile h2 {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .mfa-tile ul {
+        margin: 0;
+        padding-left: 1.25rem;
+    }
+
+    .mfa-tile .submit-button {
+        margin-top: auto;
+    }

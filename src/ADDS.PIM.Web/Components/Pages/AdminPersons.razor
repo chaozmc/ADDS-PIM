@@ -1,0 +1,340 @@
+@page "/admin/persons"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM - Personen</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Personen</h1>
+        <p>Verwalten Sie die fachlichen Personen, denen AD-Konten später bewusst zugeordnet werden.</p>
+    </div>
+</section>
+
+@if (_error is not null)
+{
+    <p class="submission-result failed" role="alert">@_error</p>
+}
+else if (_persons is null)
+{
+    <LoadingIndicator Message="Personen werden geladen …" />
+}
+else
+{
+    var activePersons = _persons.Where(person => person.IsActive).ToArray();
+    var inactivePersons = _persons.Where(person => !person.IsActive).ToArray();
+
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Aktive Personen</h2>
+            <button class="btn btn-primary" @onclick="OpenCreateDialogAsync"><i class="bi bi-person-plus-fill" aria-hidden="true"></i> Person anlegen</button>
+        </div>
+
+        @if (activePersons.Length == 0)
+        {
+            <EmptyState Icon="bi-people" Title="Keine aktiven Personen" Description="Onboarden Sie eine Person aus der ADDS-PIM-User-Gruppe, um Entitlements vergeben zu können." />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Name</th><th>Seit</th><th>Aktionen</th></tr></thead>
+                    <tbody>
+                        @foreach (var person in activePersons)
+                        {
+                            <tr>
+                                <td>@person.DisplayName</td>
+                                <td>@person.ValidFromUtc.ToLocalTime().ToString("d")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a class="btn btn-outline-primary" href="@($"admin/persons/{person.PersonId:D}")"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Konten</a>
+                                        <button class="btn btn-outline-secondary" @onclick="() => OpenMfaDialogAsync(person)"><i class="bi bi-shield-lock" aria-hidden="true"></i> MFA</button>
+                                        <button class="btn btn-outline-danger" @onclick="() => _pendingDeactivation = person"><i class="bi bi-slash-circle" aria-hidden="true"></i> Deaktivieren</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (_pendingDeactivation is not null)
+        {
+            <DangerZonePanel Message="@($"{_pendingDeactivation.DisplayName} wirklich deaktivieren? Bestehende Daten und spätere Kontenzuordnungen bleiben historisch erhalten.")"
+                              ConfirmLabel="Endgültig deaktivieren" IsBusy="_saving"
+                              OnConfirm="() => SetActiveAsync(false)" OnCancel="() => _pendingDeactivation = null" />
+        }
+
+        @if (inactivePersons.Length > 0)
+        {
+            <div class="mt-4">
+                <button class="btn btn-link ps-0" type="button" data-bs-toggle="collapse" data-bs-target="#inactive-persons">
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i> Deaktivierte Personen (@inactivePersons.Length)
+                </button>
+                <div class="collapse" id="inactive-persons">
+                    <table class="table mt-2">
+                        <tbody>
+                            @foreach (var person in inactivePersons)
+                            {
+                                <tr>
+                                    <td>@person.DisplayName</td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a class="btn btn-outline-primary" href="@($"admin/persons/{person.PersonId:D}")"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Konten</a>
+                                            <button class="btn btn-outline-secondary" @onclick="() => OpenMfaDialogAsync(person)"><i class="bi bi-shield-lock" aria-hidden="true"></i> MFA</button>
+                                            <button class="btn btn-primary" @onclick="() => _pendingReactivation = person"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reaktivieren</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        @if (_pendingReactivation is not null)
+        {
+            <div class="alert alert-primary d-flex justify-content-between align-items-center mt-3">
+                <span>@_pendingReactivation.DisplayName wieder aktivieren?</span>
+                <span class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" @onclick="() => SetActiveAsync(true)" disabled="@_saving">Reaktivieren</button>
+                    <button class="btn btn-secondary btn-sm" @onclick="() => _pendingReactivation = null" disabled="@_saving">Abbrechen</button>
+                </span>
+            </div>
+        }
+    </section>
+}
+
+<ConfirmDialog @ref="_createDialog" Title="PIM-Person aus AD onboarden" OnClosed="CloseCreateDialog">
+    <p>Gesucht werden ausschließlich Benutzerkonten aus der ADDS-PIM-User-Gruppe. Wählen Sie den richtigen Treffer bewusst aus.</p>
+    <div class="input-group">
+        <input class="form-control" @bind="_searchTerm" placeholder="Name oder sAMAccountName" />
+        <button class="btn btn-outline-secondary" type="button" @onclick="SearchAsync" disabled="@_saving">Suchen</button>
+    </div>
+    @if (_searchError is not null)
+    {
+        <p class="text-danger mt-2" role="alert">@_searchError</p>
+    }
+    @if (_searchResults is not null && _searchResults.Count > 0)
+    {
+        <table class="table table-hover mt-3">
+            <thead><tr><th>Name</th><th>Konto</th><th>E-Mail</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var user in _searchResults)
+                {
+                    <tr>
+                        <td>@user.DisplayName</td>
+                        <td><strong>@user.DomainQualifiedName</strong><br /><small>@user.UserPrincipalName</small></td>
+                        <td>@user.EmailAddress</td>
+                        <td><button class="btn btn-primary" @onclick="() => OnboardAsync(user)" disabled="@_saving">Auswählen</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    <div class="d-flex justify-content-end mt-3">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
+    </div>
+</ConfirmDialog>
+
+<ConfirmDialog @ref="_mfaDialog" Title="@($"MFA-Faktoren: {_mfaPerson?.DisplayName}")" OnClosed="CloseMfaDialog">
+    @if (_mfaLoading)
+    {
+        <LoadingIndicator Message="Faktoren werden geladen …" />
+    }
+    else if (_mfaError is not null)
+    {
+        <p class="text-danger" role="alert">@_mfaError</p>
+    }
+    else if (_mfaFactors is { Count: 0 })
+    {
+        <p>Für diese Person ist kein TOTP-Faktor eingerichtet.</p>
+    }
+    else if (_mfaFactors is not null)
+    {
+        <table class="table table-sm">
+            <thead><tr><th>Eingerichtet</th><th>Bestätigt</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var factor in _mfaFactors)
+                {
+                    <tr>
+                        <td>@factor.EnrolledUtc.ToLocalTime().ToString("g")</td>
+                        <td>@(factor.ConfirmedUtc?.ToLocalTime().ToString("g") ?? "–")</td>
+                        <td>@MfaFactorStatus(factor)</td>
+                        <td>
+                            @if (factor.IsActive && factor.RevokedUtc is null)
+                            {
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => _pendingRevoke = factor" disabled="@_revoking"><i class="bi bi-shield-x" aria-hidden="true"></i> Widerrufen</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (_pendingRevoke is not null)
+        {
+            <DangerZonePanel Message="Diesen TOTP-Faktor wirklich widerrufen? Die Person muss anschließend einen neuen Faktor einrichten, bevor MFA-pflichtige Anfragen wieder bestätigt werden können."
+                              ConfirmLabel="Endgültig widerrufen" IsBusy="_revoking"
+                              OnConfirm="RevokeFactorAsync" OnCancel="() => _pendingRevoke = null" />
+        }
+    }
+
+    <hr />
+    <h6>FIDO2-Passkeys</h6>
+    @if (_fido2Credentials is { Count: 0 })
+    {
+        <p>Für diese Person ist kein Passkey eingerichtet.</p>
+    }
+    else if (_fido2Credentials is not null)
+    {
+        <table class="table table-sm">
+            <thead><tr><th>Bezeichnung</th><th>Eingerichtet</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var credential in _fido2Credentials)
+                {
+                    <tr>
+                        <td>@(string.IsNullOrWhiteSpace(credential.Label) ? "–" : credential.Label)</td>
+                        <td>@credential.CreatedUtc.ToLocalTime().ToString("g")</td>
+                        <td>@(credential.RevokedUtc is { } revokedUtc ? $"Widerrufen am {revokedUtc.ToLocalTime():g}" : "Aktiv")</td>
+                        <td>
+                            @if (credential.RevokedUtc is null)
+                            {
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => _pendingRevokeFido2 = credential" disabled="@_revoking"><i class="bi bi-shield-x" aria-hidden="true"></i> Widerrufen</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (_pendingRevokeFido2 is not null)
+        {
+            <DangerZonePanel Message="Diesen Passkey wirklich widerrufen? Die Person kann sich anschließend erneut einen Passkey einrichten."
+                              ConfirmLabel="Endgültig widerrufen" IsBusy="_revoking"
+                              OnConfirm="RevokeFido2CredentialAsync" OnCancel="() => _pendingRevokeFido2 = null" />
+        }
+    }
+</ConfirmDialog>
+
+@code {
+    private IReadOnlyList<ManagedPerson>? _persons;
+    private string? _error;
+    private string? _searchError;
+    private bool _saving;
+    private string _searchTerm = string.Empty;
+    private IReadOnlyList<DirectoryUserSearchResult>? _searchResults;
+    private ManagedPerson? _pendingDeactivation;
+    private ManagedPerson? _pendingReactivation;
+    private ConfirmDialog? _createDialog;
+    private ConfirmDialog? _mfaDialog;
+    private ManagedPerson? _mfaPerson;
+    private IReadOnlyList<ManagedTotpFactor>? _mfaFactors;
+    private string? _mfaError;
+    private bool _mfaLoading;
+    private ManagedTotpFactor? _pendingRevoke;
+    private IReadOnlyList<ManagedFido2Credential>? _fido2Credentials;
+    private ManagedFido2Credential? _pendingRevokeFido2;
+    private bool _revoking;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try { _error = null; _persons = await AdministrationClient.GetPersonsAsync(CancellationToken.None); }
+        catch { _error = "Personen konnten nicht geladen werden."; }
+    }
+
+    private async Task OpenCreateDialogAsync()
+    {
+        _searchTerm = string.Empty; _searchResults = null; _searchError = null;
+        StateHasChanged();
+        await _createDialog!.ShowAsync();
+    }
+
+    private void CloseCreateDialog() { _searchResults = null; _searchError = null; }
+
+    private async Task OpenMfaDialogAsync(ManagedPerson person)
+    {
+        _mfaPerson = person; _mfaFactors = null; _fido2Credentials = null; _mfaError = null; _pendingRevoke = null; _pendingRevokeFido2 = null; _mfaLoading = true;
+        StateHasChanged();
+        await _mfaDialog!.ShowAsync();
+        await LoadMfaFactorsAsync();
+    }
+
+    private void CloseMfaDialog() { _mfaPerson = null; _mfaFactors = null; _fido2Credentials = null; _mfaError = null; _pendingRevoke = null; _pendingRevokeFido2 = null; }
+
+    private async Task LoadMfaFactorsAsync()
+    {
+        if (_mfaPerson is null) return;
+        _mfaLoading = true;
+        try
+        {
+            _mfaFactors = await AdministrationClient.ListTotpFactorsAsync(_mfaPerson.PersonId, CancellationToken.None);
+            _fido2Credentials = await AdministrationClient.ListFido2CredentialsAsync(_mfaPerson.PersonId, CancellationToken.None);
+        }
+        catch { _mfaError = "Die MFA-Faktoren konnten nicht geladen werden."; }
+        finally { _mfaLoading = false; }
+    }
+
+    private async Task RevokeFactorAsync()
+    {
+        if (_mfaPerson is null || _pendingRevoke is null) return;
+        _revoking = true;
+        try { await AdministrationClient.RevokeTotpFactorAsync(_mfaPerson.PersonId, _pendingRevoke, CancellationToken.None); _pendingRevoke = null; await LoadMfaFactorsAsync(); }
+        catch { _mfaError = "Der Faktor konnte nicht widerrufen werden."; }
+        finally { _revoking = false; }
+    }
+
+    private async Task RevokeFido2CredentialAsync()
+    {
+        if (_mfaPerson is null || _pendingRevokeFido2 is null) return;
+        _revoking = true;
+        try { await AdministrationClient.RevokeFido2CredentialAsync(_mfaPerson.PersonId, _pendingRevokeFido2, CancellationToken.None); _pendingRevokeFido2 = null; await LoadMfaFactorsAsync(); }
+        catch { _mfaError = "Der Passkey konnte nicht widerrufen werden."; }
+        finally { _revoking = false; }
+    }
+
+    private static string MfaFactorStatus(ManagedTotpFactor factor)
+    {
+        if (factor.RevokedUtc is not null) return $"Widerrufen am {factor.RevokedUtc.Value.ToLocalTime():g}";
+        if (factor.LockedUntilUtc is { } lockedUntilUtc && lockedUntilUtc > DateTimeOffset.UtcNow) return $"Gesperrt bis {lockedUntilUtc.ToLocalTime():g}";
+        return factor.IsActive ? "Aktiv" : "Nicht bestätigt";
+    }
+
+    private async Task SearchAsync()
+    {
+        if (_searchTerm.Trim().Length < 2) { _searchError = "Bitte mindestens zwei Zeichen eingeben."; return; }
+        _saving = true;
+        try
+        {
+            _searchError = null;
+            _searchResults = await AdministrationClient.SearchDirectoryUsersAsync(_searchTerm, CancellationToken.None);
+            if (_searchResults.Count == 0) _searchError = "Keine passende Person in der ADDS-PIM-User-Gruppe gefunden.";
+        }
+        catch { _searchError = "Die AD-Suche ist fehlgeschlagen."; }
+        finally { _saving = false; }
+    }
+
+    private async Task OnboardAsync(DirectoryUserSearchResult user)
+    {
+        _saving = true;
+        try
+        {
+            await AdministrationClient.CreatePersonFromDirectoryAccountAsync(user.ObjectGuid, CancellationToken.None);
+            await _createDialog!.HideAsync();
+            await LoadAsync();
+        }
+        catch { _searchError = "Das ausgewählte AD-Konto ist bereits zugeordnet oder konnte nicht verifiziert werden."; }
+        finally { _saving = false; }
+    }
+
+    private async Task SetActiveAsync(bool active)
+    {
+        var person = active ? _pendingReactivation : _pendingDeactivation;
+        if (person is null) return;
+        _saving = true;
+        try { await AdministrationClient.SetPersonActiveAsync(person, active, CancellationToken.None); _pendingDeactivation = null; _pendingReactivation = null; await LoadAsync(); }
+        catch { _error = "Der Status der Person konnte nicht geändert werden."; }
+        finally { _saving = false; }
+    }
+}

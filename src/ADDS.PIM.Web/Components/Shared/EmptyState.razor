@@ -1,0 +1,23 @@
+<div class="empty-state">
+    @if (!string.IsNullOrWhiteSpace(Icon))
+    {
+        <i class="bi @Icon" aria-hidden="true"></i>
+    }
+    <h3>@Title</h3>
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <p>@Description</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(ActionText) && !string.IsNullOrWhiteSpace(ActionHref))
+    {
+        <a class="btn btn-primary" href="@ActionHref">@ActionText</a>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? ActionText { get; set; }
+    [Parameter] public string? ActionHref { get; set; }
+}

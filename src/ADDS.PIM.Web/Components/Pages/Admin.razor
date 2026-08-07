@@ -1,0 +1,135 @@
+@page "/admin"
+@inject IAdministrationClient AdministrationClient
+
+<PageTitle>ADDS-PIM – Admin</PageTitle>
+
+<div class="page-header">
+    <section class="hero">
+        <div>
+            <h1>Admin</h1>
+            <p>Wählen Sie einen Verwaltungsbereich.</p>
+        </div>
+    </section>
+
+    <aside class="card cert-status-card" aria-labelledby="certificate-overview-title">
+        <div class="card-body">
+            <h2 id="certificate-overview-title" class="cert-status-title">Zertifikatsstatus:</h2>
+            @if (_certificateOverview is null && _certificateOverviewError is null)
+            {
+                <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
+            }
+            else if (_certificateOverviewError is not null)
+            {
+                <span class="small text-danger">@_certificateOverviewError</span>
+            }
+            else
+            {
+                <div class="d-flex gap-2 flex-wrap">
+                    @foreach (var certificate in _certificateOverview!.Certificates)
+                    {
+                        <button type="button" class="pim-cert-icon pim-cert-icon-lg pim-badge-@Variant(certificate).ToString().ToLowerInvariant()"
+                                title="@($"{certificate.Label}: {StatusText(certificate)}")"
+                                aria-label="@($"{certificate.Label}: {StatusText(certificate)}")"
+                                @onclick="() => ShowCertificateDetailsAsync(certificate)">
+                            <i class="bi @Icon(certificate)" aria-hidden="true"></i>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </aside>
+</div>
+
+<ConfirmDialog @ref="_certificateDialog" Title="@(_selectedCertificate?.Label ?? "Zertifikat")">
+    @if (_selectedCertificate is { } certificate)
+    {
+        <div class="mb-3"><StatusBadge Text="@StatusText(certificate)" Variant="@Variant(certificate)" /></div>
+        @if (certificate.Found)
+        {
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Thumbprint</dt>
+                <dd class="col-sm-8"><code>@certificate.Thumbprint</code></dd>
+                <dt class="col-sm-4">Gültig bis (UTC)</dt>
+                <dd class="col-sm-8">@(certificate.NotAfter?.ToString("u") ?? "unbekannt")</dd>
+                <dt class="col-sm-4">@(certificate.IsLiveCheck ? "Geprüft" : "Zuletzt beobachtet")</dt>
+                <dd class="col-sm-8">@(certificate.IsLiveCheck ? "jetzt (live)" : certificate.ObservedUtc?.ToString("u") ?? "noch nie")</dd>
+                @if (certificate.WasAccepted is not null)
+                {
+                    <dt class="col-sm-4">Letzte Verbindung</dt>
+                    <dd class="col-sm-8">@(certificate.WasAccepted.Value ? "akzeptiert" : "abgelehnt")</dd>
+                }
+            </dl>
+        }
+        else
+        {
+            <p class="mb-0">@(certificate.IsLiveCheck ? "Nicht gefunden bzw. nicht konfiguriert." : "Noch keine mTLS-Verbindung zum Worker beobachtet - wird beim nächsten tatsächlichen Membership-Request aktualisiert.")</p>
+        }
+    }
+</ConfirmDialog>
+
+<section aria-label="Verwaltungsbereiche" class="row g-3">
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-people-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Personen</h2><p>Fachliche Personen anlegen, deaktivieren und reaktivieren.</p><a class="btn btn-primary" href="/admin/persons">Personen verwalten</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-diagram-3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Gruppenverwaltung</h2><p>AD-Zielgruppen registrieren, Policy konfigurieren und kontrolliert deaktivieren.</p><a class="btn btn-primary" href="/admin/groups">Gruppen verwalten</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-person-badge-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Direkte Entitlements</h2><p>Berechtigungen für Person, Zielkonto und Zielgruppe verwalten.</p><a class="btn btn-primary" href="/admin/entitlements">Entitlements verwalten</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-trash3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Bereinigung</h2><p>Inaktive lokale PIM-Objekte prüfen und nach ausdrücklicher Bestätigung bereinigen.</p><a class="btn btn-primary" href="/admin/identity-purge">Bereinigung öffnen</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-gear-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Einstellungen</h2><p>Anwendungseinstellungen und Validierungsregeln verwalten.</p><a class="btn btn-primary" href="/admin/settings">Einstellungen öffnen</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-arrow-repeat" style="color: var(--pim-primary);" aria-hidden="true"></i> AD-Abgleich</h2><p>Aktive PIM-Objekte gegen Active Directory prüfen und Befunde kontrollieren.</p><a class="btn btn-primary" href="/admin/directory-reconciliation">AD-Abgleich öffnen</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-journal-text" style="color: var(--pim-primary);" aria-hidden="true"></i> Audit-Log</h2><p>Auditereignisse aus der Datenbank durchsuchen und filtern.</p><a class="btn btn-primary" href="/admin/audit-log">Audit-Log öffnen</a></div></article></div>
+</section>
+
+@code {
+    private CertificateOverview? _certificateOverview;
+    private string? _certificateOverviewError;
+    private ConfirmDialog? _certificateDialog;
+    private MonitoredCertificateStatus? _selectedCertificate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _certificateOverview = await AdministrationClient.GetCertificateOverviewAsync(CancellationToken.None); }
+        catch { _certificateOverviewError = "Der Zertifikatsstatus konnte nicht geladen werden."; }
+    }
+
+    private async Task ShowCertificateDetailsAsync(MonitoredCertificateStatus certificate)
+    {
+        _selectedCertificate = certificate;
+        if (_certificateDialog is not null) await _certificateDialog.ShowAsync();
+    }
+
+    private static string Icon(MonitoredCertificateStatus certificate) => certificate.Label switch
+    {
+        "TOTP-Schutzzertifikat" => "bi-shield-lock-fill",
+        "API-zu-Worker mTLS-Client-Zertifikat" => "bi-arrow-left-right",
+        "Web-Signaturzertifikat" => "bi-pen-fill",
+        "Worker-Server-Zertifikat (mTLS)" => "bi-hdd-network-fill",
+        _ => "bi-patch-check-fill"
+    };
+
+    /// <summary>
+    /// Ampelschwellen: >=90 Tage grün, <90 gelb, <=30 rot, <=10 dunkelrot. Ein fehlendes, live geprüftes
+    /// Zertifikat (lokal/DB) ist immer dunkelrot - das ist ein echtes Konfigurationsproblem. Beim
+    /// Worker-Server-Zertifikat bedeutet "nicht gefunden" dagegen nur "noch keine mTLS-Verbindung beobachtet"
+    /// (z. B. direkt nach einem frischen Deploy, bevor der erste Request an den Worker ging) - das ist ein
+    /// neutraler, kein alarmierender Zustand.
+    /// </summary>
+    private static StatusBadge.BadgeVariant Variant(MonitoredCertificateStatus certificate)
+    {
+        if (!certificate.Found) return certificate.IsLiveCheck ? StatusBadge.BadgeVariant.Critical : StatusBadge.BadgeVariant.Neutral;
+        if (certificate.NotAfter is null) return StatusBadge.BadgeVariant.Neutral;
+        var daysRemaining = (int)Math.Floor((certificate.NotAfter.Value - DateTimeOffset.UtcNow).TotalDays);
+        return daysRemaining switch
+        {
+            <= 10 => StatusBadge.BadgeVariant.Critical,
+            <= 30 => StatusBadge.BadgeVariant.Danger,
+            < 90 => StatusBadge.BadgeVariant.Warning,
+            _ => StatusBadge.BadgeVariant.Success
+        };
+    }
+
+    private static string StatusText(MonitoredCertificateStatus certificate)
+    {
+        if (!certificate.Found) return certificate.IsLiveCheck ? "Nicht gefunden" : "Noch keine Beobachtung";
+        if (certificate.NotAfter is null) return "Unbekannt";
+        var daysRemaining = (int)Math.Floor((certificate.NotAfter.Value - DateTimeOffset.UtcNow).TotalDays);
+        return daysRemaining < 0 ? $"seit {-daysRemaining} Tagen abgelaufen" : $"noch {daysRemaining} Tage";
+    }
+}

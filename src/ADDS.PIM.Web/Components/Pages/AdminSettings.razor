@@ -1,0 +1,31 @@
+@page "/admin/settings"
+
+<PageTitle>ADDS-PIM - Einstellungen</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>Einstellungen</h1>
+        <p>Verwalten Sie anwendungsweite und gruppenbezogene Konfigurationen.</p>
+    </div>
+</section>
+
+<section class="row g-3" aria-label="Einstellungsbereiche">
+    <div class="col-md-6">
+        <article class="card h-100">
+            <div class="card-body">
+                <h2 class="h4"><i class="bi bi-ticket-perforated-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Ticket-Referenz-Patterns</h2>
+                <p>Regex-Formate pro Zielgruppe festlegen. Ticketpflichtige Gruppen benötigen mindestens ein aktives Pattern.</p>
+                <a class="btn btn-primary" href="/admin/settings/ticket-reference-patterns">Patterns verwalten</a>
+            </div>
+        </article>
+    </div>
+    <div class="col-md-6">
+        <article class="card h-100">
+            <div class="card-body">
+                <h2 class="h4"><i class="bi bi-shield-lock-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> TOTP-Schutzzertifikat</h2>
+                <p>Gültigkeit des Zertifikats prüfen, das TOTP-Secrets in der Datenbank verschlüsselt, und einen Rollover durchführen.</p>
+                <a class="btn btn-primary" href="/admin/settings/totp-protection-certificate">Zertifikat verwalten</a>
+            </div>
+        </article>
+    </div>
+</section>

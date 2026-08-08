@@ -78,3 +78,11 @@ ADDS-PIM modifies Active Directory group memberships. It is provided as is, with
 ## Contributing
 
 Pull requests are welcome - please read [`CONTRIBUTING.md`](CONTRIBUTING.md) first. Contributions are accepted under the Apache License 2.0 so that they can be included in both the freely available and the commercially licensed builds.
+
+## Support ADDS-PIM
+
+ADDS-PIM is developed and maintained in my spare time.
+
+If you find the project useful for your homelab, lab environment, research or evaluation, you can support its continued development:
+
+☕ [Buy me a coffee](https://buymeacoffee.com/chaozmc) · ❤️ [Support me on Ko-fi](https://ko-fi.com/chaozmc)

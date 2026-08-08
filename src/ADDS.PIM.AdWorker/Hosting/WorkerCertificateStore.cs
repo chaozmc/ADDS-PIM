@@ -22,19 +22,6 @@ public sealed class WorkerCertificateStore(WorkerHostSettings settings)
         return certificate;
     }
 
-    public X509Certificate2 LoadWorkerClientCertificate()
-    {
-        var certificate = FindByThumbprint(settings.WorkerClientCertificateThumbprint)
-            ?? throw new InvalidOperationException("The configured Worker client certificate was not found in LocalMachine\\My.");
-        if (!certificate.HasPrivateKey)
-        {
-            throw new InvalidOperationException("The configured Worker client certificate has no accessible private key.");
-        }
-
-        ValidateCertificate(certificate, ClientAuthenticationOid, "Worker client");
-        return certificate;
-    }
-
     public bool IsAllowedApiClientCertificate(X509Certificate2? certificate, SslPolicyErrors sslPolicyErrors)
     {
         if (certificate is null)

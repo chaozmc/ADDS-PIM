@@ -146,7 +146,6 @@ The Worker reads its startup configuration only from `HKLM\SOFTWARE\ADDS-PIM\Wor
 | `BindAddress` | `REG_SZ` | Specific, non-loopback IP address of the Worker's interface. Wildcard and loopback bindings are rejected. |
 | `Port` | `REG_DWORD` | Private HTTPS port. |
 | `ServerCertificateThumbprint` | `REG_SZ` | TLS server certificate in `LocalMachine\My`; the Worker gMSA needs private-key read access. |
-| `WorkerClientCertificateThumbprint` | `REG_SZ` | Client-authentication certificate in `LocalMachine\My`, loaded and validated at startup for a future authenticated Worker-to-API call channel. No code path currently uses it to make an outbound call - API→Worker command dispatch is the only channel today. It is provisioned ahead of that future need and is currently dormant. |
 | `AllowedApiClientCertificateThumbprints` | `REG_MULTI_SZ` | Explicit allow-list of API mTLS client certificate thumbprints; at least one entry is mandatory. |
 | `SqlConnectionString` | `REG_SZ` | SQL Server connection string using Windows Integrated Security; SQL Server passwords are prohibited. |
 | `DomainController` | `REG_SZ` | Fixed, writable domain controller used for the AD operation and its read-back verification. |
@@ -188,7 +187,6 @@ Every error in ADDS-PIM is classified into one of the categories below. Each con
 | `Mfa` | A required multi-factor authentication factor is missing or invalid. |
 | `Database` | Persistence, transaction, or schema error. |
 | `ActiveDirectory` | An AD query or change failed. |
-| `PowerShell` | The PowerShell host, module, script, or structured result evaluation failed. |
 | `WorkerCommunication` | The Worker was unreachable, or the protocol/transport failed. |
 | `Certificate` | A certificate's trust, purpose, validity, revocation status, or key access is invalid. |
 | `Configuration` | Required configuration is missing or contradictory. |

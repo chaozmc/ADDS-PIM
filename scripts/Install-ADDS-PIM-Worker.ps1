@@ -21,10 +21,6 @@ param(
     [string] $ServerCertificateThumbprint,
 
     [Parameter(Mandatory)]
-    [ValidatePattern('^[0-9A-Fa-f ]+$')]
-    [string] $WorkerClientCertificateThumbprint,
-
-    [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string[]] $AllowedApiClientCertificateThumbprint,
 
@@ -109,7 +105,6 @@ $infrastructureProject = (Resolve-Path -LiteralPath $InfrastructureProjectPath).
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 
 $serverCertificate = Assert-LocalMachineCertificate $ServerCertificateThumbprint 'Worker server'
-$workerClientCertificate = Assert-LocalMachineCertificate $WorkerClientCertificateThumbprint 'Worker client'
 foreach ($thumbprint in $AllowedApiClientCertificateThumbprint) {
     $null = Assert-LocalMachineCertificate $thumbprint 'Allowed API client'
 }
@@ -143,7 +138,6 @@ if (-not $SkipDatabase) {
 $configurationScript = Join-Path $PSScriptRoot 'Install-AdWorkerHostConfiguration.ps1'
 & $configurationScript -BindAddress $BindAddress -Port $Port `
     -ServerCertificateThumbprint $serverCertificate.Thumbprint `
-    -WorkerClientCertificateThumbprint $workerClientCertificate.Thumbprint `
     -AllowedApiClientCertificateThumbprint $AllowedApiClientCertificateThumbprint `
     -SqlConnectionString $SqlConnectionString -DomainController $DomainController `
     -CommandMaxAgeSeconds $CommandMaxAgeSeconds -WhatIf:$WhatIfPreference

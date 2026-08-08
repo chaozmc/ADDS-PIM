@@ -17,8 +17,4 @@
     <ProjectReference Include="..\ADDS.PIM.Contracts\ADDS.PIM.Contracts.csproj" />
     <ProjectReference Include="..\ADDS.PIM.Infrastructure\ADDS.PIM.Infrastructure.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Scripts\Invoke-TtlMembership.ps1" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 </Project>

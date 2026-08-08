@@ -13,10 +13,6 @@ param(
     [string] $ServerCertificateThumbprint,
 
     [Parameter(Mandatory)]
-    [ValidatePattern('^[0-9A-Fa-f ]+$')]
-    [string] $WorkerClientCertificateThumbprint,
-
-    [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string[]] $AllowedApiClientCertificateThumbprint,
 
@@ -48,7 +44,6 @@ if ($PSCmdlet.ShouldProcess($registryPath, 'Write Worker host configuration')) {
     New-ItemProperty -Path $registryPath -Name BindAddress -PropertyType String -Value $BindAddress -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name Port -PropertyType DWord -Value $Port -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name ServerCertificateThumbprint -PropertyType String -Value ($ServerCertificateThumbprint -replace '\s') -Force | Out-Null
-    New-ItemProperty -Path $registryPath -Name WorkerClientCertificateThumbprint -PropertyType String -Value ($WorkerClientCertificateThumbprint -replace '\s') -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name AllowedApiClientCertificateThumbprints -PropertyType MultiString -Value ($AllowedApiClientCertificateThumbprint | ForEach-Object { $_ -replace '\s' }) -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name SqlConnectionString -PropertyType String -Value $SqlConnectionString -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name DomainController -PropertyType String -Value $DomainController -Force | Out-Null

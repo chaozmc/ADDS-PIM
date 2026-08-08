@@ -51,7 +51,6 @@ if (ldapTest)
 var settings = WorkerHostSettings.LoadFromLocalMachine();
 var certificateStore = new WorkerCertificateStore(settings);
 var serverCertificate = certificateStore.LoadServerCertificate();
-var workerClientCertificate = certificateStore.LoadWorkerClientCertificate();
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
@@ -84,7 +83,6 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.AddSingleton(settings);
 builder.Services.AddSingleton(certificateStore);
-builder.Services.AddSingleton(workerClientCertificate);
 builder.Services.AddOptions<ActiveDirectoryOptions>()
     .BindConfiguration(ActiveDirectoryOptions.SectionName)
     .Validate(options => !string.IsNullOrWhiteSpace(options.DomainController), "ActiveDirectory:DomainController is required.")

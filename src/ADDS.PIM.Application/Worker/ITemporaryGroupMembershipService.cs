@@ -10,8 +10,7 @@ public enum TemporaryGroupMembershipResultKind
     Verified,
     ExistingMembership,
     VerificationFailed,
-    ActiveDirectoryFailure,
-    PowerShellFailure
+    ActiveDirectoryFailure
 }
 
 public sealed record TemporaryGroupMembershipResult(

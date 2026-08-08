@@ -4,5 +4,4 @@ public sealed class ActiveDirectoryOptions
 {
     public const string SectionName = "ActiveDirectory";
     public required string DomainController { get; init; }
-    public string PowerShellExecutablePath { get; init; } = "powershell.exe";
 }

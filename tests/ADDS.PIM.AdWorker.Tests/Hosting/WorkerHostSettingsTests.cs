@@ -36,7 +36,6 @@ public sealed class WorkerHostSettingsTests
             bindAddress,
             8443,
             serverThumbprint,
-            "DDEEFF",
             allowedThumbprints ?? ["112233"],
             "Server=(local);Database=ADDS_PIM;Integrated Security=true;Encrypt=true;",
             "gdc.example.org",

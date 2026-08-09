@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · Request group permission</value>
+  </data>
+  <data name="MyPermissionsHeading" xml:space="preserve">
+    <value>My group permissions</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Select a group currently entitled for your target account. The permission and policy are re-checked before the AD change.</value>
+  </data>
+  <data name="LoadingPermissions" xml:space="preserve">
+    <value>Loading permissions …</value>
+  </data>
+  <data name="SetupFactorLink" xml:space="preserve">
+    <value>Set up factor</value>
+  </data>
+  <data name="RequestIdLabel" xml:space="preserve">
+    <value>Request ID:</value>
+  </data>
+  <data name="NoActivePermissionsHeading" xml:space="preserve">
+    <value>No active permissions</value>
+  </data>
+  <data name="NoActivePermissionsText" xml:space="preserve">
+    <value>There is currently no active entitlement for your account.</value>
+  </data>
+  <data name="ConfirmSecondFactorHeading" xml:space="preserve">
+    <value>Confirm second factor</value>
+  </data>
+  <data name="ConfirmSecondFactorIntro" xml:space="preserve">
+    <value>Confirm the following request with a TOTP code to execute the time-limited group membership.</value>
+  </data>
+  <data name="ActorAccountLabel" xml:space="preserve">
+    <value>Actor account</value>
+  </data>
+  <data name="TargetAccountLabel" xml:space="preserve">
+    <value>Target account</value>
+  </data>
+  <data name="GroupLabel" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="ValidUntilLabel" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="VerifyingText" xml:space="preserve">
+    <value>Verifying …</value>
+  </data>
+  <data name="ConfirmWithPasskeyButton" xml:space="preserve">
+    <value>Confirm with passkey</value>
+  </data>
+  <data name="NoTotpFactorText" xml:space="preserve">
+    <value>No TOTP factor is set up for your account yet. Set up a factor first to confirm this request.</value>
+  </data>
+  <data name="TotpCodeLabel" xml:space="preserve">
+    <value>TOTP code</value>
+  </data>
+  <data name="ConfirmAndExecuteButton" xml:space="preserve">
+    <value>Confirm and execute</value>
+  </data>
+  <data name="RequestPermissionHeading" xml:space="preserve">
+    <value>Request permission</value>
+  </data>
+  <data name="GroupAndTargetAccountLabel" xml:space="preserve">
+    <value>Group and target account</value>
+  </data>
+  <data name="DurationLabel" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="AllowedDurationHint" xml:space="preserve">
+    <value>Allowed: {0} to {1}, in steps of {2}.</value>
+  </data>
+  <data name="ReasonLabel" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="TicketReferenceLabel" xml:space="preserve">
+    <value>Ticket reference</value>
+  </data>
+  <data name="SecondFactorRequiredHint" xml:space="preserve">
+    <value>This group requires a second factor ({0}). You will be prompted to confirm after submitting.</value>
+  </data>
+  <data name="ApprovalRequiredHint" xml:space="preserve">
+    <value>This group requires approval. After submitting, the request waits for the decision of an assigned approver.</value>
+  </data>
+  <data name="SubmittingText" xml:space="preserve">
+    <value>Executing request …</value>
+  </data>
+  <data name="RequestAccessButton" xml:space="preserve">
+    <value>Request time-limited access</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status: {0}</value>
+  </data>
+  <data name="LoadEntitlementsError" xml:space="preserve">
+    <value>Your permissions could not be loaded. Check the protected server logs using the request ID.</value>
+  </data>
+  <data name="TicketRequiredError" xml:space="preserve">
+    <value>A ticket reference is required for this group.</value>
+  </data>
+  <data name="NoActiveFactorError" xml:space="preserve">
+    <value>No active factor allowed for this group is set up for your account yet ({0}).</value>
+  </data>
+  <data name="SetupFactorSuffix" xml:space="preserve">
+    <value> Set up a factor first before submitting this request.</value>
+  </data>
+  <data name="Fido2UnavailableSuffix" xml:space="preserve">
+    <value> FIDO2 is not yet available; you cannot currently complete this request yourself.</value>
+  </data>
+  <data name="InvalidTicketPatternError" xml:space="preserve">
+    <value>The ticket reference does not match any pattern configured for this group.</value>
+  </data>
+  <data name="SubmitFailedWithIdError" xml:space="preserve">
+    <value>The request could not be executed. Provide the request ID when investigating.</value>
+  </data>
+  <data name="SubmitFailedGenericError" xml:space="preserve">
+    <value>The request could not be executed. Check the protected server logs.</value>
+  </data>
+  <data name="FactorLockedError" xml:space="preserve">
+    <value>The factor is temporarily locked. Try again later.</value>
+  </data>
+  <data name="ConfirmationExpiredError" xml:space="preserve">
+    <value>The confirmation has expired or is invalid. Submit the request again.</value>
+  </data>
+  <data name="NoPendingConfirmationError" xml:space="preserve">
+    <value>No pending confirmation was found for this request.</value>
+  </data>
+  <data name="CodeNotVerifiedError" xml:space="preserve">
+    <value>The code could not be verified.</value>
+  </data>
+  <data name="CodeNotVerifiedGenericError" xml:space="preserve">
+    <value>The code could not be verified. Check the protected server logs.</value>
+  </data>
+  <data name="PasskeyNotVerifiedError" xml:space="preserve">
+    <value>The passkey could not be verified.</value>
+  </data>
+  <data name="Fido2Label" xml:space="preserve">
+    <value>FIDO2</value>
+  </data>
+  <data name="TotpLabel" xml:space="preserve">
+    <value>TOTP</value>
+  </data>
+  <data name="TotpOrFido2Label" xml:space="preserve">
+    <value>TOTP or FIDO2</value>
+  </data>
+  <data name="SecondFactorGenericLabel" xml:space="preserve">
+    <value>a second factor</value>
+  </data>
+  <data name="MfaRequiredTag" xml:space="preserve">
+    <value>MFA required</value>
+  </data>
+  <data name="ApprovalRequiredTag" xml:space="preserve">
+    <value>Approval required</value>
+  </data>
+</root>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · Passkey einrichten</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Multi-Factor Authentication</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Passkey einrichten</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Richten Sie einen FIDO2-Passkey ein, um Gruppenanfragen zu bestätigen, die einen zweiten Faktor erfordern. Sie können mehrere Passkeys hinterlegen.</value>
+  </data>
+  <data name="BackToOverviewLink" xml:space="preserve">
+    <value>Zur MFA-Übersicht</value>
+  </data>
+  <data name="LoadingStatusMessage" xml:space="preserve">
+    <value>Status wird geladen …</value>
+  </data>
+  <data name="ExistingPasskeysHeading" xml:space="preserve">
+    <value>Eingerichtete Passkeys</value>
+  </data>
+  <data name="PasskeyFallbackLabel" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="CreatedOnLabel" xml:space="preserve">
+    <value>eingerichtet am</value>
+  </data>
+  <data name="RemovePasskeyHint" xml:space="preserve">
+    <value>Zum Entfernen eines Passkeys wenden Sie sich an einen Administrator.</value>
+  </data>
+  <data name="StepUpHeading" xml:space="preserve">
+    <value>Bestätigen Sie einen vorhandenen Faktor</value>
+  </data>
+  <data name="StepUpIntro" xml:space="preserve">
+    <value>Für die Einrichtung eines weiteren Passkeys müssen Sie zunächst einen bereits eingerichteten Faktor bestätigen.</value>
+  </data>
+  <data name="ConfirmingBusyButton" xml:space="preserve">
+    <value>Wird bestätigt …</value>
+  </data>
+  <data name="ConfirmWithPasskeyButton" xml:space="preserve">
+    <value>Mit vorhandenem Passkey bestätigen</value>
+  </data>
+  <data name="TotpCodeLabel" xml:space="preserve">
+    <value>TOTP-Code</value>
+  </data>
+  <data name="ConfirmWithTotpButton" xml:space="preserve">
+    <value>Mit TOTP bestätigen</value>
+  </data>
+  <data name="AddNewPasskeyHeading" xml:space="preserve">
+    <value>Neuen Passkey hinzufügen</value>
+  </data>
+  <data name="LabelOptionalField" xml:space="preserve">
+    <value>Bezeichnung (optional)</value>
+  </data>
+  <data name="LabelPlaceholder" xml:space="preserve">
+    <value>z. B. YubiKey Büro</value>
+  </data>
+  <data name="AddingBusyButton" xml:space="preserve">
+    <value>Wird eingerichtet …</value>
+  </data>
+  <data name="AddPasskeyButton" xml:space="preserve">
+    <value>Passkey hinzufügen</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle.</value>
+  </data>
+  <data name="PasskeyConfirmError" xml:space="preserve">
+    <value>Der vorhandene Passkey konnte nicht bestätigt werden.</value>
+  </data>
+  <data name="StepUpFailedError" xml:space="preserve">
+    <value>Die Bestätigung ist fehlgeschlagen. Versuchen Sie es erneut.</value>
+  </data>
+  <data name="RegistrationError" xml:space="preserve">
+    <value>Der Passkey konnte nicht eingerichtet werden. Prüfen Sie die geschützten Serverprotokolle.</value>
+  </data>
+</root>

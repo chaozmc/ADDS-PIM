@@ -1,22 +1,24 @@
 @page "/mfa/totp/enroll"
+@using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
+@inject IStringLocalizer<EnrollTotp> Localizer
 
-<PageTitle>ADDS-PIM · TOTP-Faktor einrichten</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <div class="page-header">
     <section class="hero" aria-labelledby="page-title">
         <div>
-            <p class="eyebrow">Multi-Factor Authentication</p>
-            <h1 id="page-title">TOTP-Faktor einrichten</h1>
-            <p>Richten Sie einen zeitbasierten Einmalcode-Faktor ein, um Gruppenanfragen zu bestätigen, die einen zweiten Faktor erfordern.</p>
+            <p class="eyebrow">@Localizer["Eyebrow"]</p>
+            <h1 id="page-title">@Localizer["Heading"]</h1>
+            <p>@Localizer["IntroText"]</p>
         </div>
     </section>
-    <NavLink class="back-link" href="/mfa"><i class="bi bi-arrow-left" aria-hidden="true"></i> Zur MFA-Übersicht</NavLink>
+    <NavLink class="back-link" href="/mfa"><i class="bi bi-arrow-left" aria-hidden="true"></i> @Localizer["BackToOverviewLink"]</NavLink>
 </div>
 
 @if (_loadingStatus)
 {
-    <LoadingIndicator Message="Status wird geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingStatusMessage"]" />
 }
 else if (_error is not null)
 {
@@ -25,53 +27,53 @@ else if (_error is not null)
 else if (_confirmed || _alreadyEnrolled)
 {
     <div class="submission-result accepted" role="status">
-        <h3>Faktor eingerichtet</h3>
+        <h3>@Localizer["FactorSetUpHeading"]</h3>
         <p>
             @if (_confirmed)
             {
-                <text>Der TOTP-Faktor ist aktiv und kann ab sofort zur Bestätigung von Gruppenanfragen verwendet werden.</text>
+                <text>@Localizer["FactorActiveMessage"]</text>
             }
             else
             {
-                <text>Für Ihr Konto ist bereits ein aktiver TOTP-Faktor eingerichtet. Ein erneutes Einrichten ist erst möglich, nachdem ein Administrator den bestehenden Faktor zurückgesetzt hat.</text>
+                <text>@Localizer["AlreadyEnrolledMessage"]</text>
             }
         </p>
-        <NavLink href="/mfa">Zurück zur MFA-Übersicht</NavLink>
+        <NavLink href="/mfa">@Localizer["BackToOverviewLink"]</NavLink>
     </div>
 }
 else if (_enrollment is null)
 {
     <section class="request-form" aria-labelledby="start-title">
-        <h2 id="start-title">Faktor starten</h2>
-        <p>Es wird ein neues, verschlüsselt gespeichertes Secret erzeugt. Es wird nur auf dieser Seite einmalig angezeigt.</p>
-        <button class="submit-button" type="button" disabled="@_starting" @onclick="StartEnrollmentAsync">@(_starting ? "Wird erzeugt …" : "Faktor erzeugen")</button>
+        <h2 id="start-title">@Localizer["StartFactorHeading"]</h2>
+        <p>@Localizer["StartFactorIntro"]</p>
+        <button class="submit-button" type="button" disabled="@_starting" @onclick="StartEnrollmentAsync">@(_starting ? Localizer["GeneratingBusyButton"] : Localizer["GenerateFactorButton"])</button>
     </section>
 }
 else
 {
     <section class="request-form" aria-labelledby="confirm-title">
-        <h2 id="confirm-title">In der Authenticator-App hinterlegen</h2>
-        <p>Scannen Sie den QR-Code mit Ihrer Authenticator-App (z. B. Microsoft/Google Authenticator, Authy). Dieser Code wird nach dem Verlassen der Seite nicht erneut angezeigt.</p>
-        <div class="totp-qr-code" role="img" aria-label="QR-Code zur Einrichtung des TOTP-Faktors">
+        <h2 id="confirm-title">@Localizer["StoreInAuthenticatorHeading"]</h2>
+        <p>@Localizer["ScanQrCodeInstruction"]</p>
+        <div class="totp-qr-code" role="img" aria-label="@Localizer["QrCodeAriaLabel"]">
             @((MarkupString)_qrCodeSvg!)
         </div>
         <div class="field">
-            <label for="manual-secret">Geht das Scannen nicht? Manuell eingeben</label>
+            <label for="manual-secret">@Localizer["ManualEntryLabel"]</label>
             <input id="manual-secret" type="text" readonly value="@FormatSecretForDisplay(_enrollment.Secret)" class="totp-manual-secret" />
-            <span class="hint">Kontotyp: zeitbasiert, 6 Stellen, 30 Sekunden.</span>
+            <span class="hint">@Localizer["AccountTypeHint"]</span>
         </div>
         <EditForm Model="_confirmForm" OnValidSubmit="ConfirmAsync">
             <div class="field">
-                <label for="confirm-code">Code aus der Authenticator-App</label>
+                <label for="confirm-code">@Localizer["ConfirmCodeLabel"]</label>
                 <InputText id="confirm-code" @bind-Value="_confirmForm.Code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" />
             </div>
             @if (_confirmError is not null)
             {
                 <div class="submission-result failed" role="alert">@_confirmError</div>
             }
-            <button class="submit-button" type="submit" disabled="@_confirming">@(_confirming ? "Wird bestätigt …" : "Faktor bestätigen")</button>
+            <button class="submit-button" type="submit" disabled="@_confirming">@(_confirming ? Localizer["ConfirmingBusyButton"] : Localizer["ConfirmFactorButton"])</button>
         </EditForm>
-        <p class="hint">Die Einrichtung läuft ab: @_enrollment.ExpiresUtc.ToLocalTime().ToString("t")</p>
+        <p class="hint">@Localizer["EnrollmentExpiresLabel"] @_enrollment.ExpiresUtc.ToLocalTime().ToString("t")</p>
     </section>
 }
 
@@ -91,7 +93,7 @@ else
             var status = await RequestClient.GetMfaStatusAsync(CancellationToken.None);
             _alreadyEnrolled = status?.TotpEnrolled ?? false;
         }
-        catch { _error = "Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        catch { _error = Localizer["StatusLoadError"]; }
         finally { _loadingStatus = false; }
     }
 
@@ -104,7 +106,7 @@ else
             if (_enrollment is null) { _alreadyEnrolled = true; return; }
             _qrCodeSvg = GenerateQrCodeSvg(_enrollment.ProvisioningUri);
         }
-        catch { _error = "Der Faktor konnte nicht erzeugt werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        catch { _error = Localizer["FactorGenerationError"]; }
         finally { _starting = false; }
     }
 
@@ -130,9 +132,9 @@ else
         try
         {
             _confirmed = await RequestClient.ConfirmTotpEnrollmentAsync(_enrollment.TotpFactorId, _confirmForm.Code, CancellationToken.None);
-            if (!_confirmed) _confirmError = "Der Code ist ungültig oder die Einrichtung ist abgelaufen.";
+            if (!_confirmed) _confirmError = Localizer["InvalidOrExpiredCodeError"];
         }
-        catch { _confirmError = "Der Code konnte nicht bestätigt werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        catch { _confirmError = Localizer["CodeConfirmError"]; }
         finally { _confirming = false; }
     }
 

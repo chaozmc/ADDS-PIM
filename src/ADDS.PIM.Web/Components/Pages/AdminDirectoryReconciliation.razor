@@ -1,12 +1,14 @@
 @page "/admin/directory-reconciliation"
+@using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminDirectoryReconciliation> Localizer
 
-<PageTitle>ADDS-PIM – AD-Abgleich</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>AD-Abgleich</h1>
-        <p>Prüft aktive PIM-Konten und Zielgruppen gegen Active Directory. Der Lauf ändert keine PIM-Daten.</p>
+        <h1>@Localizer["Heading"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
     </div>
 </section>
 
@@ -16,26 +18,26 @@
 }
 else if (_overview is null)
 {
-    <LoadingIndicator Message="Abgleichdaten werden geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
 }
 else
 {
     <section aria-labelledby="start-title">
-        <h2 id="start-title">Abgleich starten</h2>
-        <p>Gefundene Auffälligkeiten werden zur Prüfung gespeichert. Eine lokale Deaktivierung erfolgt erst nach einer ausdrücklichen Bestätigung.</p>
-        <button class="btn btn-primary" @onclick="StartAsync" disabled="@(_saving || HasActiveRun)"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Abgleich starten</button>
+        <h2 id="start-title">@Localizer["StartSectionTitle"]</h2>
+        <p>@Localizer["StartSectionDescription"]</p>
+        <button class="btn btn-primary" @onclick="StartAsync" disabled="@(_saving || HasActiveRun)"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> @Localizer["StartButton"]</button>
     </section>
     <section aria-labelledby="runs-title" class="mt-4">
-        <h2 id="runs-title">Letzte Läufe</h2>
+        <h2 id="runs-title">@Localizer["RecentRunsTitle"]</h2>
         @if (_overview.Runs.Count == 0)
         {
-            <EmptyState Icon="bi-clock-history" Title="Noch kein Abgleich durchgeführt" Description="Starten Sie oben den ersten Abgleichlauf." />
+            <EmptyState Icon="bi-clock-history" Title="@Localizer["NoRunsTitle"]" Description="@Localizer["NoRunsDescription"]" />
         }
         else
         {
             <div class="table-responsive">
                 <table class="table">
-                    <thead><tr><th>Gestartet</th><th>Status</th><th>Abgeschlossen</th></tr></thead>
+                    <thead><tr><th>@Localizer["ColStarted"]</th><th>@Localizer["ColStatus"]</th><th>@Localizer["ColCompleted"]</th></tr></thead>
                     <tbody>
                         @foreach (var run in _overview.Runs)
                         {
@@ -51,16 +53,16 @@ else
         }
     </section>
     <section aria-labelledby="findings-title" class="mt-4">
-        <h2 id="findings-title">Prüfbefunde</h2>
+        <h2 id="findings-title">@Localizer["FindingsTitle"]</h2>
         @if (_overview.Findings.Count == 0)
         {
-            <EmptyState Icon="bi-check-circle" Title="Keine Befunde vorhanden" Description="Bisherige Abgleichläufe haben keine Abweichungen zwischen PIM-Daten und Active Directory festgestellt." />
+            <EmptyState Icon="bi-check-circle" Title="@Localizer["NoFindingsTitle"]" Description="@Localizer["NoFindingsDescription"]" />
         }
         else
         {
             <div class="table-responsive">
                 <table class="table">
-                    <thead><tr><th>Objekt</th><th>Typ</th><th>Befund</th><th>Erkannt</th><th>Status</th></tr></thead>
+                    <thead><tr><th>@Localizer["ColObject"]</th><th>@Localizer["ColType"]</th><th>@Localizer["ColFinding"]</th><th>@Localizer["ColDetected"]</th><th>@Localizer["ColStatus"]</th></tr></thead>
                     <tbody>
                         @foreach (var finding in _overview.Findings)
                         {
@@ -69,7 +71,7 @@ else
                                 <td>@finding.EntityType</td>
                                 <td>@finding.Reason</td>
                                 <td>@finding.DetectedUtc.ToLocalTime().ToString("g")</td>
-                                <td><StatusBadge Text="@(finding.IsResolved ? "Erledigt" : "Offen")" Variant="@(finding.IsResolved ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Warning)" /></td>
+                                <td><StatusBadge Text="@(finding.IsResolved ? Localizer["ResolvedStatus"].Value : Localizer["OpenStatus"].Value)" Variant="@(finding.IsResolved ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Warning)" /></td>
                             </tr>
                         }
                     </tbody>
@@ -81,21 +83,21 @@ else
     @if (_overview.Findings.Any(finding => !finding.IsResolved))
     {
         <section class="mt-4" aria-labelledby="deactivate-title">
-            <h2 id="deactivate-title">Lokale Deaktivierung</h2>
-            <p>Bearbeiten Sie nur bestätigte Befunde. Die Aktion löscht keine AD- oder Auditdaten.</p>
+            <h2 id="deactivate-title">@Localizer["LocalDeactivationTitle"]</h2>
+            <p>@Localizer["LocalDeactivationDescription"]</p>
             @foreach (var finding in _overview.Findings.Where(finding => !finding.IsResolved))
             {
                 <div class="card mb-2">
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <span><strong>@finding.DisplayName</strong> – @finding.Reason</span>
-                        <button class="btn btn-outline-danger" @onclick="() => _pending = finding"><i class="bi bi-slash-circle" aria-hidden="true"></i> Lokal deaktivieren</button>
+                        <button class="btn btn-outline-danger" @onclick="() => _pending = finding"><i class="bi bi-slash-circle" aria-hidden="true"></i> @Localizer["DeactivateButton"]</button>
                     </div>
                 </div>
             }
             @if (_pending is not null)
             {
-                <DangerZonePanel Message="@($"{_pending.DisplayName} lokal deaktivieren?")"
-                                  ConfirmLabel="Deaktivierung bestätigen" IsBusy="_saving"
+                <DangerZonePanel Message="@Localizer["DeactivateConfirmMessage", _pending.DisplayName].Value"
+                                  ConfirmLabel="@Localizer["DeactivateConfirmLabel"]" IsBusy="_saving"
                                   OnConfirm="DeactivateAsync" OnCancel="() => _pending = null" />
             }
         </section>
@@ -115,14 +117,14 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _overview = await AdministrationClient.GetDirectoryReconciliationAsync(CancellationToken.None); }
-        catch { _error = "Abgleichdaten konnten nicht geladen werden."; }
+        catch { _error = Localizer["LoadError"]; }
     }
 
     private async Task StartAsync()
     {
         _saving = true;
         try { _error = null; await AdministrationClient.StartDirectoryReconciliationAsync(CancellationToken.None); await LoadAsync(); }
-        catch { _error = "Der Abgleich konnte nicht gestartet werden. Möglicherweise läuft bereits einer."; }
+        catch { _error = Localizer["StartError"]; }
         finally { _saving = false; }
     }
 
@@ -131,7 +133,7 @@ else
         if (_pending is null) return;
         _saving = true;
         try { _error = null; await AdministrationClient.DeactivateDirectoryReconciliationFindingAsync(_pending, CancellationToken.None); _pending = null; await LoadAsync(); }
-        catch { _error = "Die lokale Deaktivierung konnte nicht ausgeführt werden. Der Befund wurde möglicherweise bereits bearbeitet."; }
+        catch { _error = Localizer["DeactivateError"]; }
         finally { _saving = false; }
     }
 

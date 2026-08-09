@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM – Technical Errors</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Technical Errors</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Shows unhandled exceptions from the API, kept separate from the security-relevant audit log. Search here using the request ID from an error message.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Loading technical errors …</value>
+  </data>
+  <data name="RequestIdLabel" xml:space="preserve">
+    <value>Request ID</value>
+  </data>
+  <data name="RequestIdPlaceholder" xml:space="preserve">
+    <value>e.g. 18695535-1cbd-4122-a918-ef2e361d2fda</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="PageSizeLabel" xml:space="preserve">
+    <value>Entries per page</value>
+  </data>
+  <data name="FilterButton" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="EmptyTitle" xml:space="preserve">
+    <value>No technical errors found</value>
+  </data>
+  <data name="EmptyDescription" xml:space="preserve">
+    <value>Adjust the filters, or no unhandled exceptions occurred in the selected time range.</value>
+  </data>
+  <data name="TableAriaLabel" xml:space="preserve">
+    <value>Technical errors</value>
+  </data>
+  <data name="ColTimestamp" xml:space="preserve">
+    <value>Timestamp (UTC)</value>
+  </data>
+  <data name="ColMethod" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="ColPath" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="ColExceptionType" xml:space="preserve">
+    <value>Exception type</value>
+  </data>
+  <data name="DtErrorId" xml:space="preserve">
+    <value>Error ID</value>
+  </data>
+  <data name="DtRequestId" xml:space="preserve">
+    <value>Request ID</value>
+  </data>
+  <data name="DtCorrelationId" xml:space="preserve">
+    <value>Correlation ID</value>
+  </data>
+  <data name="DtStatusCode" xml:space="preserve">
+    <value>Status code</value>
+  </data>
+  <data name="DtSourceComponent" xml:space="preserve">
+    <value>Source component</value>
+  </data>
+  <data name="DtMessage" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="DtStackTrace" xml:space="preserve">
+    <value>Stack trace</value>
+  </data>
+  <data name="PaginationAriaLabel" xml:space="preserve">
+    <value>Page navigation</value>
+  </data>
+  <data name="NextButton" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="PageStatus" xml:space="preserve">
+    <value>Page {0} of {1} ({2} entries)</value>
+  </data>
+  <data name="InvalidRequestIdError" xml:space="preserve">
+    <value>The request ID is invalid.</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>The technical errors could not be loaded.</value>
+  </data>
+</root>

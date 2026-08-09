@@ -1,5 +1,7 @@
 @implements IAsyncDisposable
+@using Microsoft.Extensions.Localization
 @inject IJSRuntime JS
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
 <script type="module" src="@Assets["Components/Shared/ConfirmDialog.razor.js"]"></script>
 
@@ -8,7 +10,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title h5" id="@_titleId">@Title</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@SharedLocalizer["CloseButton"]"></button>
             </div>
             <div class="modal-body">
                 @ChildContent

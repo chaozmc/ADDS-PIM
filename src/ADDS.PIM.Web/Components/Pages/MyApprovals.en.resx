@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · My Approvals</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Approval Workflow</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>My Approvals</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Loading pending approvals …</value>
+  </data>
+  <data name="EmptyStateTitle" xml:space="preserve">
+    <value>No pending approvals</value>
+  </data>
+  <data name="EmptyStateDescription" xml:space="preserve">
+    <value>There are currently no waiting requests for the groups you are assigned to as an approver.</value>
+  </data>
+  <data name="TableAriaLabel" xml:space="preserve">
+    <value>My Approvals</value>
+  </data>
+  <data name="DateColumn" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="PersonColumn" xml:space="preserve">
+    <value>Person</value>
+  </data>
+  <data name="GroupColumn" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="TargetAccountColumn" xml:space="preserve">
+    <value>Target Account</value>
+  </data>
+  <data name="DurationColumn" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="ReasonColumn" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="ApproveButton" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="RejectButton" xml:space="preserve">
+    <value>Reject</value>
+  </data>
+  <data name="RejectDialogTitle" xml:space="preserve">
+    <value>Reject Request</value>
+  </data>
+  <data name="RejectReasonLabel" xml:space="preserve">
+    <value>Rejection Reason</value>
+  </data>
+  <data name="CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ConfirmRejectButton" xml:space="preserve">
+    <value>Reject</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>The pending approvals could not be loaded.</value>
+  </data>
+  <data name="ApproveError" xml:space="preserve">
+    <value>The approval could not be applied. The request may have already been decided, or the assignment may have changed.</value>
+  </data>
+  <data name="RejectReasonRequiredError" xml:space="preserve">
+    <value>A rejection reason is required.</value>
+  </data>
+  <data name="RejectError" xml:space="preserve">
+    <value>The rejection could not be applied. The request may have already been decided, or the assignment may have changed.</value>
+  </data>
+</root>

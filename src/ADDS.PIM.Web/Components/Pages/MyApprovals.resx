@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · Meine Genehmigungen</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Approval Workflow</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Meine Genehmigungen</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Offene Genehmigungen werden geladen …</value>
+  </data>
+  <data name="EmptyStateTitle" xml:space="preserve">
+    <value>Keine offenen Genehmigungen</value>
+  </data>
+  <data name="EmptyStateDescription" xml:space="preserve">
+    <value>Für die Gruppen, denen Sie als Approver zugeordnet sind, liegen derzeit keine wartenden Anfragen vor.</value>
+  </data>
+  <data name="TableAriaLabel" xml:space="preserve">
+    <value>Meine Genehmigungen</value>
+  </data>
+  <data name="DateColumn" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="PersonColumn" xml:space="preserve">
+    <value>Person</value>
+  </data>
+  <data name="GroupColumn" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="TargetAccountColumn" xml:space="preserve">
+    <value>Zielkonto</value>
+  </data>
+  <data name="DurationColumn" xml:space="preserve">
+    <value>Dauer</value>
+  </data>
+  <data name="ReasonColumn" xml:space="preserve">
+    <value>Begründung</value>
+  </data>
+  <data name="ApproveButton" xml:space="preserve">
+    <value>Genehmigen</value>
+  </data>
+  <data name="RejectButton" xml:space="preserve">
+    <value>Ablehnen</value>
+  </data>
+  <data name="RejectDialogTitle" xml:space="preserve">
+    <value>Anfrage ablehnen</value>
+  </data>
+  <data name="RejectReasonLabel" xml:space="preserve">
+    <value>Ablehnungsgrund</value>
+  </data>
+  <data name="CancelButton" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="ConfirmRejectButton" xml:space="preserve">
+    <value>Ablehnen</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Die offenen Genehmigungen konnten nicht geladen werden.</value>
+  </data>
+  <data name="ApproveError" xml:space="preserve">
+    <value>Die Genehmigung konnte nicht übernommen werden. Möglicherweise wurde die Anfrage bereits entschieden oder die Zuordnung wurde geändert.</value>
+  </data>
+  <data name="RejectReasonRequiredError" xml:space="preserve">
+    <value>Ein Ablehnungsgrund ist erforderlich.</value>
+  </data>
+  <data name="RejectError" xml:space="preserve">
+    <value>Die Ablehnung konnte nicht übernommen werden. Möglicherweise wurde die Anfrage bereits entschieden oder die Zuordnung wurde geändert.</value>
+  </data>
+</root>

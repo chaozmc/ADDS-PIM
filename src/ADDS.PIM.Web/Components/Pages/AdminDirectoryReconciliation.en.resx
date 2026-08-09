@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM – AD Reconciliation</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>AD Reconciliation</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Checks active PIM accounts and target groups against Active Directory. The run does not change any PIM data.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Loading reconciliation data …</value>
+  </data>
+  <data name="StartSectionTitle" xml:space="preserve">
+    <value>Start reconciliation</value>
+  </data>
+  <data name="StartSectionDescription" xml:space="preserve">
+    <value>Findings are saved for review. A local deactivation is only performed after explicit confirmation.</value>
+  </data>
+  <data name="StartButton" xml:space="preserve">
+    <value>Start reconciliation</value>
+  </data>
+  <data name="RecentRunsTitle" xml:space="preserve">
+    <value>Recent runs</value>
+  </data>
+  <data name="NoRunsTitle" xml:space="preserve">
+    <value>No reconciliation run yet</value>
+  </data>
+  <data name="NoRunsDescription" xml:space="preserve">
+    <value>Start the first reconciliation run above.</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Started</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="FindingsTitle" xml:space="preserve">
+    <value>Findings</value>
+  </data>
+  <data name="NoFindingsTitle" xml:space="preserve">
+    <value>No findings</value>
+  </data>
+  <data name="NoFindingsDescription" xml:space="preserve">
+    <value>Previous reconciliation runs found no discrepancies between PIM data and Active Directory.</value>
+  </data>
+  <data name="ColObject" xml:space="preserve">
+    <value>Object</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ColFinding" xml:space="preserve">
+    <value>Finding</value>
+  </data>
+  <data name="ColDetected" xml:space="preserve">
+    <value>Detected</value>
+  </data>
+  <data name="ResolvedStatus" xml:space="preserve">
+    <value>Resolved</value>
+  </data>
+  <data name="OpenStatus" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="LocalDeactivationTitle" xml:space="preserve">
+    <value>Local deactivation</value>
+  </data>
+  <data name="LocalDeactivationDescription" xml:space="preserve">
+    <value>Only process confirmed findings. This action does not delete AD or audit data.</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Deactivate locally</value>
+  </data>
+  <data name="DeactivateConfirmMessage" xml:space="preserve">
+    <value>Deactivate {0} locally?</value>
+  </data>
+  <data name="DeactivateConfirmLabel" xml:space="preserve">
+    <value>Confirm deactivation</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Reconciliation data could not be loaded.</value>
+  </data>
+  <data name="StartError" xml:space="preserve">
+    <value>The reconciliation could not be started. One may already be running.</value>
+  </data>
+  <data name="DeactivateError" xml:space="preserve">
+    <value>The local deactivation could not be performed. The finding may already have been processed.</value>
+  </data>
+</root>

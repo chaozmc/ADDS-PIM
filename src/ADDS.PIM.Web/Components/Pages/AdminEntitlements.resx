@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Entitlements</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Direkte Entitlements</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Ein Entitlement berechtigt eine Person, genau ein ihr zugeordnetes Privilegien-Zielkonto für eine Zielgruppe zu verwenden.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Entitlements werden geladen …</value>
+  </data>
+  <data name="ActionsSectionAriaLabel" xml:space="preserve">
+    <value>Entitlement-Aktionen</value>
+  </data>
+  <data name="ExistingEntitlementsTitle" xml:space="preserve">
+    <value>Bestehende Entitlements</value>
+  </data>
+  <data name="ExistingEntitlementsDescription" xml:space="preserve">
+    <value>Person, Privilegien-Zielkonto und Zielgruppe werden immer gemeinsam autorisiert.</value>
+  </data>
+  <data name="CreateEntitlementButton" xml:space="preserve">
+    <value>Entitlement anlegen</value>
+  </data>
+  <data name="NoActiveSubjectMessage" xml:space="preserve">
+    <value>Es gibt kein aktives Privilegien-Zielkonto. Ordnen Sie zuerst unter &lt;a href="/admin/persons"&gt;Personen&lt;/a&gt; ein aktives AD-Konto mit dem Zweck "Darf TTL-Privilegien empfangen" zu.</value>
+  </data>
+  <data name="ActiveEntitlementsSectionTitle" xml:space="preserve">
+    <value>Aktive Entitlements</value>
+  </data>
+  <data name="EmptyStateTitle" xml:space="preserve">
+    <value>Keine aktiven Entitlements</value>
+  </data>
+  <data name="EmptyStateDescription" xml:space="preserve">
+    <value>Legen Sie ein Entitlement an, um einer Person Zugriff auf eine Zielgruppe zu ermöglichen.</value>
+  </data>
+  <data name="PersonHeader" xml:space="preserve">
+    <value>Person</value>
+  </data>
+  <data name="TargetAccountHeader" xml:space="preserve">
+    <value>Privilegien-Zielkonto</value>
+  </data>
+  <data name="TargetGroupHeader" xml:space="preserve">
+    <value>Zielgruppe</value>
+  </data>
+  <data name="ValidityHeader" xml:space="preserve">
+    <value>Gültigkeit</value>
+  </data>
+  <data name="StatusHeader" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ActionsHeader" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="OpenEndedValidity" xml:space="preserve">
+    <value>offen</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>Abgelaufen</value>
+  </data>
+  <data name="StatusActive" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="ChangeValidityButton" xml:space="preserve">
+    <value>Gültigkeit ändern</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Deaktivieren</value>
+  </data>
+  <data name="DeactivateConfirmMessage" xml:space="preserve">
+    <value>Entitlement für {0} wirklich deaktivieren?</value>
+  </data>
+  <data name="ConfirmDeactivateLabel" xml:space="preserve">
+    <value>Endgültig deaktivieren</value>
+  </data>
+  <data name="DialogIntro" xml:space="preserve">
+    <value>Die Person wird über ihr Anmeldekonto identifiziert. Das Privileg wird ausschließlich dem gewählten Zielkonto erteilt; es kann mit dem Anmeldekonto identisch sein, muss es aber nicht.</value>
+  </data>
+  <data name="PersonLabel" xml:space="preserve">
+    <value>1. Berechtigte Person</value>
+  </data>
+  <data name="PersonPlaceholder" xml:space="preserve">
+    <value>Bitte Person wählen</value>
+  </data>
+  <data name="TargetAccountLabel" xml:space="preserve">
+    <value>2. Privilegien-Zielkonto</value>
+  </data>
+  <data name="TargetAccountPlaceholder" xml:space="preserve">
+    <value>Bitte Zielkonto wählen</value>
+  </data>
+  <data name="TargetAccountHelpText" xml:space="preserve">
+    <value>Es werden nur aktive, dieser Person zugeordnete Konten angezeigt, die TTL-Privilegien empfangen dürfen.</value>
+  </data>
+  <data name="TargetGroupLabel" xml:space="preserve">
+    <value>3. Zielgruppe</value>
+  </data>
+  <data name="TargetGroupPlaceholder" xml:space="preserve">
+    <value>Bitte Zielgruppe wählen</value>
+  </data>
+  <data name="ValidUntilLabel" xml:space="preserve">
+    <value>Gültig bis (optional)</value>
+  </data>
+  <data name="ClearDateTitle" xml:space="preserve">
+    <value>Zeitpunkt löschen</value>
+  </data>
+  <data name="ValidUntilHelpText" xml:space="preserve">
+    <value>Ohne Endzeitpunkt bleibt das Entitlement aktiv, bis es deaktiviert wird.</value>
+  </data>
+  <data name="ValidUntilEditLabel" xml:space="preserve">
+    <value>Gültig bis</value>
+  </data>
+  <data name="NoExpiryTitle" xml:space="preserve">
+    <value>Kein Ablaufdatum</value>
+  </data>
+  <data name="ValidityHelpText" xml:space="preserve">
+    <value>Leer lassen für ein unbefristet aktives Entitlement.</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Verwaltungsdaten konnten nicht geladen werden. Prüfen Sie Ihre Berechtigung und die geschützten Serverprotokolle.</value>
+  </data>
+  <data name="CreateValidationError" xml:space="preserve">
+    <value>Bitte Person, Privilegien-Zielkonto und Zielgruppe auswählen.</value>
+  </data>
+  <data name="CreateSuccess" xml:space="preserve">
+    <value>Das Entitlement wurde angelegt.</value>
+  </data>
+  <data name="CreateConflictError" xml:space="preserve">
+    <value>Für diese Person, dieses Zielkonto und diese Zielgruppe besteht bereits ein aktives Entitlement.</value>
+  </data>
+  <data name="CreateGenericError" xml:space="preserve">
+    <value>Das Entitlement konnte nicht angelegt werden. Das Zielkonto, die Gruppe oder die Berechtigung wurde möglicherweise inzwischen geändert.</value>
+  </data>
+  <data name="ValiditySuccess" xml:space="preserve">
+    <value>Die Gültigkeit wurde aktualisiert.</value>
+  </data>
+  <data name="ValidityConflictError" xml:space="preserve">
+    <value>Das Entitlement wurde zwischenzeitlich geändert oder deaktiviert. Schließen Sie den Dialog und versuchen Sie es mit dem aktuellen Stand erneut.</value>
+  </data>
+  <data name="ValidityUnprocessableError" xml:space="preserve">
+    <value>Das Ablaufdatum muss nach dem Gültigkeitsbeginn liegen.</value>
+  </data>
+  <data name="ValidityGenericError" xml:space="preserve">
+    <value>Die Gültigkeit konnte nicht gespeichert werden. Prüfen Sie Ihre Berechtigung und die geschützten Serverprotokolle.</value>
+  </data>
+  <data name="DeactivateSuccess" xml:space="preserve">
+    <value>Das Entitlement wurde deaktiviert.</value>
+  </data>
+  <data name="DeactivateGenericError" xml:space="preserve">
+    <value>Das Entitlement konnte nicht deaktiviert werden. Die Daten wurden möglicherweise parallel geändert.</value>
+  </data>
+</root>

@@ -1,8 +1,12 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> SharedLocalizer
+
 <p role="status" aria-live="polite" class="d-flex align-items-center gap-2 text-muted">
     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-    @Message
+    @(Message ?? SharedLocalizer["LoadingText"])
 </p>
 
 @code {
-    [Parameter] public string Message { get; set; } = "Wird geladen …";
+    /// <summary>Defaults to the localized generic "Loading …" text when not supplied by the caller.</summary>
+    [Parameter] public string? Message { get; set; }
 }

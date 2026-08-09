@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM – Admin</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Wählen Sie einen Verwaltungsbereich.</value>
+  </data>
+  <data name="CertificateStatusTitle" xml:space="preserve">
+    <value>Zertifikatsstatus:</value>
+  </data>
+  <data name="CertificateOverviewLoadError" xml:space="preserve">
+    <value>Der Zertifikatsstatus konnte nicht geladen werden.</value>
+  </data>
+  <data name="CertificateDialogTitleFallback" xml:space="preserve">
+    <value>Zertifikat</value>
+  </data>
+  <data name="ThumbprintLabel" xml:space="preserve">
+    <value>Thumbprint</value>
+  </data>
+  <data name="ValidUntilLabel" xml:space="preserve">
+    <value>Gültig bis (UTC)</value>
+  </data>
+  <data name="UnknownValue" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="CheckedLabel" xml:space="preserve">
+    <value>Geprüft</value>
+  </data>
+  <data name="LastObservedLabel" xml:space="preserve">
+    <value>Zuletzt beobachtet</value>
+  </data>
+  <data name="NowLiveLabel" xml:space="preserve">
+    <value>jetzt (live)</value>
+  </data>
+  <data name="NeverLabel" xml:space="preserve">
+    <value>noch nie</value>
+  </data>
+  <data name="LastConnectionLabel" xml:space="preserve">
+    <value>Letzte Verbindung</value>
+  </data>
+  <data name="AcceptedLabel" xml:space="preserve">
+    <value>akzeptiert</value>
+  </data>
+  <data name="RejectedLabel" xml:space="preserve">
+    <value>abgelehnt</value>
+  </data>
+  <data name="NotFoundOrNotConfigured" xml:space="preserve">
+    <value>Nicht gefunden bzw. nicht konfiguriert.</value>
+  </data>
+  <data name="NoMtlsConnectionObserved" xml:space="preserve">
+    <value>Noch keine mTLS-Verbindung zum Worker beobachtet - wird beim nächsten tatsächlichen Membership-Request aktualisiert.</value>
+  </data>
+  <data name="AdminAreasAriaLabel" xml:space="preserve">
+    <value>Verwaltungsbereiche</value>
+  </data>
+  <data name="PersonsTitle" xml:space="preserve">
+    <value>Personen</value>
+  </data>
+  <data name="PersonsDescription" xml:space="preserve">
+    <value>Fachliche Personen anlegen, deaktivieren und reaktivieren.</value>
+  </data>
+  <data name="PersonsLinkText" xml:space="preserve">
+    <value>Personen verwalten</value>
+  </data>
+  <data name="GroupsTitle" xml:space="preserve">
+    <value>Gruppenverwaltung</value>
+  </data>
+  <data name="GroupsDescription" xml:space="preserve">
+    <value>AD-Zielgruppen registrieren, Policy konfigurieren und kontrolliert deaktivieren.</value>
+  </data>
+  <data name="GroupsLinkText" xml:space="preserve">
+    <value>Gruppen verwalten</value>
+  </data>
+  <data name="EntitlementsTitle" xml:space="preserve">
+    <value>Direkte Entitlements</value>
+  </data>
+  <data name="EntitlementsDescription" xml:space="preserve">
+    <value>Berechtigungen für Person, Zielkonto und Zielgruppe verwalten.</value>
+  </data>
+  <data name="EntitlementsLinkText" xml:space="preserve">
+    <value>Entitlements verwalten</value>
+  </data>
+  <data name="PurgeTitle" xml:space="preserve">
+    <value>Bereinigung</value>
+  </data>
+  <data name="PurgeDescription" xml:space="preserve">
+    <value>Inaktive lokale PIM-Objekte prüfen und nach ausdrücklicher Bestätigung bereinigen.</value>
+  </data>
+  <data name="PurgeLinkText" xml:space="preserve">
+    <value>Bereinigung öffnen</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="SettingsDescription" xml:space="preserve">
+    <value>Anwendungseinstellungen und Validierungsregeln verwalten.</value>
+  </data>
+  <data name="SettingsLinkText" xml:space="preserve">
+    <value>Einstellungen öffnen</value>
+  </data>
+  <data name="ReconciliationTitle" xml:space="preserve">
+    <value>AD-Abgleich</value>
+  </data>
+  <data name="ReconciliationDescription" xml:space="preserve">
+    <value>Aktive PIM-Objekte gegen Active Directory prüfen und Befunde kontrollieren.</value>
+  </data>
+  <data name="ReconciliationLinkText" xml:space="preserve">
+    <value>AD-Abgleich öffnen</value>
+  </data>
+  <data name="AuditLogTitle" xml:space="preserve">
+    <value>Audit-Log</value>
+  </data>
+  <data name="AuditLogDescription" xml:space="preserve">
+    <value>Auditereignisse aus der Datenbank durchsuchen und filtern.</value>
+  </data>
+  <data name="AuditLogLinkText" xml:space="preserve">
+    <value>Audit-Log öffnen</value>
+  </data>
+  <data name="StatusNotFound" xml:space="preserve">
+    <value>Nicht gefunden</value>
+  </data>
+  <data name="StatusNoObservation" xml:space="preserve">
+    <value>Noch keine Beobachtung</value>
+  </data>
+  <data name="StatusUnknown" xml:space="preserve">
+    <value>Unbekannt</value>
+  </data>
+  <data name="StatusExpiredDays" xml:space="preserve">
+    <value>seit {0} Tagen abgelaufen</value>
+  </data>
+  <data name="StatusRemainingDays" xml:space="preserve">
+    <value>noch {0} Tage</value>
+  </data>
+</root>

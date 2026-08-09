@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM – Audit-Log</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Audit-Log</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Zeigt die unveränderlichen Auditereignisse aus der Datenbank an. Diese Ansicht ändert keine Daten.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Audit-Log wird geladen …</value>
+  </data>
+  <data name="EventTypeLabel" xml:space="preserve">
+    <value>Ereignistyp</value>
+  </data>
+  <data name="AllEventTypesOption" xml:space="preserve">
+    <value>Alle Ereignistypen</value>
+  </data>
+  <data name="ResultLabel" xml:space="preserve">
+    <value>Ergebnis</value>
+  </data>
+  <data name="AllResultsOption" xml:space="preserve">
+    <value>Alle Ergebnisse</value>
+  </data>
+  <data name="ActorLabel" xml:space="preserve">
+    <value>Angemeldeter Benutzer</value>
+  </data>
+  <data name="AllActorsOption" xml:space="preserve">
+    <value>Alle Benutzer</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>Bis</value>
+  </data>
+  <data name="PageSizeLabel" xml:space="preserve">
+    <value>Einträge pro Seite</value>
+  </data>
+  <data name="FilterButton" xml:space="preserve">
+    <value>Filtern</value>
+  </data>
+  <data name="EmptyTitle" xml:space="preserve">
+    <value>Keine Auditereignisse gefunden</value>
+  </data>
+  <data name="EmptyDescription" xml:space="preserve">
+    <value>Passen Sie die Filter an, um andere Zeiträume oder Ereignistypen anzuzeigen.</value>
+  </data>
+  <data name="TableAriaLabel" xml:space="preserve">
+    <value>Audit-Log</value>
+  </data>
+  <data name="ColTimestamp" xml:space="preserve">
+    <value>Zeitpunkt (UTC)</value>
+  </data>
+  <data name="ColEvent" xml:space="preserve">
+    <value>Ereignis</value>
+  </data>
+  <data name="ColPersonTarget" xml:space="preserve">
+    <value>Person / Ziel</value>
+  </data>
+  <data name="ColTargetGroup" xml:space="preserve">
+    <value>Zielgruppe</value>
+  </data>
+  <data name="ColCorrelationId" xml:space="preserve">
+    <value>Correlation-ID</value>
+  </data>
+  <data name="DtEventId" xml:space="preserve">
+    <value>Event-ID</value>
+  </data>
+  <data name="DtRequestId" xml:space="preserve">
+    <value>Request-ID</value>
+  </data>
+  <data name="DtPerson" xml:space="preserve">
+    <value>Person</value>
+  </data>
+  <data name="DtActorAccount" xml:space="preserve">
+    <value>Angemeldeter Benutzer (Actor-Konto)</value>
+  </data>
+  <data name="DtTargetAccount" xml:space="preserve">
+    <value>Ziel-Konto</value>
+  </data>
+  <data name="DtFrontendInstance" xml:space="preserve">
+    <value>Frontend Instanz</value>
+  </data>
+  <data name="DtSourceIp" xml:space="preserve">
+    <value>Quell-IP (Web-Instanz)</value>
+  </data>
+  <data name="DtClientIp" xml:space="preserve">
+    <value>Client-IP (Browser)</value>
+  </data>
+  <data name="DtAuthMethod" xml:space="preserve">
+    <value>Authentifizierungsmethode</value>
+  </data>
+  <data name="DtRequestedTtl" xml:space="preserve">
+    <value>Angeforderte TTL</value>
+  </data>
+  <data name="PaginationAriaLabel" xml:space="preserve">
+    <value>Seitennavigation</value>
+  </data>
+  <data name="NextButton" xml:space="preserve">
+    <value>Weiter</value>
+  </data>
+  <data name="PageStatus" xml:space="preserve">
+    <value>Seite {0} von {1} ({2} Einträge)</value>
+  </data>
+  <data name="LoadAuditLogError" xml:space="preserve">
+    <value>Das Audit-Log konnte nicht geladen werden.</value>
+  </data>
+</root>

@@ -1,12 +1,16 @@
 @page "/admin/audit-log"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Web.Components.Shared
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminAuditLog> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
-<PageTitle>ADDS-PIM – Audit-Log</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>Audit-Log</h1>
-        <p>Zeigt die unveränderlichen Auditereignisse aus der Datenbank an. Diese Ansicht ändert keine Daten.</p>
+        <h1>@Localizer["Heading"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
     </div>
 </section>
 
@@ -16,15 +20,15 @@
 }
 else if (_page is null)
 {
-    <LoadingIndicator Message="Audit-Log wird geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
 }
 else
 {
     <EditForm class="row g-3 mt-2" Model="_filters" OnValidSubmit="ApplyFiltersAsync">
         <div class="col-md-3">
-            <label for="audit-event-type" class="form-label">Ereignistyp</label>
+            <label for="audit-event-type" class="form-label">@Localizer["EventTypeLabel"]</label>
             <InputSelect id="audit-event-type" class="form-select" @bind-Value="_filters.EventType">
-                <option value="">Alle Ereignistypen</option>
+                <option value="">@Localizer["AllEventTypesOption"]</option>
                 @foreach (var eventType in _page.AvailableEventTypes)
                 {
                     <option value="@eventType">@eventType</option>
@@ -32,9 +36,9 @@ else
             </InputSelect>
         </div>
         <div class="col-md-2">
-            <label for="audit-result" class="form-label">Ergebnis</label>
+            <label for="audit-result" class="form-label">@Localizer["ResultLabel"]</label>
             <InputSelect id="audit-result" class="form-select" @bind-Value="_filters.Result">
-                <option value="">Alle Ergebnisse</option>
+                <option value="">@Localizer["AllResultsOption"]</option>
                 @foreach (var result in _page.AvailableResults)
                 {
                     <option value="@result">@result</option>
@@ -42,9 +46,9 @@ else
             </InputSelect>
         </div>
         <div class="col-md-3">
-            <label for="audit-actor" class="form-label">Angemeldeter Benutzer</label>
+            <label for="audit-actor" class="form-label">@Localizer["ActorLabel"]</label>
             <InputSelect id="audit-actor" class="form-select" @bind-Value="_filters.ActorAccount">
-                <option value="">Alle Benutzer</option>
+                <option value="">@Localizer["AllActorsOption"]</option>
                 @foreach (var actorAccount in _page.AvailableActorAccounts)
                 {
                     <option value="@actorAccount">@actorAccount</option>
@@ -52,15 +56,15 @@ else
             </InputSelect>
         </div>
         <div class="col-md-2">
-            <label for="audit-from" class="form-label">Von</label>
+            <label for="audit-from" class="form-label">@Localizer["FromLabel"]</label>
             <InputDate id="audit-from" class="form-control" @bind-Value="_filters.FromLocalDate" />
         </div>
         <div class="col-md-2">
-            <label for="audit-to" class="form-label">Bis</label>
+            <label for="audit-to" class="form-label">@Localizer["ToLabel"]</label>
             <InputDate id="audit-to" class="form-control" @bind-Value="_filters.ToLocalDate" />
         </div>
         <div class="col-md-2">
-            <label for="audit-page-size" class="form-label">Einträge pro Seite</label>
+            <label for="audit-page-size" class="form-label">@Localizer["PageSizeLabel"]</label>
             <InputSelect id="audit-page-size" class="form-select" @bind-Value="_filters.PageSize">
                 @foreach (var pageSize in PageSizes)
                 {
@@ -69,20 +73,20 @@ else
             </InputSelect>
         </div>
         <div class="col-md-1 d-flex align-items-end">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Filtern</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> @Localizer["FilterButton"]</button>
         </div>
     </EditForm>
 
     @if (_page.TotalCount == 0)
     {
-        <EmptyState Icon="bi-journal-text" Title="Keine Auditereignisse gefunden" Description="Passen Sie die Filter an, um andere Zeiträume oder Ereignistypen anzuzeigen." />
+        <EmptyState Icon="bi-journal-text" Title="@Localizer["EmptyTitle"]" Description="@Localizer["EmptyDescription"]" />
     }
     else
     {
-        <div class="table-responsive mt-3" role="region" aria-label="Audit-Log" tabindex="0">
+        <div class="table-responsive mt-3" role="region" aria-label="@Localizer["TableAriaLabel"]" tabindex="0">
             <table class="table table-sm">
                 <thead>
-                    <tr><th>Zeitpunkt (UTC)</th><th>Ereignis</th><th>Ergebnis</th><th>Angemeldeter Benutzer</th><th>Person / Ziel</th><th>Zielgruppe</th><th>Correlation-ID</th></tr>
+                    <tr><th>@Localizer["ColTimestamp"]</th><th>@Localizer["ColEvent"]</th><th>@Localizer["ResultLabel"]</th><th>@Localizer["ActorLabel"]</th><th>@Localizer["ColPersonTarget"]</th><th>@Localizer["ColTargetGroup"]</th><th>@Localizer["ColCorrelationId"]</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var entry in _page.Items)
@@ -102,17 +106,17 @@ else
                             <tr>
                                 <td colspan="7">
                                     <dl class="row mb-0">
-                                        <div class="col-md-4"><dt>Event-ID</dt><dd><code>@entry.EventId</code></dd></div>
-                                        <div class="col-md-4"><dt>Request-ID</dt><dd><code>@(entry.RequestId?.ToString() ?? "—")</code></dd></div>
-                                        <div class="col-md-4"><dt>Correlation-ID</dt><dd><code>@entry.CorrelationId</code></dd></div>
-                                        <div class="col-md-4"><dt>Person</dt><dd>@(entry.PersonDisplayNameSnapshot ?? "—")</dd></div>
-                                        <div class="col-md-4"><dt>Angemeldeter Benutzer (Actor-Konto)</dt><dd>@(entry.ActorAccountDisplayNameSnapshot ?? "—")</dd></div>
-                                        <div class="col-md-4"><dt>Ziel-Konto</dt><dd>@(entry.TargetAccountDisplayNameSnapshot ?? "—")</dd></div>
-                                        <div class="col-md-4"><dt>Frontend Instanz</dt><dd>@entry.FrontendClientId</dd></div>
-                                        <div class="col-md-4"><dt>Quell-IP (Web-Instanz)</dt><dd>@(entry.SourceIpAddress ?? "—")</dd></div>
-                                        <div class="col-md-4"><dt>Client-IP (Browser)</dt><dd>@(entry.ClientSourceIpAddress ?? "—")</dd></div>
-                                        <div class="col-md-4"><dt>Authentifizierungsmethode</dt><dd>@entry.AuthenticationMethod</dd></div>
-                                        <div class="col-md-4"><dt>Angeforderte TTL</dt><dd>@(entry.RequestedTtlSeconds is null ? "—" : $"{entry.RequestedTtlSeconds / 3600m:0.##} h")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtEventId"]</dt><dd><code>@entry.EventId</code></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtRequestId"]</dt><dd><code>@(entry.RequestId?.ToString() ?? "—")</code></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["ColCorrelationId"]</dt><dd><code>@entry.CorrelationId</code></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtPerson"]</dt><dd>@(entry.PersonDisplayNameSnapshot ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtActorAccount"]</dt><dd>@(entry.ActorAccountDisplayNameSnapshot ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtTargetAccount"]</dt><dd>@(entry.TargetAccountDisplayNameSnapshot ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtFrontendInstance"]</dt><dd>@entry.FrontendClientId</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtSourceIp"]</dt><dd>@(entry.SourceIpAddress ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtClientIp"]</dt><dd>@(entry.ClientSourceIpAddress ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtAuthMethod"]</dt><dd>@entry.AuthenticationMethod</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtRequestedTtl"]</dt><dd>@(entry.RequestedTtlSeconds is null ? "—" : $"{entry.RequestedTtlSeconds / 3600m:0.##} h")</dd></div>
                                     </dl>
                                 </td>
                             </tr>
@@ -121,10 +125,10 @@ else
                 </tbody>
             </table>
         </div>
-        <nav class="d-flex justify-content-between align-items-center mt-2" aria-label="Seitennavigation">
-            <button type="button" class="btn btn-secondary" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> Zurück</button>
-            <span>Seite @_filters.PageNumber von @PageCount (@_page.TotalCount Einträge)</span>
-            <button type="button" class="btn btn-secondary" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">Weiter <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        <nav class="d-flex justify-content-between align-items-center mt-2" aria-label="@Localizer["PaginationAriaLabel"]">
+            <button type="button" class="btn btn-secondary" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> @SharedLocalizer["BackButton"]</button>
+            <span>@Localizer["PageStatus", _filters.PageNumber, PageCount, _page.TotalCount]</span>
+            <button type="button" class="btn btn-secondary" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">@Localizer["NextButton"] <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
         </nav>
     }
 }
@@ -176,7 +180,7 @@ else
         }
         catch
         {
-            _error = "Das Audit-Log konnte nicht geladen werden.";
+            _error = Localizer["LoadAuditLogError"];
         }
     }
 

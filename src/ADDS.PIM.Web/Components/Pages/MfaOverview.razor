@@ -1,19 +1,21 @@
 @page "/mfa"
+@using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
+@inject IStringLocalizer<MfaOverview> Localizer
 
-<PageTitle>ADDS-PIM · Multi-Faktor Authentication</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero" aria-labelledby="page-title">
     <div>
-        <p class="eyebrow">Multi-Factor Authentication</p>
-        <h1 id="page-title">Multi-Faktor Authentication</h1>
-        <p>Übersicht Ihrer eingerichteten zweiten Faktoren. Ein zweiter Faktor wird für Gruppen benötigt, deren Policy dies verlangt.</p>
+        <p class="eyebrow">@Localizer["Eyebrow"]</p>
+        <h1 id="page-title">@Localizer["Heading"]</h1>
+        <p>@Localizer["IntroText"]</p>
     </div>
 </section>
 
 @if (_loading)
 {
-    <LoadingIndicator Message="Status wird geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingStatusMessage"]" />
 }
 else if (_error is not null)
 {
@@ -26,32 +28,32 @@ else
             <h2 id="totp-title"><i class="bi bi-phone" aria-hidden="true"></i> TOTP</h2>
             @if (_status is { TotpEnrolled: true })
             {
-                <p>Ein TOTP-Faktor ist eingerichtet@(_status.TotpConfirmedUtc is { } confirmedUtc ? $" (seit {confirmedUtc.ToLocalTime():g})" : "").</p>
+                <p>@Localizer["TotpEnrolledText"]@(_status.TotpConfirmedUtc is { } confirmedUtc ? $" ({Localizer["SinceLabel"]} {confirmedUtc.ToLocalTime():g})" : "").</p>
             }
             else
             {
-                <p>Kein TOTP-Faktor eingerichtet.</p>
+                <p>@Localizer["TotpNotEnrolledText"]</p>
             }
-            <NavLink class="submit-button" href="/mfa/totp/enroll">TOTP verwalten</NavLink>
+            <NavLink class="submit-button" href="/mfa/totp/enroll">@Localizer["ManageTotpLink"]</NavLink>
         </section>
 
         <section class="mfa-tile" aria-labelledby="fido2-title">
             <h2 id="fido2-title"><i class="bi bi-fingerprint" aria-hidden="true"></i> FIDO2-Passkeys</h2>
             @if (_status is { Fido2Enrolled: true })
             {
-                <p>@_status.Fido2Credentials.Count Passkey(s) eingerichtet.</p>
+                <p>@Localizer["PasskeysEnrolledCountText", _status.Fido2Credentials.Count]</p>
                 <ul>
                     @foreach (var credential in _status.Fido2Credentials)
                     {
-                        <li>@(string.IsNullOrWhiteSpace(credential.Label) ? "Passkey" : credential.Label) &middot; seit @credential.CreatedUtc.ToLocalTime().ToString("g")</li>
+                        <li>@(string.IsNullOrWhiteSpace(credential.Label) ? Localizer["PasskeyFallbackLabel"] : credential.Label) &middot; @Localizer["SinceLabel"] @credential.CreatedUtc.ToLocalTime().ToString("g")</li>
                     }
                 </ul>
             }
             else
             {
-                <p>Kein Passkey eingerichtet.</p>
+                <p>@Localizer["NoPasskeyText"]</p>
             }
-            <NavLink class="submit-button" href="/mfa/fido2/enroll">Passkeys verwalten</NavLink>
+            <NavLink class="submit-button" href="/mfa/fido2/enroll">@Localizer["ManagePasskeysLink"]</NavLink>
         </section>
     </div>
 }
@@ -64,7 +66,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         try { _status = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
-        catch { _error = "Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        catch { _error = Localizer["StatusLoadError"]; }
         finally { _loading = false; }
     }
 }

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · Multi-Factor Authentication</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Multi-Factor Authentication</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Multi-Factor Authentication</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Overview of your configured second factors. A second factor is required for groups whose policy demands it.</value>
+  </data>
+  <data name="LoadingStatusMessage" xml:space="preserve">
+    <value>Loading status …</value>
+  </data>
+  <data name="TotpEnrolledText" xml:space="preserve">
+    <value>A TOTP factor is set up</value>
+  </data>
+  <data name="SinceLabel" xml:space="preserve">
+    <value>since</value>
+  </data>
+  <data name="TotpNotEnrolledText" xml:space="preserve">
+    <value>No TOTP factor set up.</value>
+  </data>
+  <data name="ManageTotpLink" xml:space="preserve">
+    <value>Manage TOTP</value>
+  </data>
+  <data name="PasskeysEnrolledCountText" xml:space="preserve">
+    <value>{0} passkey(s) set up.</value>
+  </data>
+  <data name="PasskeyFallbackLabel" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="NoPasskeyText" xml:space="preserve">
+    <value>No passkey set up.</value>
+  </data>
+  <data name="ManagePasskeysLink" xml:space="preserve">
+    <value>Manage passkeys</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>The status could not be loaded. Check the protected server logs.</value>
+  </data>
+</root>

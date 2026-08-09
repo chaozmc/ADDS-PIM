@@ -6,6 +6,7 @@ using ADDS.PIM.Web.Administration;
 using ADDS.PIM.Web.Security;
 using ADDS.PIM.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Server.IISIntegration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddLocalization();
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    string[] supportedCultures = ["de", "en"];
+    options.SetDefaultCulture("de");
+    options.AddSupportedCultures(supportedCultures);
+    options.AddSupportedUICultures(supportedCultures);
+    // Cookie-only: no Accept-Language auto-detection, so existing German-speaking
+    // users are never silently switched to English by browser settings.
+    options.RequestCultureProviders = [new CookieRequestCultureProvider()];
+});
 builder.Services.AddSingleton<IPrototypeGroupCatalog, PrototypeGroupCatalog>();
 builder.Services.AddSingleton(TimeProvider.System);
 var directoryScopeConfiguration = new DirectoryScopeConfiguration(
@@ -49,6 +61,7 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseAntiforgery();
+app.UseRequestLocalization();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -56,5 +69,29 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .RequireAuthorization(PimUserAccessPolicy.Name);
+
+// Not behind PimUserAccessPolicy: language must be selectable even from unauthenticated/error pages.
+// Blazor Server negotiates culture once per circuit at connection time, so switching language requires
+// a real HTTP round trip (this endpoint) rather than an in-circuit event handler, to force a reload.
+app.MapGet("/culture/set", (HttpContext http, string culture, string redirectUri) =>
+{
+    var supportedCultures = new[] { "de", "en" };
+    if (!supportedCultures.Contains(culture, StringComparer.OrdinalIgnoreCase))
+    {
+        return Results.BadRequest();
+    }
+
+    if (string.IsNullOrEmpty(redirectUri) || !Uri.IsWellFormedUriString(redirectUri, UriKind.Relative))
+    {
+        redirectUri = "/";
+    }
+
+    http.Response.Cookies.Append(
+        CookieRequestCultureProvider.DefaultCookieName,
+        CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+        new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, SameSite = SameSiteMode.Lax });
+
+    return Results.LocalRedirect(redirectUri);
+});
 
 app.Run();

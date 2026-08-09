@@ -1,12 +1,16 @@
 @page "/admin/persons/{PersonId:guid}"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Web.Components.Shared
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminPersonDetail> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
-<PageTitle>ADDS-PIM - Personenkonten</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>Konten der Person</h1>
-        <p>Ein Konto darf genau einer PIM-Person zugeordnet sein. Zweck und Aktivierung werden explizit verwaltet.</p>
+        <h1>@Localizer["HeroTitle"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
     </div>
 </section>
 
@@ -16,49 +20,49 @@
 }
 else if (_detail is null)
 {
-    <LoadingIndicator Message="Person und Konten werden geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingPersonAccounts"]" />
 }
 else
 {
     <section>
         <h2>@_detail.Person.DisplayName</h2>
-        <p>Status: <StatusBadge Text="@(_detail.Person.IsActive ? "aktiv" : "deaktiviert")" Variant="@(_detail.Person.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></p>
+        <p>@Localizer["StatusLabel"] <StatusBadge Text="@(_detail.Person.IsActive ? Localizer["StatusActive"] : Localizer["StatusDeactivated"])" Variant="@(_detail.Person.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></p>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="mb-0">Verknüpfte AD-Konten</h3>
-            <button class="btn btn-primary" @onclick="OpenAddDialogAsync" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-link-45deg" aria-hidden="true"></i> Konto zuordnen</button>
+            <h3 class="mb-0">@Localizer["LinkedAccountsTitle"]</h3>
+            <button class="btn btn-primary" @onclick="OpenAddDialogAsync" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-link-45deg" aria-hidden="true"></i> @Localizer["AssignAccountButton"]</button>
         </div>
         @if (!_detail.Person.IsActive)
         {
-            <p class="text-muted"><i class="bi bi-info-circle" aria-hidden="true"></i> Für eine deaktivierte Person können keine Konten aktiviert oder neu zugeordnet werden.</p>
+            <p class="text-muted"><i class="bi bi-info-circle" aria-hidden="true"></i> @Localizer["InactivePersonNotice"]</p>
         }
 
         @if (_detail.Accounts.Count == 0)
         {
-            <EmptyState Icon="bi-person-lines-fill" Title="Keine verknüpften Konten" Description="Ordnen Sie ein AD-Konto zu, um Anmeldung und/oder Privilegienziel für diese Person zu ermöglichen." />
+            <EmptyState Icon="bi-person-lines-fill" Title="@Localizer["NoLinkedAccountsTitle"]" Description="@Localizer["NoLinkedAccountsDescription"]" />
         }
         else
         {
             <div class="table-responsive">
                 <table class="table">
-                    <thead><tr><th>Konto</th><th>AD-Status</th><th>Zwecke</th><th>Status</th><th>Aktionen</th></tr></thead>
+                    <thead><tr><th>@Localizer["TableHeaderAccount"]</th><th>@Localizer["TableHeaderAdStatus"]</th><th>@Localizer["TableHeaderPurposes"]</th><th>@Localizer["TableHeaderStatus"]</th><th>@Localizer["TableHeaderActions"]</th></tr></thead>
                     <tbody>
                         @foreach (var link in _detail.Accounts)
                         {
                             <tr>
                                 <td><strong>@link.DomainQualifiedName</strong><br /><small>@link.DisplayName · @link.UserPrincipalName</small></td>
-                                <td><StatusBadge Text="@(link.IsEnabledInDirectory ? "aktiv" : "deaktiviert")" Variant="@(link.IsEnabledInDirectory ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></td>
+                                <td><StatusBadge Text="@(link.IsEnabledInDirectory ? Localizer["StatusActive"] : Localizer["StatusDeactivated"])" Variant="@(link.IsEnabledInDirectory ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></td>
                                 <td>@PurposeText(link)</td>
-                                <td><StatusBadge Text="@(link.IsActive ? "zugeordnet" : "deaktiviert")" Variant="@(link.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></td>
+                                <td><StatusBadge Text="@(link.IsActive ? Localizer["StatusAssigned"] : Localizer["StatusDeactivated"])" Variant="@(link.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" @onclick="() => OpenPurposeDialogAsync(link)" disabled="@(!link.IsActive || !_detail.Person.IsActive)"><i class="bi bi-sliders" aria-hidden="true"></i> Zweck ändern</button>
+                                        <button class="btn btn-outline-primary" @onclick="() => OpenPurposeDialogAsync(link)" disabled="@(!link.IsActive || !_detail.Person.IsActive)"><i class="bi bi-sliders" aria-hidden="true"></i> @Localizer["ChangePurposeButton"]</button>
                                         @if (link.IsActive)
                                         {
-                                            <button class="btn btn-outline-danger" @onclick="() => _pendingDeactivate = link"><i class="bi bi-slash-circle" aria-hidden="true"></i> Deaktivieren</button>
+                                            <button class="btn btn-outline-danger" @onclick="() => _pendingDeactivate = link"><i class="bi bi-slash-circle" aria-hidden="true"></i> @Localizer["DeactivateButton"]</button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-primary" @onclick="() => _pendingReactivate = link" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reaktivieren</button>
+                                            <button class="btn btn-primary" @onclick="() => _pendingReactivate = link" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> @Localizer["ReactivateButton"]</button>
                                         }
                                     </div>
                                 </td>
@@ -71,29 +75,29 @@ else
 
         @if (_pendingDeactivate is not null)
         {
-            <DangerZonePanel Message="@($"{_pendingDeactivate.DomainQualifiedName} wirklich deaktivieren? Bestehende Entitlements und Historie bleiben erhalten, neue Requests werden verhindert.")"
-                              ConfirmLabel="Deaktivieren" IsBusy="_saving"
+            <DangerZonePanel Message="@Localizer["DeactivateLinkDangerMessage", _pendingDeactivate.DomainQualifiedName]"
+                              ConfirmLabel="@Localizer["DeactivateButton"]" IsBusy="_saving"
                               OnConfirm="() => SetLinkActiveAsync(false)" OnCancel="() => _pendingDeactivate = null" />
         }
 
         @if (_pendingReactivate is not null)
         {
             <div class="alert alert-primary d-flex justify-content-between align-items-center mt-3">
-                <span>@_pendingReactivate.DomainQualifiedName nach erneuter AD-Verifikation reaktivieren?</span>
+                <span>@Localizer["ReactivateLinkPrompt", _pendingReactivate.DomainQualifiedName]</span>
                 <span class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" @onclick="() => SetLinkActiveAsync(true)" disabled="@_saving">Reaktivieren</button>
-                    <button class="btn btn-secondary btn-sm" @onclick="() => _pendingReactivate = null" disabled="@_saving">Abbrechen</button>
+                    <button class="btn btn-primary btn-sm" @onclick="() => SetLinkActiveAsync(true)" disabled="@_saving">@Localizer["ReactivateButton"]</button>
+                    <button class="btn btn-secondary btn-sm" @onclick="() => _pendingReactivate = null" disabled="@_saving">@SharedLocalizer["CancelButton"]</button>
                 </span>
             </div>
         }
     </section>
 }
 
-<ConfirmDialog @ref="_addDialog" Title="AD-Konto zuordnen" OnClosed="CloseAddDialog">
-    <p>Die Suche ist nicht auf die ADDS-PIM-User-Gruppe beschränkt. Wählen Sie das Konto bewusst aus; es muss in AD aktiv und bislang keiner anderen PIM-Person zugeordnet sein.</p>
+<ConfirmDialog @ref="_addDialog" Title="@Localizer["AssignAccountDialogTitle"]" OnClosed="CloseAddDialog">
+    <p>@Localizer["AssignAccountDialogIntro"]</p>
     <div class="input-group">
-        <input class="form-control" @bind="_searchTerm" placeholder="Name oder sAMAccountName" />
-        <button class="btn btn-outline-secondary" @onclick="SearchAsync" disabled="@_saving">Suchen</button>
+        <input class="form-control" @bind="_searchTerm" placeholder="@Localizer["SearchPlaceholder"]" />
+        <button class="btn btn-outline-secondary" @onclick="SearchAsync" disabled="@_saving">@Localizer["SearchButton"]</button>
     </div>
     @if (_searchError is not null)
     {
@@ -102,14 +106,14 @@ else
     @if (_searchResults is not null)
     {
         <table class="table mt-3">
-            <thead><tr><th>Name</th><th>Konto</th><th></th></tr></thead>
+            <thead><tr><th>@Localizer["TableHeaderName"]</th><th>@Localizer["TableHeaderAccount"]</th><th></th></tr></thead>
             <tbody>
                 @foreach (var account in _searchResults)
                 {
                     <tr>
                         <td>@account.DisplayName</td>
                         <td><strong>@account.DomainQualifiedName</strong><br /><small>@account.UserPrincipalName</small></td>
-                        <td><button class="btn btn-primary" @onclick="() => SelectAccount(account)">Auswählen</button></td>
+                        <td><button class="btn btn-primary" @onclick="() => SelectAccount(account)">@Localizer["SelectButton"]</button></td>
                     </tr>
                 }
             </tbody>
@@ -118,30 +122,30 @@ else
     @if (_selectedAccount is not null)
     {
         <hr />
-        <p><strong>Ausgewählt:</strong> @_selectedAccount.DomainQualifiedName</p>
+        <p><strong>@Localizer["SelectedLabel"]</strong> @_selectedAccount.DomainQualifiedName</p>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="new-may-authenticate" @bind="_newMayAuthenticate" disabled="@HasActiveAuthenticationAccount" />
-            <label class="form-check-label" for="new-may-authenticate">Darf die Person interaktiv authentifizieren</label>
+            <label class="form-check-label" for="new-may-authenticate">@Localizer["MayAuthenticateLabel"]</label>
             <i class="bi bi-info-circle text-muted ms-1" title="@AuthenticationPurposeTooltip"></i>
         </div>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="new-may-receive-privileges" @bind="_newMayReceivePrivileges" />
-            <label class="form-check-label" for="new-may-receive-privileges">Darf TTL-Privilegien empfangen</label>
+            <label class="form-check-label" for="new-may-receive-privileges">@Localizer["MayReceivePrivilegesLabel"]</label>
         </div>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="new-may-approve" @bind="_newMayApprove" disabled="@(!_newMayAuthenticate)" />
-            <label class="form-check-label" for="new-may-approve">Darf Genehmigungen entscheiden (Approver)</label>
-            <i class="bi bi-info-circle text-muted ms-1" title="Nur auf dem Anmeldekonto (interaktive Authentifizierung) zulässig."></i>
+            <label class="form-check-label" for="new-may-approve">@Localizer["MayApproveLabel"]</label>
+            <i class="bi bi-info-circle text-muted ms-1" title="@Localizer["ApproveOnlyOnLoginAccountTooltip"]"></i>
         </div>
-        <p class="text-muted mt-2">Mindestens ein Zweck ist erforderlich.</p>
+        <p class="text-muted mt-2">@Localizer["MinimumOnePurposeNotice"]</p>
     }
     <div class="d-flex justify-content-end gap-2 mt-3">
-        <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
-        <button class="btn btn-primary" @onclick="CreateLinkAsync" disabled="@(_saving || _selectedAccount is null)">Konto zuordnen</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_saving">@SharedLocalizer["CancelButton"]</button>
+        <button class="btn btn-primary" @onclick="CreateLinkAsync" disabled="@(_saving || _selectedAccount is null)">@Localizer["AssignAccountButton"]</button>
     </div>
 </ConfirmDialog>
 
-<ConfirmDialog @ref="_purposeDialog" Title="Kontozwecke ändern" OnClosed="() => { _purposeLink = null; _purposeError = null; }">
+<ConfirmDialog @ref="_purposeDialog" Title="@Localizer["ChangePurposesDialogTitle"]" OnClosed="() => { _purposeLink = null; _purposeError = null; }">
     @if (_purposeLink is not null)
     {
         <p>@_purposeLink.DomainQualifiedName</p>
@@ -151,21 +155,21 @@ else
         }
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="edit-may-authenticate" @bind="_editMayAuthenticate" disabled="@HasAnotherActiveAuthenticationAccount" />
-            <label class="form-check-label" for="edit-may-authenticate">Interaktive Authentifizierung</label>
+            <label class="form-check-label" for="edit-may-authenticate">@Localizer["InteractiveAuthenticationLabel"]</label>
             <i class="bi bi-info-circle text-muted ms-1" title="@AuthenticationPurposeTooltip"></i>
         </div>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="edit-may-receive-privileges" @bind="_editMayReceivePrivileges" />
-            <label class="form-check-label" for="edit-may-receive-privileges">TTL-Privilegien empfangen</label>
+            <label class="form-check-label" for="edit-may-receive-privileges">@Localizer["ReceiveTtlPrivilegesLabel"]</label>
         </div>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="edit-may-approve" @bind="_editMayApprove" disabled="@(!_editMayAuthenticate)" />
-            <label class="form-check-label" for="edit-may-approve">Genehmigungen entscheiden (Approver)</label>
-            <i class="bi bi-info-circle text-muted ms-1" title="Nur auf dem Anmeldekonto (interaktive Authentifizierung) zulässig."></i>
+            <label class="form-check-label" for="edit-may-approve">@Localizer["DecideApprovalsLabel"]</label>
+            <i class="bi bi-info-circle text-muted ms-1" title="@Localizer["ApproveOnlyOnLoginAccountTooltip"]"></i>
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3">
-            <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
-            <button class="btn btn-primary" @onclick="SavePurposesAsync" disabled="@_saving">Speichern</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_saving">@SharedLocalizer["CancelButton"]</button>
+            <button class="btn btn-primary" @onclick="SavePurposesAsync" disabled="@_saving">@SharedLocalizer["SaveButton"]</button>
         </div>
     }
 </ConfirmDialog>
@@ -197,7 +201,7 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _detail = await AdministrationClient.GetPersonDetailAsync(PersonId, CancellationToken.None); }
-        catch { _error = "Person oder Konten konnten nicht geladen werden."; }
+        catch { _error = Localizer["LoadPersonError"]; }
     }
 
     private async Task OpenAddDialogAsync()
@@ -211,15 +215,15 @@ else
 
     private async Task SearchAsync()
     {
-        if (_searchTerm.Trim().Length < 2) { _searchError = "Bitte mindestens zwei Zeichen eingeben."; return; }
+        if (_searchTerm.Trim().Length < 2) { _searchError = Localizer["SearchMinLengthError"]; return; }
         _saving = true;
         try
         {
             _searchError = null;
             _searchResults = await AdministrationClient.SearchDirectoryAccountsAsync(_searchTerm, CancellationToken.None);
-            if (_searchResults.Count == 0) _searchError = "Kein passendes AD-Benutzerkonto gefunden.";
+            if (_searchResults.Count == 0) _searchError = Localizer["NoMatchingAccountError"];
         }
-        catch { _searchError = "Die AD-Suche ist fehlgeschlagen."; }
+        catch { _searchError = Localizer["SearchFailedError"]; }
         finally { _saving = false; }
     }
 
@@ -227,7 +231,7 @@ else
 
     private async Task CreateLinkAsync()
     {
-        if (_selectedAccount is null || (!_newMayAuthenticate && !_newMayReceivePrivileges)) { _searchError = "Wählen Sie mindestens einen Zweck."; return; }
+        if (_selectedAccount is null || (!_newMayAuthenticate && !_newMayReceivePrivileges)) { _searchError = Localizer["SelectAtLeastOnePurposeError"]; return; }
         if (!_newMayAuthenticate) _newMayApprove = false;
         _saving = true;
         try
@@ -236,7 +240,7 @@ else
             await _addDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _searchError = "Das Konto konnte nicht zugeordnet werden. Es ist möglicherweise bereits zugeordnet, deaktiviert oder nicht mehr verifizierbar."; }
+        catch { _searchError = Localizer["CreateLinkError"]; }
         finally { _saving = false; }
     }
 
@@ -249,7 +253,7 @@ else
 
     private async Task SavePurposesAsync()
     {
-        if (_purposeLink is null || (!_editMayAuthenticate && !_editMayReceivePrivileges)) { _purposeError = "Mindestens ein Kontozweck ist erforderlich."; return; }
+        if (_purposeLink is null || (!_editMayAuthenticate && !_editMayReceivePrivileges)) { _purposeError = Localizer["MinimumOnePurposeError"]; return; }
         if (!_editMayAuthenticate) _editMayApprove = false;
         _saving = true;
         try
@@ -259,7 +263,7 @@ else
             await _purposeDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _purposeError = "Die Kontozwecke konnten nicht geändert werden. Die Daten wurden möglicherweise parallel geändert."; }
+        catch { _purposeError = Localizer["SavePurposesError"]; }
         finally { _saving = false; }
     }
 
@@ -269,12 +273,12 @@ else
         if (link is null) return;
         _saving = true;
         try { await AdministrationClient.SetPersonAccountLinkActiveAsync(PersonId, link, active, CancellationToken.None); _pendingDeactivate = null; _pendingReactivate = null; await LoadAsync(); }
-        catch { _error = "Der Kontostatus konnte nicht geändert werden. Das Konto muss für eine Reaktivierung aktuell in AD verifizierbar und aktiv sein."; }
+        catch { _error = Localizer["SetLinkActiveError"]; }
         finally { _saving = false; }
     }
 
-    private static string PurposeText(ManagedPersonAccountLink link) => string.Join(", ", new[] { link.MayAuthenticate ? "Anmeldung" : null, link.MayReceivePrivileges ? "Privilegienziel" : null }.Where(value => value is not null));
+    private string PurposeText(ManagedPersonAccountLink link) => string.Join(", ", new[] { link.MayAuthenticate ? Localizer["PurposeAuthentication"].Value : null, link.MayReceivePrivileges ? Localizer["PurposePrivilegeTarget"].Value : null }.Where(value => value is not null));
     private bool HasActiveAuthenticationAccount => _detail?.Accounts.Any(link => link.IsActive && link.MayAuthenticate) ?? false;
     private bool HasAnotherActiveAuthenticationAccount => _purposeLink is not null && (_detail?.Accounts.Any(link => link.IsActive && link.MayAuthenticate && link.PersonAccountLinkId != _purposeLink.PersonAccountLinkId) ?? false);
-    private string AuthenticationPurposeTooltip => "Pro Person darf genau ein aktives Konto zur Anmeldung verwendet werden.";
+    private string AuthenticationPurposeTooltip => Localizer["AuthenticationPurposeTooltip"];
 }

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Group management</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Group management</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Register and manage the AD groups that can be requested through ADDS-PIM.</value>
+  </data>
+  <data name="LoadingGroups" xml:space="preserve">
+    <value>Loading groups …</value>
+  </data>
+  <data name="TargetGroupsTitle" xml:space="preserve">
+    <value>Target groups</value>
+  </data>
+  <data name="RegisterGroupButton" xml:space="preserve">
+    <value>Register AD group</value>
+  </data>
+  <data name="EmptyStateTitle" xml:space="preserve">
+    <value>No active target groups</value>
+  </data>
+  <data name="EmptyStateDescription" xml:space="preserve">
+    <value>Register an AD group to make it requestable through ADDS-PIM.</value>
+  </data>
+  <data name="TableHeaderGroup" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="TableHeaderTtl" xml:space="preserve">
+    <value>TTL</value>
+  </data>
+  <data name="TableHeaderMfa" xml:space="preserve">
+    <value>MFA</value>
+  </data>
+  <data name="TableHeaderTicket" xml:space="preserve">
+    <value>Ticket</value>
+  </data>
+  <data name="TableHeaderApproval" xml:space="preserve">
+    <value>Approval</value>
+  </data>
+  <data name="TableHeaderApprovers" xml:space="preserve">
+    <value>Approvers</value>
+  </data>
+  <data name="TableHeaderActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="StepPrefix" xml:space="preserve">
+    <value>Step</value>
+  </data>
+  <data name="YesText" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="NoText" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="ManageButton" xml:space="preserve">
+    <value>Manage</value>
+  </data>
+  <data name="EditButton" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="DeactivateConfirmMessage" xml:space="preserve">
+    <value>Really deactivate {0} for new requests? Historical data will be retained.</value>
+  </data>
+  <data name="ConfirmDeactivateLabel" xml:space="preserve">
+    <value>Deactivate permanently</value>
+  </data>
+  <data name="InactiveGroupsToggle" xml:space="preserve">
+    <value>Deactivated groups ({0})</value>
+  </data>
+  <data name="ReactivateButton" xml:space="preserve">
+    <value>Reactivate</value>
+  </data>
+  <data name="ReactivateConfirmMessage" xml:space="preserve">
+    <value>Reactivate {0}? The group will be re-verified from AD beforehand.</value>
+  </data>
+  <data name="PolicyDialogTitle" xml:space="preserve">
+    <value>Policy: {0}</value>
+  </data>
+  <data name="ApproversDialogTitle" xml:space="preserve">
+    <value>Approvers: {0}</value>
+  </data>
+  <data name="SearchIntro" xml:space="preserve">
+    <value>Search by name or sAMAccountName. The selection is verified against AD server-side.</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>e.g. Server-Admins</value>
+  </data>
+  <data name="SearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SelectGroupLabel" xml:space="preserve">
+    <value>Select AD group</value>
+  </data>
+  <data name="PleaseSelectOption" xml:space="preserve">
+    <value>Please select</value>
+  </data>
+  <data name="MinimumHoursLabel" xml:space="preserve">
+    <value>Minimum (h)</value>
+  </data>
+  <data name="MaximumHoursLabel" xml:space="preserve">
+    <value>Maximum (h)</value>
+  </data>
+  <data name="DefaultHoursLabel" xml:space="preserve">
+    <value>Default (h)</value>
+  </data>
+  <data name="StepHoursLabel" xml:space="preserve">
+    <value>Step (h)</value>
+  </data>
+  <data name="RegisterSubmitButton" xml:space="preserve">
+    <value>Register</value>
+  </data>
+  <data name="SecondFactorsLabel" xml:space="preserve">
+    <value>Second factors</value>
+  </data>
+  <data name="SecondFactorNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="SecondFactorTotpOrFido2" xml:space="preserve">
+    <value>TOTP or FIDO2</value>
+  </data>
+  <data name="MfaRequiredLabel" xml:space="preserve">
+    <value>MFA required</value>
+  </data>
+  <data name="TicketRequiredLabel" xml:space="preserve">
+    <value>Ticket required</value>
+  </data>
+  <data name="ApprovalRequiredLabel" xml:space="preserve">
+    <value>Approval required</value>
+  </data>
+  <data name="RequestsEnabledLabel" xml:space="preserve">
+    <value>Requests enabled</value>
+  </data>
+  <data name="SecondFactorWarning" xml:space="preserve">
+    <value>When MFA is required, you must select TOTP, FIDO2, or both under "Second factors".</value>
+  </data>
+  <data name="LoadingApprovers" xml:space="preserve">
+    <value>Loading approvers …</value>
+  </data>
+  <data name="NoApproversMessage" xml:space="preserve">
+    <value>No active approver is currently assigned to this group. Requests requiring approval will remain pending indefinitely without an assignment.</value>
+  </data>
+  <data name="RemoveButton" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="AddApproverIntro" xml:space="preserve">
+    <value>Add a person as approver (the person must already have an active sign-in account with the Approver right):</value>
+  </data>
+  <data name="AddButton" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="LoadGroupsError" xml:space="preserve">
+    <value>Groups could not be loaded. Check permissions and server logs.</value>
+  </data>
+  <data name="LoadApproversError" xml:space="preserve">
+    <value>Approvers could not be loaded.</value>
+  </data>
+  <data name="AddApproverUnprocessableError" xml:space="preserve">
+    <value>This person cannot be assigned as approver. They need an active sign-in account with the Approver right (see person management).</value>
+  </data>
+  <data name="AddApproverConflictError" xml:space="preserve">
+    <value>This person is already assigned to the group as an active approver.</value>
+  </data>
+  <data name="AddApproverGenericError" xml:space="preserve">
+    <value>The assignment could not be saved.</value>
+  </data>
+  <data name="RemoveApproverError" xml:space="preserve">
+    <value>The assignment could not be removed. It may have already been changed in the meantime.</value>
+  </data>
+  <data name="SecondFactorInvalid" xml:space="preserve">
+    <value>Invalid</value>
+  </data>
+  <data name="SearchMinLengthError" xml:space="preserve">
+    <value>Please enter at least two characters.</value>
+  </data>
+  <data name="SearchNoResultsError" xml:space="preserve">
+    <value>No matching AD group found. Refine the search term or try part of the sAMAccountName.</value>
+  </data>
+  <data name="SearchFailedError" xml:space="preserve">
+    <value>The AD group search failed. Please try again.</value>
+  </data>
+  <data name="CreateSelectGroupError" xml:space="preserve">
+    <value>Please select an AD group first.</value>
+  </data>
+  <data name="CreateGenericError" xml:space="preserve">
+    <value>The group could not be registered. Check the selection and try again.</value>
+  </data>
+  <data name="SaveConflictError" xml:space="preserve">
+    <value>The policy was changed elsewhere in the meantime. Close the dialog and edit the group again with the current state.</value>
+  </data>
+  <data name="SaveUnprocessableError" xml:space="preserve">
+    <value>The policy is not valid as configured. In particular, check: if "Ticket required" is set, an active ticket pattern must exist for this group; if "MFA required" is set, a second factor must be selected.</value>
+  </data>
+  <data name="SaveNotFoundError" xml:space="preserve">
+    <value>The group was not found. It may have been removed in the meantime.</value>
+  </data>
+  <data name="SaveGenericError" xml:space="preserve">
+    <value>The policy could not be saved. Check your permissions and the protected server logs.</value>
+  </data>
+  <data name="DeactivateGenericError" xml:space="preserve">
+    <value>The group could not be deactivated.</value>
+  </data>
+  <data name="ReactivateGenericError" xml:space="preserve">
+    <value>The group could not be reactivated. Check whether it still exists in AD.</value>
+  </data>
+</root>

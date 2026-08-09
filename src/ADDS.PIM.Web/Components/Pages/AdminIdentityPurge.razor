@@ -1,24 +1,26 @@
 @page "/admin/identity-purge"
+@using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminIdentityPurge> Localizer
 
-<PageTitle>ADDS-PIM – Bereinigung</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>Bereinigung</h1>
-        <p>Administrative Bereinigungsfunktionen. Auditdaten bleiben in beiden Funktionen vollständig erhalten.</p>
+        <h1>@Localizer["HeroTitle"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
     </div>
 </section>
 
 <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link @(_activeTab == Tab.IdentityPurge ? "active" : null)" type="button" role="tab" aria-selected="@(_activeTab == Tab.IdentityPurge)" @onclick="() => _activeTab = Tab.IdentityPurge">
-            <i class="bi bi-trash3-fill" aria-hidden="true"></i> Identitäten bereinigen
+            <i class="bi bi-trash3-fill" aria-hidden="true"></i> @Localizer["TabIdentityPurge"]
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link @(_activeTab == Tab.OrphanedMfa ? "active" : null)" type="button" role="tab" aria-selected="@(_activeTab == Tab.OrphanedMfa)" @onclick="() => _activeTab = Tab.OrphanedMfa">
-            <i class="bi bi-shield-exclamation" aria-hidden="true"></i> Offene MFA-Bestätigungen
+            <i class="bi bi-shield-exclamation" aria-hidden="true"></i> @Localizer["TabOrphanedMfa"]
             @if (_orphanedRequests is { Count: > 0 })
             {
                 <span class="badge text-bg-danger ms-1">@_orphanedRequests.Count</span>
@@ -27,7 +29,7 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link @(_activeTab == Tab.OrphanedApprovals ? "active" : null)" type="button" role="tab" aria-selected="@(_activeTab == Tab.OrphanedApprovals)" @onclick="() => _activeTab = Tab.OrphanedApprovals">
-            <i class="bi bi-check2-square" aria-hidden="true"></i> Offene Genehmigungen
+            <i class="bi bi-check2-square" aria-hidden="true"></i> @Localizer["TabOrphanedApprovals"]
             @if (_orphanedApprovals is { Count: > 0 })
             {
                 <span class="badge text-bg-danger ms-1">@_orphanedApprovals.Count</span>
@@ -40,25 +42,25 @@
     @if (_activeTab == Tab.IdentityPurge)
     {
         <div role="tabpanel">
-            <p>Prüft und bereinigt ausschließlich inaktive lokale PIM-Objekte. AD-Objekte und Auditdaten bleiben erhalten.</p>
+            <p>@Localizer["IdentityPurgeIntro"]</p>
             <section aria-labelledby="scope-title">
-                <h2 id="scope-title">Inaktives Objekt auswählen</h2>
-                <p>Wählen Sie ein bereits deaktiviertes Objekt. Die PIM-ID bleibt ein interner Schlüssel und muss nicht manuell eingegeben werden.</p>
+                <h2 id="scope-title">@Localizer["ScopeTitle"]</h2>
+                <p>@Localizer["ScopeDescription"]</p>
                 @if (_candidates is null)
                 {
-                    <LoadingIndicator Message="Bereinigbare Objekte werden geladen …" />
+                    <LoadingIndicator Message="@Localizer["LoadingCandidates"]" />
                 }
                 else if (_candidates.Count == 0)
                 {
-                    <EmptyState Icon="bi-check-circle" Title="Nichts zu bereinigen" Description="Derzeit gibt es keine inaktiven PIM-Objekte zur Bereinigung." />
+                    <EmptyState Icon="bi-check-circle" Title="@Localizer["NothingToCleanTitle"]" Description="@Localizer["NothingToCleanCandidatesDescription"]" />
                 }
                 else
                 {
                     <div class="row g-3 align-items-end">
                         <div class="col-md-8">
-                            <label class="form-label" for="initiator">Objekt</label>
+                            <label class="form-label" for="initiator">@Localizer["ObjectLabel"]</label>
                             <select id="initiator" class="form-select" @bind="_selected">
-                                <option value="">Bitte auswählen</option>
+                                <option value="">@Localizer["SelectPlaceholder"]</option>
                                 @foreach (var candidate in _candidates)
                                 {
                                     <option value="@Key(candidate)">@Label(candidate)</option>
@@ -66,7 +68,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <button class="btn btn-primary" @onclick="LoadPreviewAsync" disabled="@_loading"><i class="bi bi-search" aria-hidden="true"></i> Scope berechnen</button>
+                            <button class="btn btn-primary" @onclick="LoadPreviewAsync" disabled="@_loading"><i class="bi bi-search" aria-hidden="true"></i> @Localizer["ComputeScopeButton"]</button>
                         </div>
                     </div>
                 }
@@ -84,41 +86,41 @@
             @if (_preview is not null)
             {
                 <section class="mt-4" aria-labelledby="result-title">
-                    <h2 id="result-title">Serverseitiges Ergebnis</h2>
+                    <h2 id="result-title">@Localizer["ResultTitle"]</h2>
                     <p><strong>@_preview.DisplayName</strong> (@_preview.InitiatorType)</p>
                     @if (_preview.IsEligible)
                     {
-                        <p class="submission-result succeeded">Der aktuell berechnete Scope ist bereinigbar. Es wurde noch nichts gelöscht.</p>
+                        <p class="submission-result succeeded">@Localizer["ScopeEligibleMessage"]</p>
                     }
                     else
                     {
-                        <p class="submission-result failed">Nicht bereinigbar: @_preview.BlockingReason</p>
+                        <p class="submission-result failed">@Localizer["ScopeNotEligiblePrefix", _preview.BlockingReason ?? string.Empty]</p>
                     }
                     <div class="table-responsive">
                         <table class="table">
-                            <thead><tr><th>Entität</th><th>Anzahl</th></tr></thead>
+                            <thead><tr><th>@Localizer["TableHeaderEntity"]</th><th>@Localizer["TableHeaderCount"]</th></tr></thead>
                             <tbody>
-                                <tr><td>Personen</td><td>@_preview.Persons</td></tr>
+                                <tr><td>@Localizer["RowPersons"]</td><td>@_preview.Persons</td></tr>
                                 <tr><td>Directory Accounts</td><td>@_preview.DirectoryAccounts</td></tr>
-                                <tr><td>Person-Konto-Verknüpfungen</td><td>@_preview.PersonAccountLinks</td></tr>
-                                <tr><td>Zielgruppen / Policies</td><td>@_preview.TargetGroups / @_preview.GroupPolicies</td></tr>
-                                <tr><td>Direkte Entitlements</td><td>@_preview.DirectEntitlements</td></tr>
-                                <tr><td>Membership Requests / Historie</td><td>@_preview.MembershipRequests / @_preview.MembershipRequestStatusHistory</td></tr>
-                                <tr><td>MFA-Transaktionen</td><td>@_preview.MfaTransactions</td></tr>
-                                <tr><td>TOTP-Faktoren / verwendete Schritte</td><td>@_preview.TotpFactors / @_preview.TotpUsedTimeSteps</td></tr>
+                                <tr><td>@Localizer["RowPersonAccountLinks"]</td><td>@_preview.PersonAccountLinks</td></tr>
+                                <tr><td>@Localizer["RowTargetGroupsPolicies"]</td><td>@_preview.TargetGroups / @_preview.GroupPolicies</td></tr>
+                                <tr><td>@Localizer["RowDirectEntitlements"]</td><td>@_preview.DirectEntitlements</td></tr>
+                                <tr><td>@Localizer["RowMembershipRequestsHistory"]</td><td>@_preview.MembershipRequests / @_preview.MembershipRequestStatusHistory</td></tr>
+                                <tr><td>@Localizer["RowMfaTransactions"]</td><td>@_preview.MfaTransactions</td></tr>
+                                <tr><td>@Localizer["RowTotpFactorsUsedSteps"]</td><td>@_preview.TotpFactors / @_preview.TotpUsedTimeSteps</td></tr>
                                 <tr><td>FIDO2-Credentials</td><td>@_preview.Fido2Credentials</td></tr>
                             </tbody>
                         </table>
                     </div>
                     @if (_preview.IsEligible)
                     {
-                        <DangerZonePanel Message="@($"Diese Aktion löscht den angezeigten lokalen PIM-Graphen unwiderruflich. Geben Sie zur Bestätigung genau ein: PURGE {_preview.InitiatorId}")"
-                                          ConfirmLabel="Lokalen PIM-Graphen endgültig löschen" IsBusy="_loading" CanConfirm="@(_confirmation == ExpectedConfirmation)"
+                        <DangerZonePanel Message="@Localizer["PurgeDangerMessage", _preview.InitiatorId]"
+                                          ConfirmLabel="@Localizer["PurgeConfirmLabel"]" IsBusy="_loading" CanConfirm="@(_confirmation == ExpectedConfirmation)"
                                           OnConfirm="ExecuteAsync" OnCancel="() => _confirmation = string.Empty">
                             <input class="form-control" @bind="_confirmation" @bind:event="oninput" aria-label="Purge confirmation" placeholder="@ExpectedConfirmation" />
                             @if (!string.IsNullOrEmpty(_confirmation) && _confirmation != ExpectedConfirmation)
                             {
-                                <div class="form-text text-danger">Der eingegebene Text stimmt noch nicht mit <code>@ExpectedConfirmation</code> überein.</div>
+                                <div class="form-text text-danger">@Localizer["ConfirmationMismatchPrefix"] <code>@ExpectedConfirmation</code> @Localizer["ConfirmationMismatchSuffix"]</div>
                             }
                         </DangerZonePanel>
                     }
@@ -129,7 +131,7 @@
     else if (_activeTab == Tab.OrphanedMfa)
     {
         <div role="tabpanel">
-            <p>Requests, deren Bestätigungsfenster für den zweiten Faktor bereits abgelaufen ist, ohne dass sie abgeschlossen wurden. Der Request wird auf <code>Expired</code> gesetzt; Request, Historie und Audit-Log bleiben vollständig erhalten.</p>
+            <p>@Localizer["OrphanedMfaDescriptionPart1"] <code>Expired</code> @Localizer["OrphanedMfaDescriptionPart2"]</p>
             @if (_orphanedError is not null)
             {
                 <p class="submission-result failed" role="alert">@_orphanedError</p>
@@ -140,17 +142,17 @@
             }
             @if (_orphanedRequests is null)
             {
-                <LoadingIndicator Message="Offene MFA-Bestätigungen werden geladen …" />
+                <LoadingIndicator Message="@Localizer["LoadingOrphanedMfa"]" />
             }
             else if (_orphanedRequests.Count == 0)
             {
-                <EmptyState Icon="bi-check-circle" Title="Nichts zu bereinigen" Description="Derzeit gibt es keine abgelaufenen, unbestätigten MFA-Requests." />
+                <EmptyState Icon="bi-check-circle" Title="@Localizer["NothingToCleanTitle"]" Description="@Localizer["NothingToCleanOrphanedMfaDescription"]" />
             }
             else
             {
                 <div class="table-responsive">
                     <table class="table">
-                        <thead><tr><th>Person</th><th>Ziel</th><th>Gruppe</th><th>Erstellt (UTC)</th><th>Fenster abgelaufen (UTC)</th><th></th></tr></thead>
+                        <thead><tr><th>@Localizer["TableHeaderPerson"]</th><th>@Localizer["TableHeaderTarget"]</th><th>@Localizer["TableHeaderGroup"]</th><th>@Localizer["TableHeaderCreatedUtc"]</th><th>@Localizer["TableHeaderWindowExpiredUtc"]</th><th></th></tr></thead>
                         <tbody>
                             @foreach (var request in _orphanedRequests)
                             {
@@ -162,7 +164,7 @@
                                     <td>@request.TransactionExpiresUtc.ToString("u")</td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-danger" disabled="@_orphanedBusy" @onclick="() => ExpireOrphanedRequestAsync(request.RequestId)">
-                                            <i class="bi bi-x-circle" aria-hidden="true"></i> Bereinigen
+                                            <i class="bi bi-x-circle" aria-hidden="true"></i> @Localizer["CleanupButton"]
                                         </button>
                                     </td>
                                 </tr>
@@ -176,7 +178,7 @@
     else
     {
         <div role="tabpanel">
-            <p>Genehmigungspflichtige Requests, deren zugeordnete(r) Approver zwischenzeitlich entfernt wurde, sodass niemand mehr entscheiden kann. Der Request wird auf <code>Expired</code> gesetzt; Request, Historie und Audit-Log bleiben vollständig erhalten. Es gibt kein automatisches Timeout für <code>AwaitingApproval</code> — diese Bereinigung ist der einzige Weg, einen solchen Request abzuschließen.</p>
+            <p>@Localizer["OrphanedApprovalDescriptionPart1"] <code>Expired</code> @Localizer["OrphanedApprovalDescriptionPart2"] <code>AwaitingApproval</code> @Localizer["OrphanedApprovalDescriptionPart3"]</p>
             @if (_orphanedApprovalError is not null)
             {
                 <p class="submission-result failed" role="alert">@_orphanedApprovalError</p>
@@ -187,17 +189,17 @@
             }
             @if (_orphanedApprovals is null)
             {
-                <LoadingIndicator Message="Offene Genehmigungen werden geladen …" />
+                <LoadingIndicator Message="@Localizer["LoadingOrphanedApprovals"]" />
             }
             else if (_orphanedApprovals.Count == 0)
             {
-                <EmptyState Icon="bi-check-circle" Title="Nichts zu bereinigen" Description="Derzeit gibt es keine verwaisten, wartenden Genehmigungen." />
+                <EmptyState Icon="bi-check-circle" Title="@Localizer["NothingToCleanTitle"]" Description="@Localizer["NothingToCleanOrphanedApprovalsDescription"]" />
             }
             else
             {
                 <div class="table-responsive">
                     <table class="table">
-                        <thead><tr><th>Person</th><th>Ziel</th><th>Gruppe</th><th>Erstellt (UTC)</th><th>Wartet seit (UTC)</th><th></th></tr></thead>
+                        <thead><tr><th>@Localizer["TableHeaderPerson"]</th><th>@Localizer["TableHeaderTarget"]</th><th>@Localizer["TableHeaderGroup"]</th><th>@Localizer["TableHeaderCreatedUtc"]</th><th>@Localizer["TableHeaderWaitingSinceUtc"]</th><th></th></tr></thead>
                         <tbody>
                             @foreach (var request in _orphanedApprovals)
                             {
@@ -209,7 +211,7 @@
                                     <td>@request.EnteredAwaitingApprovalUtc.ToString("u")</td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-danger" disabled="@_orphanedApprovalBusy" @onclick="() => ExpireOrphanedApprovalAsync(request.RequestId)">
-                                            <i class="bi bi-x-circle" aria-hidden="true"></i> Bereinigen
+                                            <i class="bi bi-x-circle" aria-hidden="true"></i> @Localizer["CleanupButton"]
                                         </button>
                                     </td>
                                 </tr>
@@ -247,7 +249,7 @@
     protected override async Task OnInitializedAsync()
     {
         try { _candidates = await AdministrationClient.GetIdentityPurgeCandidatesAsync(CancellationToken.None); }
-        catch { _error = "Die Liste der bereinigbaren Objekte konnte nicht geladen werden."; _candidates = []; }
+        catch { _error = Localizer["LoadCandidatesError"]; _candidates = []; }
         await LoadOrphanedRequestsAsync();
         await LoadOrphanedApprovalsAsync();
     }
@@ -255,7 +257,7 @@
     private async Task LoadOrphanedRequestsAsync()
     {
         try { _orphanedError = null; _orphanedRequests = await AdministrationClient.GetOrphanedSecondFactorRequestsAsync(CancellationToken.None); }
-        catch { _orphanedError = "Die Liste der offenen MFA-Bestätigungen konnte nicht geladen werden."; _orphanedRequests = []; }
+        catch { _orphanedError = Localizer["OrphanedMfaLoadError"]; _orphanedRequests = []; }
     }
 
     private async Task ExpireOrphanedRequestAsync(Guid requestId)
@@ -265,17 +267,17 @@
         {
             _orphanedError = null; _orphanedSuccess = null;
             await AdministrationClient.ExpireOrphanedSecondFactorRequestAsync(requestId, CancellationToken.None);
-            _orphanedSuccess = "Der Request wurde als abgelaufen markiert.";
+            _orphanedSuccess = Localizer["RequestExpiredSuccess"];
             await LoadOrphanedRequestsAsync();
         }
-        catch { _orphanedError = "Der Request konnte nicht bereinigt werden. Er wurde möglicherweise zwischenzeitlich abgeschlossen oder existiert nicht mehr."; }
+        catch { _orphanedError = Localizer["OrphanedMfaExpireError"]; }
         finally { _orphanedBusy = false; }
     }
 
     private async Task LoadOrphanedApprovalsAsync()
     {
         try { _orphanedApprovalError = null; _orphanedApprovals = await AdministrationClient.GetOrphanedApprovalRequestsAsync(CancellationToken.None); }
-        catch { _orphanedApprovalError = "Die Liste der offenen Genehmigungen konnte nicht geladen werden."; _orphanedApprovals = []; }
+        catch { _orphanedApprovalError = Localizer["OrphanedApprovalLoadError"]; _orphanedApprovals = []; }
     }
 
     private async Task ExpireOrphanedApprovalAsync(Guid requestId)
@@ -285,19 +287,19 @@
         {
             _orphanedApprovalError = null; _orphanedApprovalSuccess = null;
             await AdministrationClient.ExpireOrphanedApprovalRequestAsync(requestId, CancellationToken.None);
-            _orphanedApprovalSuccess = "Der Request wurde als abgelaufen markiert.";
+            _orphanedApprovalSuccess = Localizer["RequestExpiredSuccess"];
             await LoadOrphanedApprovalsAsync();
         }
-        catch { _orphanedApprovalError = "Der Request konnte nicht bereinigt werden. Er wurde möglicherweise zwischenzeitlich entschieden oder existiert nicht mehr."; }
+        catch { _orphanedApprovalError = Localizer["OrphanedApprovalExpireError"]; }
         finally { _orphanedApprovalBusy = false; }
     }
 
     private async Task LoadPreviewAsync()
     {
-        if (!TrySelected(out var type, out var id)) { _error = "Wählen Sie ein Objekt aus."; return; }
+        if (!TrySelected(out var type, out var id)) { _error = Localizer["SelectObjectError"]; return; }
         _loading = true;
         try { _error = null; _success = null; _confirmation = string.Empty; _preview = await AdministrationClient.GetIdentityPurgeScopePreviewAsync(type, id, CancellationToken.None); }
-        catch { _error = "Der Bereinigungsumfang konnte nicht geladen werden."; _preview = null; }
+        catch { _error = Localizer["ScopePreviewLoadError"]; _preview = null; }
         finally { _loading = false; }
     }
 
@@ -311,9 +313,9 @@
             await AdministrationClient.ExecuteIdentityPurgeAsync(_preview.InitiatorType, _preview.InitiatorId, _confirmation, CancellationToken.None);
             _preview = null; _confirmation = string.Empty; _selected = string.Empty;
             _candidates = await AdministrationClient.GetIdentityPurgeCandidatesAsync(CancellationToken.None);
-            _success = "Der lokale PIM-Graph wurde gelöscht. AD-Objekte und Auditdaten bleiben erhalten.";
+            _success = Localizer["PurgeSuccessMessage"];
         }
-        catch { _error = "Die Bereinigung wurde nicht ausgeführt. Der Scope kann sich geändert haben oder die Bestätigung war ungültig."; }
+        catch { _error = Localizer["PurgeExecuteError"]; }
         finally { _loading = false; }
     }
 

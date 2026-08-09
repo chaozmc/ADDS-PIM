@@ -1,4 +1,7 @@
-﻿<script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<ReconnectModal> Localizer
+
+<script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
 
 <dialog id="components-reconnect-modal" data-nosnippet>
     <div class="components-reconnect-container">
@@ -7,25 +10,25 @@
             <div></div>
         </div>
         <p class="components-reconnect-first-attempt-visible">
-            Verbindung zum Server wird wiederhergestellt …
+            @Localizer["ReconnectingMessage"]
         </p>
         <p class="components-reconnect-repeated-attempt-visible">
-            Wiederverbindung fehlgeschlagen … nächster Versuch in <span id="components-seconds-to-next-attempt"></span> Sekunden.
+            @Localizer["ReconnectFailedRetryPrefix"] <span id="components-seconds-to-next-attempt"></span> @Localizer["ReconnectFailedRetrySuffix"]
         </p>
         <p class="components-reconnect-failed-visible">
-            Wiederverbindung fehlgeschlagen.<br />Bitte erneut versuchen oder die Seite neu laden.
+            @Localizer["ReconnectFailedMessage"]<br />@Localizer["RetryOrReloadHint"]
         </p>
         <button id="components-reconnect-button" class="components-reconnect-failed-visible">
-            Erneut versuchen
+            @Localizer["RetryButton"]
         </button>
         <p class="components-pause-visible">
-            Die Sitzung wurde vom Server pausiert.
+            @Localizer["SessionPausedMessage"]
         </p>
         <p class="components-resume-failed-visible">
-            Die Sitzung konnte nicht fortgesetzt werden.<br />Bitte erneut versuchen oder die Seite neu laden.
+            @Localizer["ResumeFailedMessage"]<br />@Localizer["RetryOrReloadHint"]
         </p>
         <button id="components-resume-button" class="components-pause-visible components-resume-failed-visible">
-            Fortsetzen
+            @Localizer["ResumeButton"]
         </button>
     </div>
 </dialog>

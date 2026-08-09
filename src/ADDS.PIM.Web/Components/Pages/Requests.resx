@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · Meine Requests</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Request-Historie</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Meine Requests</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Requests werden geladen …</value>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>Jahr</value>
+  </data>
+  <data name="AllYearsOption" xml:space="preserve">
+    <value>Alle Jahre</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Monat</value>
+  </data>
+  <data name="AllMonthsOption" xml:space="preserve">
+    <value>Alle Monate</value>
+  </data>
+  <data name="GroupLabel" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="AllGroupsOption" xml:space="preserve">
+    <value>Alle Gruppen</value>
+  </data>
+  <data name="EntitlementLabel" xml:space="preserve">
+    <value>Entitlement</value>
+  </data>
+  <data name="AllEntitlementsOption" xml:space="preserve">
+    <value>Alle Entitlements</value>
+  </data>
+  <data name="PageSizeLabel" xml:space="preserve">
+    <value>Einträge pro Seite</value>
+  </data>
+  <data name="FilterButton" xml:space="preserve">
+    <value>Filtern</value>
+  </data>
+  <data name="NoRequestsTitle" xml:space="preserve">
+    <value>Keine passenden Requests vorhanden</value>
+  </data>
+  <data name="NoRequestsDescription" xml:space="preserve">
+    <value>Passen Sie die Filter an oder fordern Sie eine Gruppenberechtigung an.</value>
+  </data>
+  <data name="RequestTableAriaLabel" xml:space="preserve">
+    <value>Meine Requests</value>
+  </data>
+  <data name="DateColumn" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="GroupColumn" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="TargetAccountColumn" xml:space="preserve">
+    <value>Zielkonto</value>
+  </data>
+  <data name="DurationColumn" xml:space="preserve">
+    <value>Dauer</value>
+  </data>
+  <data name="StatusColumn" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="RequestIdLabel" xml:space="preserve">
+    <value>Request-ID</value>
+  </data>
+  <data name="EntitlementIdLabel" xml:space="preserve">
+    <value>Entitlement-ID</value>
+  </data>
+  <data name="GroupIdLabel" xml:space="preserve">
+    <value>Gruppen-ID</value>
+  </data>
+  <data name="ReasonLabel" xml:space="preserve">
+    <value>Begründung</value>
+  </data>
+  <data name="TicketLabel" xml:space="preserve">
+    <value>Ticket</value>
+  </data>
+  <data name="PaginationAriaLabel" xml:space="preserve">
+    <value>Seitennavigation</value>
+  </data>
+  <data name="PreviousPageButton" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="NextPageButton" xml:space="preserve">
+    <value>Weiter</value>
+  </data>
+  <data name="PageSummary" xml:space="preserve">
+    <value>Seite {0} von {1} ({2} Einträge)</value>
+  </data>
+  <data name="NewRequestLink" xml:space="preserve">
+    <value>Neue Gruppenberechtigung anfordern</value>
+  </data>
+  <data name="MissingIdentityError" xml:space="preserve">
+    <value>Die Request-Historie kann ohne authentifizierte Windows-Identität nicht angezeigt werden.</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Die Request-Historie konnte nicht geladen werden. Prüfen Sie die Request-ID und die geschützten Serverprotokolle.</value>
+  </data>
+</root>

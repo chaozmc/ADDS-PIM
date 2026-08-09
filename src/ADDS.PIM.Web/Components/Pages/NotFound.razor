@@ -1,14 +1,16 @@
 @page "/not-found"
 @layout MainLayout
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<NotFound> Localizer
 
-<PageTitle>ADDS-PIM · Seite nicht gefunden</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
         <p class="eyebrow">404</p>
-        <h1>Seite nicht gefunden</h1>
-        <p>Die aufgerufene Seite existiert nicht oder ist nicht mehr verfügbar.</p>
+        <h1>@Localizer["NotFoundHeading"]</h1>
+        <p>@Localizer["NotFoundMessage"]</p>
     </div>
 </section>
 
-<NavLink class="btn btn-secondary" href="">Zur Startseite</NavLink>
+<NavLink class="btn btn-secondary" href="">@Localizer["BackToHomeLink"]</NavLink>

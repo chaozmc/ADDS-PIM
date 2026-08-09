@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM – Bereinigung</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Bereinigung</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Administrative Bereinigungsfunktionen. Auditdaten bleiben in beiden Funktionen vollständig erhalten.</value>
+  </data>
+  <data name="TabIdentityPurge" xml:space="preserve">
+    <value>Identitäten bereinigen</value>
+  </data>
+  <data name="TabOrphanedMfa" xml:space="preserve">
+    <value>Offene MFA-Bestätigungen</value>
+  </data>
+  <data name="TabOrphanedApprovals" xml:space="preserve">
+    <value>Offene Genehmigungen</value>
+  </data>
+  <data name="IdentityPurgeIntro" xml:space="preserve">
+    <value>Prüft und bereinigt ausschließlich inaktive lokale PIM-Objekte. AD-Objekte und Auditdaten bleiben erhalten.</value>
+  </data>
+  <data name="ScopeTitle" xml:space="preserve">
+    <value>Inaktives Objekt auswählen</value>
+  </data>
+  <data name="ScopeDescription" xml:space="preserve">
+    <value>Wählen Sie ein bereits deaktiviertes Objekt. Die PIM-ID bleibt ein interner Schlüssel und muss nicht manuell eingegeben werden.</value>
+  </data>
+  <data name="LoadingCandidates" xml:space="preserve">
+    <value>Bereinigbare Objekte werden geladen …</value>
+  </data>
+  <data name="NothingToCleanTitle" xml:space="preserve">
+    <value>Nichts zu bereinigen</value>
+  </data>
+  <data name="NothingToCleanCandidatesDescription" xml:space="preserve">
+    <value>Derzeit gibt es keine inaktiven PIM-Objekte zur Bereinigung.</value>
+  </data>
+  <data name="ObjectLabel" xml:space="preserve">
+    <value>Objekt</value>
+  </data>
+  <data name="SelectPlaceholder" xml:space="preserve">
+    <value>Bitte auswählen</value>
+  </data>
+  <data name="ComputeScopeButton" xml:space="preserve">
+    <value>Scope berechnen</value>
+  </data>
+  <data name="LoadCandidatesError" xml:space="preserve">
+    <value>Die Liste der bereinigbaren Objekte konnte nicht geladen werden.</value>
+  </data>
+  <data name="ResultTitle" xml:space="preserve">
+    <value>Serverseitiges Ergebnis</value>
+  </data>
+  <data name="ScopeEligibleMessage" xml:space="preserve">
+    <value>Der aktuell berechnete Scope ist bereinigbar. Es wurde noch nichts gelöscht.</value>
+  </data>
+  <data name="ScopeNotEligiblePrefix" xml:space="preserve">
+    <value>Nicht bereinigbar: {0}</value>
+  </data>
+  <data name="TableHeaderEntity" xml:space="preserve">
+    <value>Entität</value>
+  </data>
+  <data name="TableHeaderCount" xml:space="preserve">
+    <value>Anzahl</value>
+  </data>
+  <data name="RowPersons" xml:space="preserve">
+    <value>Personen</value>
+  </data>
+  <data name="RowPersonAccountLinks" xml:space="preserve">
+    <value>Person-Konto-Verknüpfungen</value>
+  </data>
+  <data name="RowTargetGroupsPolicies" xml:space="preserve">
+    <value>Zielgruppen / Policies</value>
+  </data>
+  <data name="RowDirectEntitlements" xml:space="preserve">
+    <value>Direkte Entitlements</value>
+  </data>
+  <data name="RowMembershipRequestsHistory" xml:space="preserve">
+    <value>Membership Requests / Historie</value>
+  </data>
+  <data name="RowMfaTransactions" xml:space="preserve">
+    <value>MFA-Transaktionen</value>
+  </data>
+  <data name="RowTotpFactorsUsedSteps" xml:space="preserve">
+    <value>TOTP-Faktoren / verwendete Schritte</value>
+  </data>
+  <data name="PurgeDangerMessage" xml:space="preserve">
+    <value>Diese Aktion löscht den angezeigten lokalen PIM-Graphen unwiderruflich. Geben Sie zur Bestätigung genau ein: PURGE {0}</value>
+  </data>
+  <data name="PurgeConfirmLabel" xml:space="preserve">
+    <value>Lokalen PIM-Graphen endgültig löschen</value>
+  </data>
+  <data name="ConfirmationMismatchPrefix" xml:space="preserve">
+    <value>Der eingegebene Text stimmt noch nicht mit</value>
+  </data>
+  <data name="ConfirmationMismatchSuffix" xml:space="preserve">
+    <value>überein.</value>
+  </data>
+  <data name="OrphanedMfaDescriptionPart1" xml:space="preserve">
+    <value>Requests, deren Bestätigungsfenster für den zweiten Faktor bereits abgelaufen ist, ohne dass sie abgeschlossen wurden. Der Request wird auf</value>
+  </data>
+  <data name="OrphanedMfaDescriptionPart2" xml:space="preserve">
+    <value>gesetzt; Request, Historie und Audit-Log bleiben vollständig erhalten.</value>
+  </data>
+  <data name="OrphanedMfaLoadError" xml:space="preserve">
+    <value>Die Liste der offenen MFA-Bestätigungen konnte nicht geladen werden.</value>
+  </data>
+  <data name="LoadingOrphanedMfa" xml:space="preserve">
+    <value>Offene MFA-Bestätigungen werden geladen …</value>
+  </data>
+  <data name="NothingToCleanOrphanedMfaDescription" xml:space="preserve">
+    <value>Derzeit gibt es keine abgelaufenen, unbestätigten MFA-Requests.</value>
+  </data>
+  <data name="TableHeaderPerson" xml:space="preserve">
+    <value>Person</value>
+  </data>
+  <data name="TableHeaderTarget" xml:space="preserve">
+    <value>Ziel</value>
+  </data>
+  <data name="TableHeaderGroup" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="TableHeaderCreatedUtc" xml:space="preserve">
+    <value>Erstellt (UTC)</value>
+  </data>
+  <data name="TableHeaderWindowExpiredUtc" xml:space="preserve">
+    <value>Fenster abgelaufen (UTC)</value>
+  </data>
+  <data name="CleanupButton" xml:space="preserve">
+    <value>Bereinigen</value>
+  </data>
+  <data name="RequestExpiredSuccess" xml:space="preserve">
+    <value>Der Request wurde als abgelaufen markiert.</value>
+  </data>
+  <data name="OrphanedMfaExpireError" xml:space="preserve">
+    <value>Der Request konnte nicht bereinigt werden. Er wurde möglicherweise zwischenzeitlich abgeschlossen oder existiert nicht mehr.</value>
+  </data>
+  <data name="OrphanedApprovalDescriptionPart1" xml:space="preserve">
+    <value>Genehmigungspflichtige Requests, deren zugeordnete(r) Approver zwischenzeitlich entfernt wurde, sodass niemand mehr entscheiden kann. Der Request wird auf</value>
+  </data>
+  <data name="OrphanedApprovalDescriptionPart2" xml:space="preserve">
+    <value>gesetzt; Request, Historie und Audit-Log bleiben vollständig erhalten. Es gibt kein automatisches Timeout für</value>
+  </data>
+  <data name="OrphanedApprovalDescriptionPart3" xml:space="preserve">
+    <value>— diese Bereinigung ist der einzige Weg, einen solchen Request abzuschließen.</value>
+  </data>
+  <data name="OrphanedApprovalLoadError" xml:space="preserve">
+    <value>Die Liste der offenen Genehmigungen konnte nicht geladen werden.</value>
+  </data>
+  <data name="LoadingOrphanedApprovals" xml:space="preserve">
+    <value>Offene Genehmigungen werden geladen …</value>
+  </data>
+  <data name="NothingToCleanOrphanedApprovalsDescription" xml:space="preserve">
+    <value>Derzeit gibt es keine verwaisten, wartenden Genehmigungen.</value>
+  </data>
+  <data name="TableHeaderWaitingSinceUtc" xml:space="preserve">
+    <value>Wartet seit (UTC)</value>
+  </data>
+  <data name="OrphanedApprovalExpireError" xml:space="preserve">
+    <value>Der Request konnte nicht bereinigt werden. Er wurde möglicherweise zwischenzeitlich entschieden oder existiert nicht mehr.</value>
+  </data>
+  <data name="SelectObjectError" xml:space="preserve">
+    <value>Wählen Sie ein Objekt aus.</value>
+  </data>
+  <data name="ScopePreviewLoadError" xml:space="preserve">
+    <value>Der Bereinigungsumfang konnte nicht geladen werden.</value>
+  </data>
+  <data name="PurgeSuccessMessage" xml:space="preserve">
+    <value>Der lokale PIM-Graph wurde gelöscht. AD-Objekte und Auditdaten bleiben erhalten.</value>
+  </data>
+  <data name="PurgeExecuteError" xml:space="preserve">
+    <value>Die Bereinigung wurde nicht ausgeführt. Der Scope kann sich geändert haben oder die Bestätigung war ungültig.</value>
+  </data>
+</root>

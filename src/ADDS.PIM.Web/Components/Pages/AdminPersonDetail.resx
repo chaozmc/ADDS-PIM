@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Personenkonten</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Konten der Person</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Ein Konto darf genau einer PIM-Person zugeordnet sein. Zweck und Aktivierung werden explizit verwaltet.</value>
+  </data>
+  <data name="LoadingPersonAccounts" xml:space="preserve">
+    <value>Person und Konten werden geladen …</value>
+  </data>
+  <data name="StatusActive" xml:space="preserve">
+    <value>aktiv</value>
+  </data>
+  <data name="StatusDeactivated" xml:space="preserve">
+    <value>deaktiviert</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="LinkedAccountsTitle" xml:space="preserve">
+    <value>Verknüpfte AD-Konten</value>
+  </data>
+  <data name="AssignAccountButton" xml:space="preserve">
+    <value>Konto zuordnen</value>
+  </data>
+  <data name="InactivePersonNotice" xml:space="preserve">
+    <value>Für eine deaktivierte Person können keine Konten aktiviert oder neu zugeordnet werden.</value>
+  </data>
+  <data name="NoLinkedAccountsTitle" xml:space="preserve">
+    <value>Keine verknüpften Konten</value>
+  </data>
+  <data name="NoLinkedAccountsDescription" xml:space="preserve">
+    <value>Ordnen Sie ein AD-Konto zu, um Anmeldung und/oder Privilegienziel für diese Person zu ermöglichen.</value>
+  </data>
+  <data name="TableHeaderAccount" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="TableHeaderAdStatus" xml:space="preserve">
+    <value>AD-Status</value>
+  </data>
+  <data name="TableHeaderPurposes" xml:space="preserve">
+    <value>Zwecke</value>
+  </data>
+  <data name="TableHeaderStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="TableHeaderActions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="StatusAssigned" xml:space="preserve">
+    <value>zugeordnet</value>
+  </data>
+  <data name="ChangePurposeButton" xml:space="preserve">
+    <value>Zweck ändern</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Deaktivieren</value>
+  </data>
+  <data name="ReactivateButton" xml:space="preserve">
+    <value>Reaktivieren</value>
+  </data>
+  <data name="DeactivateLinkDangerMessage" xml:space="preserve">
+    <value>{0} wirklich deaktivieren? Bestehende Entitlements und Historie bleiben erhalten, neue Requests werden verhindert.</value>
+  </data>
+  <data name="ReactivateLinkPrompt" xml:space="preserve">
+    <value>{0} nach erneuter AD-Verifikation reaktivieren?</value>
+  </data>
+  <data name="AssignAccountDialogTitle" xml:space="preserve">
+    <value>AD-Konto zuordnen</value>
+  </data>
+  <data name="AssignAccountDialogIntro" xml:space="preserve">
+    <value>Die Suche ist nicht auf die ADDS-PIM-User-Gruppe beschränkt. Wählen Sie das Konto bewusst aus; es muss in AD aktiv und bislang keiner anderen PIM-Person zugeordnet sein.</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Name oder sAMAccountName</value>
+  </data>
+  <data name="SearchButton" xml:space="preserve">
+    <value>Suchen</value>
+  </data>
+  <data name="TableHeaderName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SelectButton" xml:space="preserve">
+    <value>Auswählen</value>
+  </data>
+  <data name="SelectedLabel" xml:space="preserve">
+    <value>Ausgewählt:</value>
+  </data>
+  <data name="MayAuthenticateLabel" xml:space="preserve">
+    <value>Darf die Person interaktiv authentifizieren</value>
+  </data>
+  <data name="AuthenticationPurposeTooltip" xml:space="preserve">
+    <value>Pro Person darf genau ein aktives Konto zur Anmeldung verwendet werden.</value>
+  </data>
+  <data name="MayReceivePrivilegesLabel" xml:space="preserve">
+    <value>Darf TTL-Privilegien empfangen</value>
+  </data>
+  <data name="MayApproveLabel" xml:space="preserve">
+    <value>Darf Genehmigungen entscheiden (Approver)</value>
+  </data>
+  <data name="ApproveOnlyOnLoginAccountTooltip" xml:space="preserve">
+    <value>Nur auf dem Anmeldekonto (interaktive Authentifizierung) zulässig.</value>
+  </data>
+  <data name="MinimumOnePurposeNotice" xml:space="preserve">
+    <value>Mindestens ein Zweck ist erforderlich.</value>
+  </data>
+  <data name="ChangePurposesDialogTitle" xml:space="preserve">
+    <value>Kontozwecke ändern</value>
+  </data>
+  <data name="InteractiveAuthenticationLabel" xml:space="preserve">
+    <value>Interaktive Authentifizierung</value>
+  </data>
+  <data name="ReceiveTtlPrivilegesLabel" xml:space="preserve">
+    <value>TTL-Privilegien empfangen</value>
+  </data>
+  <data name="DecideApprovalsLabel" xml:space="preserve">
+    <value>Genehmigungen entscheiden (Approver)</value>
+  </data>
+  <data name="LoadPersonError" xml:space="preserve">
+    <value>Person oder Konten konnten nicht geladen werden.</value>
+  </data>
+  <data name="SearchMinLengthError" xml:space="preserve">
+    <value>Bitte mindestens zwei Zeichen eingeben.</value>
+  </data>
+  <data name="NoMatchingAccountError" xml:space="preserve">
+    <value>Kein passendes AD-Benutzerkonto gefunden.</value>
+  </data>
+  <data name="SearchFailedError" xml:space="preserve">
+    <value>Die AD-Suche ist fehlgeschlagen.</value>
+  </data>
+  <data name="SelectAtLeastOnePurposeError" xml:space="preserve">
+    <value>Wählen Sie mindestens einen Zweck.</value>
+  </data>
+  <data name="CreateLinkError" xml:space="preserve">
+    <value>Das Konto konnte nicht zugeordnet werden. Es ist möglicherweise bereits zugeordnet, deaktiviert oder nicht mehr verifizierbar.</value>
+  </data>
+  <data name="MinimumOnePurposeError" xml:space="preserve">
+    <value>Mindestens ein Kontozweck ist erforderlich.</value>
+  </data>
+  <data name="SavePurposesError" xml:space="preserve">
+    <value>Die Kontozwecke konnten nicht geändert werden. Die Daten wurden möglicherweise parallel geändert.</value>
+  </data>
+  <data name="SetLinkActiveError" xml:space="preserve">
+    <value>Der Kontostatus konnte nicht geändert werden. Das Konto muss für eine Reaktivierung aktuell in AD verifizierbar und aktiv sein.</value>
+  </data>
+  <data name="PurposeAuthentication" xml:space="preserve">
+    <value>Anmeldung</value>
+  </data>
+  <data name="PurposePrivilegeTarget" xml:space="preserve">
+    <value>Privilegienziel</value>
+  </data>
+</root>

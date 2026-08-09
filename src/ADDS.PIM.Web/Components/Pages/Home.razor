@@ -1,42 +1,44 @@
 @page "/new-request"
+@using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IJSRuntime JS
+@inject IStringLocalizer<Home> Localizer
 
 <Fido2Interop />
 
-<PageTitle>ADDS-PIM · Gruppenberechtigung anfordern</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero" aria-labelledby="page-title">
     <div>
         <p class="eyebrow">Privileged access</p>
-        <h1 id="page-title">Meine Gruppenberechtigungen</h1>
-        <p>Wählen Sie eine aktuell für Ihr Zielkonto berechtigte Gruppe. Die Berechtigung und Richtlinie werden vor der AD-Änderung erneut geprüft.</p>
+        <h1 id="page-title">@Localizer["MyPermissionsHeading"]</h1>
+        <p>@Localizer["IntroText"]</p>
     </div>
 </section>
 
 @if (_loading)
 {
-    <LoadingIndicator Message="Berechtigungen werden geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingPermissions"]" />
 }
 else if (_error is not null)
 {
-    <div class="submission-result failed" role="alert"><p>@_error</p>@if (_showEnrollLink) { <p><NavLink href="/mfa/totp/enroll">Faktor einrichten</NavLink></p> }@if (_failedRequestId is not null) { <p>Request-ID: <code>@_failedRequestId</code></p> }</div>
+    <div class="submission-result failed" role="alert"><p>@_error</p>@if (_showEnrollLink) { <p><NavLink href="/mfa/totp/enroll">@Localizer["SetupFactorLink"]</NavLink></p> }@if (_failedRequestId is not null) { <p>@Localizer["RequestIdLabel"] <code>@_failedRequestId</code></p> }</div>
 }
 else if (_entitlements.Count == 0)
 {
-    <div class="prototype-notice" role="status"><strong>Keine aktiven Berechtigungen</strong><span>Für Ihr Konto ist derzeit kein aktives Entitlement hinterlegt.</span></div>
+    <div class="prototype-notice" role="status"><strong>@Localizer["NoActivePermissionsHeading"]</strong><span>@Localizer["NoActivePermissionsText"]</span></div>
 }
 else if (_pendingSecondFactor is not null)
 {
     <section class="request-form" aria-labelledby="second-factor-title">
-        <h2 id="second-factor-title">Zweiten Faktor bestätigen</h2>
-        <p>Bestätigen Sie die folgende Anfrage mit einem TOTP-Code, um die zeitlich begrenzte Gruppenmitgliedschaft auszuführen.</p>
+        <h2 id="second-factor-title">@Localizer["ConfirmSecondFactorHeading"]</h2>
+        <p>@Localizer["ConfirmSecondFactorIntro"]</p>
         <dl class="second-factor-summary">
-            <dt>Actor-Konto</dt><dd>@_windowsIdentity</dd>
-            <dt>Zielkonto</dt><dd>@Selected?.TargetAccountDisplayName</dd>
-            <dt>Gruppe</dt><dd>@Selected?.TargetGroupDisplayName</dd>
-            <dt>Gültig bis</dt><dd>@_pendingSecondFactor.ExpiresUtc.ToLocalTime().ToString("t")</dd>
+            <dt>@Localizer["ActorAccountLabel"]</dt><dd>@_windowsIdentity</dd>
+            <dt>@Localizer["TargetAccountLabel"]</dt><dd>@Selected?.TargetAccountDisplayName</dd>
+            <dt>@Localizer["GroupLabel"]</dt><dd>@Selected?.TargetGroupDisplayName</dd>
+            <dt>@Localizer["ValidUntilLabel"]</dt><dd>@_pendingSecondFactor.ExpiresUtc.ToLocalTime().ToString("t")</dd>
         </dl>
         @if (_secondFactorError is not null)
         {
@@ -45,25 +47,25 @@ else if (_pendingSecondFactor is not null)
         @{ var allowedTypes = Selected?.AllowedSecondFactorTypes ?? 3; }
         @if ((allowedTypes & 1) != 0)
         {
-            <button class="submit-button" type="button" disabled="@_verifyingSecondFactor" @onclick="VerifyFido2SecondFactorAsync">@(_verifyingSecondFactor ? "Wird geprüft …" : "Mit Passkey bestätigen")</button>
+            <button class="submit-button" type="button" disabled="@_verifyingSecondFactor" @onclick="VerifyFido2SecondFactorAsync">@(_verifyingSecondFactor ? Localizer["VerifyingText"] : Localizer["ConfirmWithPasskeyButton"])</button>
         }
         @if ((allowedTypes & 2) != 0)
         {
             @if (_mfaStatus is { TotpEnrolled: false })
             {
                 <div class="submission-result failed" role="alert">
-                    <p>Für Ihr Konto ist noch kein TOTP-Faktor eingerichtet. Richten Sie zuerst einen Faktor ein, um diesen Request zu bestätigen.</p>
-                    <NavLink href="/mfa/totp/enroll">Faktor einrichten</NavLink>
+                    <p>@Localizer["NoTotpFactorText"]</p>
+                    <NavLink href="/mfa/totp/enroll">@Localizer["SetupFactorLink"]</NavLink>
                 </div>
             }
             else
             {
                 <EditForm Model="_secondFactorForm" OnValidSubmit="VerifySecondFactorAsync">
                     <div class="field">
-                        <label for="totp-code">TOTP-Code</label>
+                        <label for="totp-code">@Localizer["TotpCodeLabel"]</label>
                         <InputText id="totp-code" @bind-Value="_secondFactorForm.Code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" />
                     </div>
-                    <button class="submit-button" type="submit" disabled="@_verifyingSecondFactor">@(_verifyingSecondFactor ? "Wird geprüft …" : "Bestätigen und ausführen")</button>
+                    <button class="submit-button" type="submit" disabled="@_verifyingSecondFactor">@(_verifyingSecondFactor ? Localizer["VerifyingText"] : Localizer["ConfirmAndExecuteButton"])</button>
                 </EditForm>
             }
         }
@@ -72,12 +74,12 @@ else if (_pendingSecondFactor is not null)
 else
 {
     <section class="request-form" aria-labelledby="form-title">
-        <h2 id="form-title">Berechtigung anfordern</h2>
+        <h2 id="form-title">@Localizer["RequestPermissionHeading"]</h2>
         <EditForm Model="_form" OnValidSubmit="SubmitAsync">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <div class="field">
-                <label for="entitlement">Gruppe und Zielkonto</label>
+                <label for="entitlement">@Localizer["GroupAndTargetAccountLabel"]</label>
                 <InputSelect id="entitlement" @bind-Value="_form.EntitlementId" @bind-Value:after="SelectEntitlement">
                     @foreach (var item in _entitlements)
                     {
@@ -88,35 +90,35 @@ else
             @if (Selected is not null)
             {
                 <div class="field">
-                    <label for="duration">Dauer</label>
+                    <label for="duration">@Localizer["DurationLabel"]</label>
                     <InputSelect id="duration" @bind-Value="_form.RequestedTtlSeconds">
                         @foreach (var seconds in Durations(Selected))
                         {
                             <option value="@seconds">@FormatDuration(seconds)</option>
                         }
                     </InputSelect>
-                    <span class="hint">Erlaubt: @FormatDuration(Selected.MinimumTtlSeconds) bis @FormatDuration(Selected.MaximumTtlSeconds), in Schritten von @FormatDuration(Selected.TtlStepSeconds).</span>
+                    <span class="hint">@Localizer["AllowedDurationHint", FormatDuration(Selected.MinimumTtlSeconds), FormatDuration(Selected.MaximumTtlSeconds), FormatDuration(Selected.TtlStepSeconds)]</span>
                 </div>
                 <div class="field">
-                    <label for="reason">Begründung <span aria-hidden="true">*</span></label>
+                    <label for="reason">@Localizer["ReasonLabel"] <span aria-hidden="true">*</span></label>
                     <textarea id="reason" @bind="_form.Reason" @bind:event="oninput" rows="5"></textarea>
                 </div>
                 @if (Selected.RequiresTicket)
                 {
-                    <div class="field"><label for="ticket">Ticket-Referenz <span aria-hidden="true">*</span></label><InputText id="ticket" @bind-Value="_form.TicketReference" /></div>
+                    <div class="field"><label for="ticket">@Localizer["TicketReferenceLabel"] <span aria-hidden="true">*</span></label><InputText id="ticket" @bind-Value="_form.TicketReference" /></div>
                 }
                 @if (Selected.RequiresSecondFactor)
                 {
-                    <p class="hint">Für diese Gruppe ist ein zweiter Faktor (@SecondFactorLabel(Selected.AllowedSecondFactorTypes)) erforderlich. Sie werden nach dem Absenden zur Bestätigung aufgefordert.</p>
+                    <p class="hint">@Localizer["SecondFactorRequiredHint", SecondFactorLabel(Selected.AllowedSecondFactorTypes)]</p>
                 }
                 @if (Selected.RequiresApproval)
                 {
-                    <p class="hint">Für diese Gruppe ist eine Genehmigung erforderlich. Der Request wartet nach dem Absenden auf die Entscheidung eines zugeordneten Approvers.</p>
+                    <p class="hint">@Localizer["ApprovalRequiredHint"]</p>
                 }
-                <button class="submit-button" type="submit" disabled="@_submitting">@(_submitting ? "Request wird ausgeführt …" : "Zeitlich begrenzten Zugriff anfordern")</button>
+                <button class="submit-button" type="submit" disabled="@_submitting">@(_submitting ? Localizer["SubmittingText"] : Localizer["RequestAccessButton"])</button>
             }
         </EditForm>
-        @if (_result is not null) { <div class="request-status-panel submission-result @ResultVariant(_result.Status)" role="status"><h3>Status: @_result.Status</h3>@if (!string.IsNullOrWhiteSpace(_result.OutcomeMessage)) { <p>@_result.OutcomeMessage</p> }<p>Request-ID: <code class="@(_result.Status == "Succeeded" ? "request-id-success" : null)">@_result.RequestId</code></p></div> }
+        @if (_result is not null) { <div class="request-status-panel submission-result @ResultVariant(_result.Status)" role="status"><h3>@Localizer["StatusLabel", _result.Status]</h3>@if (!string.IsNullOrWhiteSpace(_result.OutcomeMessage)) { <p>@_result.OutcomeMessage</p> }<p>@Localizer["RequestIdLabel"] <code class="@(_result.Status == "Succeeded" ? "request-id-success" : null)">@_result.RequestId</code></p></div> }
     </section>
 }
 
@@ -139,7 +141,7 @@ else
     {
         _windowsIdentity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
         try { _entitlements = await RequestClient.ListAvailableEntitlementsAsync(CancellationToken.None); if (_entitlements.Count > 0) SelectEntitlement(); }
-        catch { _error = "Ihre Berechtigungen konnten nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle mit der Request-ID."; }
+        catch { _error = Localizer["LoadEntitlementsError"]; }
         finally { _loading = false; }
         try { _mfaStatus = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
         catch { _mfaStatus = null; }
@@ -157,7 +159,7 @@ else
     private async Task SubmitAsync()
     {
         var item = Selected; if (item is null) return;
-        if (item.RequiresTicket && string.IsNullOrWhiteSpace(_form.TicketReference)) { _error = "Für diese Gruppe ist eine Ticket-Referenz erforderlich."; return; }
+        if (item.RequiresTicket && string.IsNullOrWhiteSpace(_form.TicketReference)) { _error = Localizer["TicketRequiredError"]; return; }
         _submitting = true; _error = null; _failedRequestId = null; _showEnrollLink = false; _result = null;
         try
         {
@@ -171,19 +173,19 @@ else
             if (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity && exception.ProblemTitle == "No active second factor is enrolled for this account.")
             {
                 var allowsTotp = (item.AllowedSecondFactorTypes & 2) != 0;
-                _error = $"Für Ihr Konto ist noch kein aktiver Faktor eingerichtet, der für diese Gruppe zulässig ist ({SecondFactorLabel(item.AllowedSecondFactorTypes)}).{(allowsTotp ? " Richten Sie zuerst einen Faktor ein, bevor Sie diesen Request stellen." : " FIDO2 ist aktuell noch nicht verfügbar; Sie können diesen Request derzeit nicht selbst abschließen.")}";
+                _error = $"{Localizer["NoActiveFactorError", SecondFactorLabel(item.AllowedSecondFactorTypes)]}{(allowsTotp ? Localizer["SetupFactorSuffix"] : Localizer["Fido2UnavailableSuffix"])}";
                 _showEnrollLink = allowsTotp;
             }
             else if (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
             {
-                _error = "Die Ticket-Referenz entspricht keinem für diese Gruppe konfigurierten Pattern.";
+                _error = Localizer["InvalidTicketPatternError"];
             }
             else
             {
-                _error = "Der Request konnte nicht ausgeführt werden. Geben Sie die Request-ID bei einer Prüfung an.";
+                _error = Localizer["SubmitFailedWithIdError"];
             }
         }
-        catch { _error = "Der Request konnte nicht ausgeführt werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        catch { _error = Localizer["SubmitFailedGenericError"]; }
         finally { _submitting = false; }
     }
     private async Task VerifySecondFactorAsync()
@@ -200,13 +202,13 @@ else
         {
             _secondFactorError = exception.StatusCode switch
             {
-                System.Net.HttpStatusCode.TooManyRequests => "Der Faktor ist vorübergehend gesperrt. Versuchen Sie es später erneut.",
-                System.Net.HttpStatusCode.Conflict => "Die Bestätigung ist abgelaufen oder ungültig. Stellen Sie den Request erneut.",
-                System.Net.HttpStatusCode.NotFound => "Es wurde keine ausstehende Bestätigung für diesen Request gefunden.",
-                _ => "Der Code konnte nicht bestätigt werden."
+                System.Net.HttpStatusCode.TooManyRequests => Localizer["FactorLockedError"],
+                System.Net.HttpStatusCode.Conflict => Localizer["ConfirmationExpiredError"],
+                System.Net.HttpStatusCode.NotFound => Localizer["NoPendingConfirmationError"],
+                _ => Localizer["CodeNotVerifiedError"]
             };
         }
-        catch { _secondFactorError = "Der Code konnte nicht bestätigt werden. Prüfen Sie die geschützten Serverprotokolle."; }
+        catch { _secondFactorError = Localizer["CodeNotVerifiedGenericError"]; }
         finally { _verifyingSecondFactor = false; }
     }
     private async Task VerifyFido2SecondFactorAsync()
@@ -225,20 +227,20 @@ else
         {
             _secondFactorError = exception.StatusCode switch
             {
-                System.Net.HttpStatusCode.Conflict => "Die Bestätigung ist abgelaufen oder ungültig. Stellen Sie den Request erneut.",
-                System.Net.HttpStatusCode.NotFound => "Es wurde keine ausstehende Bestätigung für diesen Request gefunden.",
-                _ => "Der Passkey konnte nicht bestätigt werden."
+                System.Net.HttpStatusCode.Conflict => Localizer["ConfirmationExpiredError"],
+                System.Net.HttpStatusCode.NotFound => Localizer["NoPendingConfirmationError"],
+                _ => Localizer["PasskeyNotVerifiedError"]
             };
         }
-        catch { _secondFactorError = "Der Passkey konnte nicht bestätigt werden."; }
+        catch { _secondFactorError = Localizer["PasskeyNotVerifiedError"]; }
         finally { _verifyingSecondFactor = false; }
     }
-    private static string SecondFactorLabel(int allowedSecondFactorTypes) => allowedSecondFactorTypes switch
+    private string SecondFactorLabel(int allowedSecondFactorTypes) => allowedSecondFactorTypes switch
     {
-        1 => "FIDO2",
-        2 => "TOTP",
-        3 => "TOTP oder FIDO2",
-        _ => "ein zweiter Faktor"
+        1 => Localizer["Fido2Label"],
+        2 => Localizer["TotpLabel"],
+        3 => Localizer["TotpOrFido2Label"],
+        _ => Localizer["SecondFactorGenericLabel"]
     };
     private static IEnumerable<long> Durations(MyAvailableMembershipEntitlement item) { for (var value = item.MinimumTtlSeconds; value <= item.MaximumTtlSeconds; value += item.TtlStepSeconds) yield return value; }
     private static string ResultVariant(string status) => status switch
@@ -247,11 +249,11 @@ else
         "AwaitingApproval" => "pending",
         _ => "failed"
     };
-    private static string DisplayRestriction(MyAvailableMembershipEntitlement item)
+    private string DisplayRestriction(MyAvailableMembershipEntitlement item)
     {
         var requirements = new List<string>();
-        if (item.RequiresSecondFactor) requirements.Add("MFA erforderlich");
-        if (item.RequiresApproval) requirements.Add("Genehmigung erforderlich");
+        if (item.RequiresSecondFactor) requirements.Add(Localizer["MfaRequiredTag"]);
+        if (item.RequiresApproval) requirements.Add(Localizer["ApprovalRequiredTag"]);
         return requirements.Count == 0 ? string.Empty : " · " + string.Join("; ", requirements);
     }
     private static string FormatDuration(long seconds) => $"{seconds / 3600m:0.##} h";

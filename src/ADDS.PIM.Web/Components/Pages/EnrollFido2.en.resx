@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · Set up passkey</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Multi-Factor Authentication</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Set up passkey</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Set up a FIDO2 passkey to confirm group requests that require a second factor. You can register multiple passkeys.</value>
+  </data>
+  <data name="BackToOverviewLink" xml:space="preserve">
+    <value>Back to MFA overview</value>
+  </data>
+  <data name="LoadingStatusMessage" xml:space="preserve">
+    <value>Loading status …</value>
+  </data>
+  <data name="ExistingPasskeysHeading" xml:space="preserve">
+    <value>Registered passkeys</value>
+  </data>
+  <data name="PasskeyFallbackLabel" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="CreatedOnLabel" xml:space="preserve">
+    <value>registered on</value>
+  </data>
+  <data name="RemovePasskeyHint" xml:space="preserve">
+    <value>To remove a passkey, contact an administrator.</value>
+  </data>
+  <data name="StepUpHeading" xml:space="preserve">
+    <value>Confirm an existing factor</value>
+  </data>
+  <data name="StepUpIntro" xml:space="preserve">
+    <value>To set up another passkey, you must first confirm an already registered factor.</value>
+  </data>
+  <data name="ConfirmingBusyButton" xml:space="preserve">
+    <value>Confirming …</value>
+  </data>
+  <data name="ConfirmWithPasskeyButton" xml:space="preserve">
+    <value>Confirm with existing passkey</value>
+  </data>
+  <data name="TotpCodeLabel" xml:space="preserve">
+    <value>TOTP code</value>
+  </data>
+  <data name="ConfirmWithTotpButton" xml:space="preserve">
+    <value>Confirm with TOTP</value>
+  </data>
+  <data name="AddNewPasskeyHeading" xml:space="preserve">
+    <value>Add new passkey</value>
+  </data>
+  <data name="LabelOptionalField" xml:space="preserve">
+    <value>Label (optional)</value>
+  </data>
+  <data name="LabelPlaceholder" xml:space="preserve">
+    <value>e.g. YubiKey Office</value>
+  </data>
+  <data name="AddingBusyButton" xml:space="preserve">
+    <value>Setting up …</value>
+  </data>
+  <data name="AddPasskeyButton" xml:space="preserve">
+    <value>Add passkey</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>The status could not be loaded. Check the protected server logs.</value>
+  </data>
+  <data name="PasskeyConfirmError" xml:space="preserve">
+    <value>The existing passkey could not be confirmed.</value>
+  </data>
+  <data name="StepUpFailedError" xml:space="preserve">
+    <value>Confirmation failed. Please try again.</value>
+  </data>
+  <data name="RegistrationError" xml:space="preserve">
+    <value>The passkey could not be set up. Check the protected server logs.</value>
+  </data>
+</root>

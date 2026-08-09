@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Person accounts</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Person's accounts</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>An account may be assigned to exactly one PIM person. Purpose and activation are managed explicitly.</value>
+  </data>
+  <data name="LoadingPersonAccounts" xml:space="preserve">
+    <value>Loading person and accounts …</value>
+  </data>
+  <data name="StatusActive" xml:space="preserve">
+    <value>active</value>
+  </data>
+  <data name="StatusDeactivated" xml:space="preserve">
+    <value>deactivated</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="LinkedAccountsTitle" xml:space="preserve">
+    <value>Linked AD accounts</value>
+  </data>
+  <data name="AssignAccountButton" xml:space="preserve">
+    <value>Assign account</value>
+  </data>
+  <data name="InactivePersonNotice" xml:space="preserve">
+    <value>Accounts cannot be activated or reassigned for a deactivated person.</value>
+  </data>
+  <data name="NoLinkedAccountsTitle" xml:space="preserve">
+    <value>No linked accounts</value>
+  </data>
+  <data name="NoLinkedAccountsDescription" xml:space="preserve">
+    <value>Assign an AD account to enable login and/or a privilege target for this person.</value>
+  </data>
+  <data name="TableHeaderAccount" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="TableHeaderAdStatus" xml:space="preserve">
+    <value>AD status</value>
+  </data>
+  <data name="TableHeaderPurposes" xml:space="preserve">
+    <value>Purposes</value>
+  </data>
+  <data name="TableHeaderStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="TableHeaderActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="StatusAssigned" xml:space="preserve">
+    <value>assigned</value>
+  </data>
+  <data name="ChangePurposeButton" xml:space="preserve">
+    <value>Change purpose</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="ReactivateButton" xml:space="preserve">
+    <value>Reactivate</value>
+  </data>
+  <data name="DeactivateLinkDangerMessage" xml:space="preserve">
+    <value>Really deactivate {0}? Existing entitlements and history are preserved; new requests are prevented.</value>
+  </data>
+  <data name="ReactivateLinkPrompt" xml:space="preserve">
+    <value>Reactivate {0} after re-verification against AD?</value>
+  </data>
+  <data name="AssignAccountDialogTitle" xml:space="preserve">
+    <value>Assign AD account</value>
+  </data>
+  <data name="AssignAccountDialogIntro" xml:space="preserve">
+    <value>The search is not limited to the ADDS-PIM user group. Choose the account deliberately; it must be active in AD and not yet assigned to another PIM person.</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Name or sAMAccountName</value>
+  </data>
+  <data name="SearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="TableHeaderName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SelectButton" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="SelectedLabel" xml:space="preserve">
+    <value>Selected:</value>
+  </data>
+  <data name="MayAuthenticateLabel" xml:space="preserve">
+    <value>Allowed to authenticate interactively</value>
+  </data>
+  <data name="AuthenticationPurposeTooltip" xml:space="preserve">
+    <value>Exactly one active account per person may be used for login.</value>
+  </data>
+  <data name="MayReceivePrivilegesLabel" xml:space="preserve">
+    <value>Allowed to receive TTL privileges</value>
+  </data>
+  <data name="MayApproveLabel" xml:space="preserve">
+    <value>Allowed to decide approvals (approver)</value>
+  </data>
+  <data name="ApproveOnlyOnLoginAccountTooltip" xml:space="preserve">
+    <value>Only permitted on the login account (interactive authentication).</value>
+  </data>
+  <data name="MinimumOnePurposeNotice" xml:space="preserve">
+    <value>At least one purpose is required.</value>
+  </data>
+  <data name="ChangePurposesDialogTitle" xml:space="preserve">
+    <value>Change account purposes</value>
+  </data>
+  <data name="InteractiveAuthenticationLabel" xml:space="preserve">
+    <value>Interactive authentication</value>
+  </data>
+  <data name="ReceiveTtlPrivilegesLabel" xml:space="preserve">
+    <value>Receive TTL privileges</value>
+  </data>
+  <data name="DecideApprovalsLabel" xml:space="preserve">
+    <value>Decide approvals (approver)</value>
+  </data>
+  <data name="LoadPersonError" xml:space="preserve">
+    <value>Person or accounts could not be loaded.</value>
+  </data>
+  <data name="SearchMinLengthError" xml:space="preserve">
+    <value>Please enter at least two characters.</value>
+  </data>
+  <data name="NoMatchingAccountError" xml:space="preserve">
+    <value>No matching AD user account found.</value>
+  </data>
+  <data name="SearchFailedError" xml:space="preserve">
+    <value>The AD search failed.</value>
+  </data>
+  <data name="SelectAtLeastOnePurposeError" xml:space="preserve">
+    <value>Select at least one purpose.</value>
+  </data>
+  <data name="CreateLinkError" xml:space="preserve">
+    <value>The account could not be assigned. It may already be assigned, deactivated, or no longer verifiable.</value>
+  </data>
+  <data name="MinimumOnePurposeError" xml:space="preserve">
+    <value>At least one account purpose is required.</value>
+  </data>
+  <data name="SavePurposesError" xml:space="preserve">
+    <value>The account purposes could not be changed. The data may have been changed concurrently.</value>
+  </data>
+  <data name="SetLinkActiveError" xml:space="preserve">
+    <value>The account status could not be changed. The account must currently be verifiable and active in AD for reactivation.</value>
+  </data>
+  <data name="PurposeAuthentication" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="PurposePrivilegeTarget" xml:space="preserve">
+    <value>Privilege target</value>
+  </data>
+</root>

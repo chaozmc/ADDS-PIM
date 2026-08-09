@@ -1,29 +1,31 @@
 @page "/Error"
 @layout MainLayout
 @using System.Diagnostics
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Error> Localizer
 
-<PageTitle>ADDS-PIM · Fehler</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <p class="eyebrow">Fehler</p>
-        <h1>Ein unerwarteter Fehler ist aufgetreten</h1>
-        <p>Die Anfrage konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut oder wenden Sie sich mit der unten angegebenen Kennung an die Administration.</p>
+        <p class="eyebrow">@Localizer["ErrorEyebrow"]</p>
+        <h1>@Localizer["ErrorHeading"]</h1>
+        <p>@Localizer["ErrorMessage"]</p>
     </div>
 </section>
 
 <div class="submission-result failed" role="alert">
     @if (ShowRequestId)
     {
-        <p><strong>Request-ID:</strong> <code>@RequestId</code></p>
+        <p><strong>@Localizer["RequestIdLabel"]</strong> <code>@RequestId</code></p>
     }
     else
     {
-        <p>Es liegt keine Request-ID für diesen Fehler vor.</p>
+        <p>@Localizer["NoRequestIdMessage"]</p>
     }
 </div>
 
-<NavLink class="btn btn-secondary mt-3" href="">Zur Startseite</NavLink>
+<NavLink class="btn btn-secondary mt-3" href="">@Localizer["BackToHomeLink"]</NavLink>
 
 @code{
     [CascadingParameter]

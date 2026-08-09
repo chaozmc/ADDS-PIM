@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Ticket Patterns</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Ticket Reference Patterns</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Active patterns are used server-side with bounded, non-backtracking regex validation.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Loading settings …</value>
+  </data>
+  <data name="AddPatternButton" xml:space="preserve">
+    <value>Add pattern</value>
+  </data>
+  <data name="GroupFilterLabel" xml:space="preserve">
+    <value>Filter by group</value>
+  </data>
+  <data name="GroupFilterPlaceholder" xml:space="preserve">
+    <value>Enter group name ...</value>
+  </data>
+  <data name="EmptyStateTitle" xml:space="preserve">
+    <value>No ticket patterns found</value>
+  </data>
+  <data name="EmptyStateDescription" xml:space="preserve">
+    <value>Create a pattern or adjust the group filter.</value>
+  </data>
+  <data name="PatternCountSingular" xml:space="preserve">
+    <value>{0} pattern</value>
+  </data>
+  <data name="PatternCountPlural" xml:space="preserve">
+    <value>{0} patterns</value>
+  </data>
+  <data name="LabelColumnHeader" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="RegexColumnHeader" xml:space="preserve">
+    <value>Regex</value>
+  </data>
+  <data name="EditButton" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="CopyButton" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="DeleteConfirmMessage" xml:space="preserve">
+    <value>Really delete {0}? This action cannot be undone.</value>
+  </data>
+  <data name="DeletePermanentlyButton" xml:space="preserve">
+    <value>Delete permanently</value>
+  </data>
+  <data name="AddPatternHeading" xml:space="preserve">
+    <value>Add pattern</value>
+  </data>
+  <data name="EditPatternHeading" xml:space="preserve">
+    <value>Edit pattern</value>
+  </data>
+  <data name="GroupLabel" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="PleaseSelectOption" xml:space="preserve">
+    <value>Please select</value>
+  </data>
+  <data name="LabelFieldLabel" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="ExpressionLabel" xml:space="preserve">
+    <value>Regular expression</value>
+  </data>
+  <data name="RegexHintPart1" xml:space="preserve">
+    <value>The entire ticket value should be bounded with</value>
+  </data>
+  <data name="RegexHintPart2" xml:space="preserve">
+    <value>and</value>
+  </data>
+  <data name="RegexHintPart3" xml:space="preserve">
+    <value>e.g.</value>
+  </data>
+  <data name="ActiveLabel" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="LoadPatternsError" xml:space="preserve">
+    <value>The ticket patterns could not be loaded.</value>
+  </data>
+  <data name="SelectGroupRequired" xml:space="preserve">
+    <value>Please select a target group.</value>
+  </data>
+  <data name="SavePatternError" xml:space="preserve">
+    <value>The pattern could not be saved. Check format, uniqueness, and concurrent changes.</value>
+  </data>
+  <data name="DeletePatternError" xml:space="preserve">
+    <value>The pattern could not be deleted; it may have been changed in the meantime.</value>
+  </data>
+</root>

@@ -53,6 +53,15 @@ The administration area also has a settings hub covering configuration that does
 
 Across the administration area, critical or destructive actions consistently require an explicit confirmation step - a modal dialog for create/edit flows, or an inline confirmation panel for destructive ones - rather than taking effect on a single click.
 
+## Localization
+
+The interface is available in German (the default) and English, switchable at any time from a dropdown in the
+top bar. Translations are compiled directly into the frontend application as resource files - there is no
+database table or API call involved in choosing a language, consistent with the frontend never being
+authoritative for anything beyond how it presents data. Because the frontend maintains a live connection to the
+server for each session, switching language triggers a full page reload so the new language takes effect
+everywhere at once, rather than updating only part of the page.
+
 ## What the frontend is not
 
 The frontend contains no domain or authorization logic. It cannot create or delete Active Directory objects, cannot decide entitlement or approval outcomes, cannot mark a second factor as verified on its own say-so, and cannot bypass the duration limits an entitlement and group policy allow. Everything it displays is presentation over data the API returns; Active Directory and the system's SQL Server database remain the only authoritative sources of truth. See [architecture.md](architecture.md) for how the frontend fits into the overall component boundary, and [security-model.md](security-model.md) for why that boundary is enforced the way it is.

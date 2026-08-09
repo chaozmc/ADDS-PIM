@@ -1,14 +1,16 @@
 @page "/my-approvals"
+@using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
+@inject IStringLocalizer<MyApprovals> Localizer
 
-<PageTitle>ADDS-PIM · Meine Genehmigungen</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="requests-page">
-    <p class="eyebrow">Approval Workflow</p>
-    <h1>Meine Genehmigungen</h1>
+    <p class="eyebrow">@Localizer["Eyebrow"]</p>
+    <h1>@Localizer["Heading"]</h1>
     @if (_loading)
     {
-        <LoadingIndicator Message="Offene Genehmigungen werden geladen …" />
+        <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
     }
     else if (_error is not null)
     {
@@ -16,14 +18,14 @@
     }
     else if (_page is null || _page.TotalCount == 0)
     {
-        <EmptyState Icon="bi-check2-square" Title="Keine offenen Genehmigungen" Description="Für die Gruppen, denen Sie als Approver zugeordnet sind, liegen derzeit keine wartenden Anfragen vor." />
+        <EmptyState Icon="bi-check2-square" Title="@Localizer["EmptyStateTitle"]" Description="@Localizer["EmptyStateDescription"]" />
     }
     else
     {
-        <div class="request-table-wrap" role="region" aria-label="Meine Genehmigungen" tabindex="0">
+        <div class="request-table-wrap" role="region" aria-label="@Localizer["TableAriaLabel"]" tabindex="0">
             <table class="request-table">
                 <thead>
-                    <tr><th>Datum</th><th>Person</th><th>Gruppe</th><th>Zielkonto</th><th>Dauer</th><th>Begründung</th><th></th></tr>
+                    <tr><th>@Localizer["DateColumn"]</th><th>@Localizer["PersonColumn"]</th><th>@Localizer["GroupColumn"]</th><th>@Localizer["TargetAccountColumn"]</th><th>@Localizer["DurationColumn"]</th><th>@Localizer["ReasonColumn"]</th><th></th></tr>
                 </thead>
                 <tbody>
                     @foreach (var item in _page.Items)
@@ -36,8 +38,8 @@
                             <td>@FormatDuration(item.RequestedTtlSeconds)</td>
                             <td>@item.Reason</td>
                             <td class="request-actions">
-                                <button class="btn btn-success btn-sm" disabled="@_deciding" @onclick="() => ApproveAsync(item.RequestId)">Genehmigen</button>
-                                <button class="btn btn-outline-danger btn-sm" disabled="@_deciding" @onclick="() => OpenRejectDialogAsync(item)">Ablehnen</button>
+                                <button class="btn btn-success btn-sm" disabled="@_deciding" @onclick="() => ApproveAsync(item.RequestId)">@Localizer["ApproveButton"]</button>
+                                <button class="btn btn-outline-danger btn-sm" disabled="@_deciding" @onclick="() => OpenRejectDialogAsync(item)">@Localizer["RejectButton"]</button>
                             </td>
                         </tr>
                     }
@@ -47,7 +49,7 @@
     }
 </section>
 
-<ConfirmDialog @ref="_rejectDialog" Title="Anfrage ablehnen" OnClosed="() => { _rejectTarget = null; _rejectReason = string.Empty; _rejectError = null; }">
+<ConfirmDialog @ref="_rejectDialog" Title="@Localizer["RejectDialogTitle"]" OnClosed="() => { _rejectTarget = null; _rejectReason = string.Empty; _rejectError = null; }">
     @if (_rejectTarget is not null)
     {
         <p>@_rejectTarget.PersonDisplayName · @_rejectTarget.TargetGroupDisplayName</p>
@@ -56,12 +58,12 @@
             <p class="alert alert-danger" role="alert">@_rejectError</p>
         }
         <div class="field">
-            <label for="reject-reason">Ablehnungsgrund</label>
+            <label for="reject-reason">@Localizer["RejectReasonLabel"]</label>
             <textarea id="reject-reason" class="form-control" rows="3" @bind="_rejectReason"></textarea>
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3">
-            <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_deciding">Abbrechen</button>
-            <button class="btn btn-danger" @onclick="RejectAsync" disabled="@_deciding">Ablehnen</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal" disabled="@_deciding">@Localizer["CancelButton"]</button>
+            <button class="btn btn-danger" @onclick="RejectAsync" disabled="@_deciding">@Localizer["ConfirmRejectButton"]</button>
         </div>
     }
 </ConfirmDialog>
@@ -88,7 +90,7 @@
         }
         catch
         {
-            _error = "Die offenen Genehmigungen konnten nicht geladen werden.";
+            _error = Localizer["LoadError"];
         }
         finally
         {
@@ -106,7 +108,7 @@
         }
         catch
         {
-            _error = "Die Genehmigung konnte nicht übernommen werden. Möglicherweise wurde die Anfrage bereits entschieden oder die Zuordnung wurde geändert.";
+            _error = Localizer["ApproveError"];
         }
         finally
         {
@@ -125,7 +127,7 @@
 
     private async Task RejectAsync()
     {
-        if (_rejectTarget is null || string.IsNullOrWhiteSpace(_rejectReason)) { _rejectError = "Ein Ablehnungsgrund ist erforderlich."; return; }
+        if (_rejectTarget is null || string.IsNullOrWhiteSpace(_rejectReason)) { _rejectError = Localizer["RejectReasonRequiredError"]; return; }
         _deciding = true;
         try
         {
@@ -136,7 +138,7 @@
         }
         catch
         {
-            _rejectError = "Die Ablehnung konnte nicht übernommen werden. Möglicherweise wurde die Anfrage bereits entschieden oder die Zuordnung wurde geändert.";
+            _rejectError = Localizer["RejectError"];
         }
         finally
         {

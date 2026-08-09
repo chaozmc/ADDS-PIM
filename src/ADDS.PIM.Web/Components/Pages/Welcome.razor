@@ -1,9 +1,11 @@
 @page "/"
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Welcome> Localizer
 
-<PageTitle>ADDS-PIM · Willkommen</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="welcome-hero">
-    <p class="welcome-eyebrow">Willkommen, @(string.IsNullOrWhiteSpace(DisplayName) ? "bei ADDS-PIM" : DisplayName)</p>
+    <p class="welcome-eyebrow">@Localizer["WelcomeGreeting", (string.IsNullOrWhiteSpace(DisplayName) ? Localizer["WelcomeGreetingDefault"].Value : DisplayName)]</p>
     <h1 class="welcome-title">ADDS-PIM</h1>
     <p class="welcome-subtitle">
         Privileged Identity Management<br />
@@ -16,19 +18,18 @@
     </div>
 
     <p class="welcome-tagline">
-        Zeitlich begrenzter, nachvollziehbarer Zugriff auf privilegierte AD-Gruppen –
-        mit Multi-Faktor-Bestätigung, lückenlosem Audit-Trail und automatischer Ablaufkontrolle.
+        @Localizer["Tagline"]
     </p>
 
     <div class="welcome-actions">
         <NavLink class="submit-button welcome-cta" href="new-request">
-            <i class="bi bi-key-fill" aria-hidden="true"></i> Zugriff anfordern
+            <i class="bi bi-key-fill" aria-hidden="true"></i> @Localizer["RequestAccessLink"]
         </NavLink>
         <NavLink class="welcome-secondary-button" href="requests">
-            <i class="bi bi-clock-history" aria-hidden="true"></i> Meine Requests
+            <i class="bi bi-clock-history" aria-hidden="true"></i> @Localizer["MyRequestsLink"]
         </NavLink>
         <NavLink class="welcome-secondary-button" href="mfa">
-            <i class="bi bi-shield-check" aria-hidden="true"></i> Multi-Faktor Authentication
+            <i class="bi bi-shield-check" aria-hidden="true"></i> @Localizer["MfaLink"]
         </NavLink>
     </div>
 </section>

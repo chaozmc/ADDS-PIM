@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM – AD-Abgleich</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>AD-Abgleich</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Prüft aktive PIM-Konten und Zielgruppen gegen Active Directory. Der Lauf ändert keine PIM-Daten.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Abgleichdaten werden geladen …</value>
+  </data>
+  <data name="StartSectionTitle" xml:space="preserve">
+    <value>Abgleich starten</value>
+  </data>
+  <data name="StartSectionDescription" xml:space="preserve">
+    <value>Gefundene Auffälligkeiten werden zur Prüfung gespeichert. Eine lokale Deaktivierung erfolgt erst nach einer ausdrücklichen Bestätigung.</value>
+  </data>
+  <data name="StartButton" xml:space="preserve">
+    <value>Abgleich starten</value>
+  </data>
+  <data name="RecentRunsTitle" xml:space="preserve">
+    <value>Letzte Läufe</value>
+  </data>
+  <data name="NoRunsTitle" xml:space="preserve">
+    <value>Noch kein Abgleich durchgeführt</value>
+  </data>
+  <data name="NoRunsDescription" xml:space="preserve">
+    <value>Starten Sie oben den ersten Abgleichlauf.</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Gestartet</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="FindingsTitle" xml:space="preserve">
+    <value>Prüfbefunde</value>
+  </data>
+  <data name="NoFindingsTitle" xml:space="preserve">
+    <value>Keine Befunde vorhanden</value>
+  </data>
+  <data name="NoFindingsDescription" xml:space="preserve">
+    <value>Bisherige Abgleichläufe haben keine Abweichungen zwischen PIM-Daten und Active Directory festgestellt.</value>
+  </data>
+  <data name="ColObject" xml:space="preserve">
+    <value>Objekt</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="ColFinding" xml:space="preserve">
+    <value>Befund</value>
+  </data>
+  <data name="ColDetected" xml:space="preserve">
+    <value>Erkannt</value>
+  </data>
+  <data name="ResolvedStatus" xml:space="preserve">
+    <value>Erledigt</value>
+  </data>
+  <data name="OpenStatus" xml:space="preserve">
+    <value>Offen</value>
+  </data>
+  <data name="LocalDeactivationTitle" xml:space="preserve">
+    <value>Lokale Deaktivierung</value>
+  </data>
+  <data name="LocalDeactivationDescription" xml:space="preserve">
+    <value>Bearbeiten Sie nur bestätigte Befunde. Die Aktion löscht keine AD- oder Auditdaten.</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Lokal deaktivieren</value>
+  </data>
+  <data name="DeactivateConfirmMessage" xml:space="preserve">
+    <value>{0} lokal deaktivieren?</value>
+  </data>
+  <data name="DeactivateConfirmLabel" xml:space="preserve">
+    <value>Deaktivierung bestätigen</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Abgleichdaten konnten nicht geladen werden.</value>
+  </data>
+  <data name="StartError" xml:space="preserve">
+    <value>Der Abgleich konnte nicht gestartet werden. Möglicherweise läuft bereits einer.</value>
+  </data>
+  <data name="DeactivateError" xml:space="preserve">
+    <value>Die lokale Deaktivierung konnte nicht ausgeführt werden. Der Befund wurde möglicherweise bereits bearbeitet.</value>
+  </data>
+</root>

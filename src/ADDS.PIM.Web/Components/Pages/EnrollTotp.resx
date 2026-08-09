@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM · TOTP-Faktor einrichten</value>
+  </data>
+  <data name="Eyebrow" xml:space="preserve">
+    <value>Multi-Factor Authentication</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>TOTP-Faktor einrichten</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>Richten Sie einen zeitbasierten Einmalcode-Faktor ein, um Gruppenanfragen zu bestätigen, die einen zweiten Faktor erfordern.</value>
+  </data>
+  <data name="BackToOverviewLink" xml:space="preserve">
+    <value>Zur MFA-Übersicht</value>
+  </data>
+  <data name="LoadingStatusMessage" xml:space="preserve">
+    <value>Status wird geladen …</value>
+  </data>
+  <data name="FactorSetUpHeading" xml:space="preserve">
+    <value>Faktor eingerichtet</value>
+  </data>
+  <data name="FactorActiveMessage" xml:space="preserve">
+    <value>Der TOTP-Faktor ist aktiv und kann ab sofort zur Bestätigung von Gruppenanfragen verwendet werden.</value>
+  </data>
+  <data name="AlreadyEnrolledMessage" xml:space="preserve">
+    <value>Für Ihr Konto ist bereits ein aktiver TOTP-Faktor eingerichtet. Ein erneutes Einrichten ist erst möglich, nachdem ein Administrator den bestehenden Faktor zurückgesetzt hat.</value>
+  </data>
+  <data name="StartFactorHeading" xml:space="preserve">
+    <value>Faktor starten</value>
+  </data>
+  <data name="StartFactorIntro" xml:space="preserve">
+    <value>Es wird ein neues, verschlüsselt gespeichertes Secret erzeugt. Es wird nur auf dieser Seite einmalig angezeigt.</value>
+  </data>
+  <data name="GeneratingBusyButton" xml:space="preserve">
+    <value>Wird erzeugt …</value>
+  </data>
+  <data name="GenerateFactorButton" xml:space="preserve">
+    <value>Faktor erzeugen</value>
+  </data>
+  <data name="StoreInAuthenticatorHeading" xml:space="preserve">
+    <value>In der Authenticator-App hinterlegen</value>
+  </data>
+  <data name="ScanQrCodeInstruction" xml:space="preserve">
+    <value>Scannen Sie den QR-Code mit Ihrer Authenticator-App (z. B. Microsoft/Google Authenticator, Authy). Dieser Code wird nach dem Verlassen der Seite nicht erneut angezeigt.</value>
+  </data>
+  <data name="QrCodeAriaLabel" xml:space="preserve">
+    <value>QR-Code zur Einrichtung des TOTP-Faktors</value>
+  </data>
+  <data name="ManualEntryLabel" xml:space="preserve">
+    <value>Geht das Scannen nicht? Manuell eingeben</value>
+  </data>
+  <data name="AccountTypeHint" xml:space="preserve">
+    <value>Kontotyp: zeitbasiert, 6 Stellen, 30 Sekunden.</value>
+  </data>
+  <data name="ConfirmCodeLabel" xml:space="preserve">
+    <value>Code aus der Authenticator-App</value>
+  </data>
+  <data name="ConfirmingBusyButton" xml:space="preserve">
+    <value>Wird bestätigt …</value>
+  </data>
+  <data name="ConfirmFactorButton" xml:space="preserve">
+    <value>Faktor bestätigen</value>
+  </data>
+  <data name="EnrollmentExpiresLabel" xml:space="preserve">
+    <value>Die Einrichtung läuft ab:</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>Der Status konnte nicht geladen werden. Prüfen Sie die geschützten Serverprotokolle.</value>
+  </data>
+  <data name="FactorGenerationError" xml:space="preserve">
+    <value>Der Faktor konnte nicht erzeugt werden. Prüfen Sie die geschützten Serverprotokolle.</value>
+  </data>
+  <data name="InvalidOrExpiredCodeError" xml:space="preserve">
+    <value>Der Code ist ungültig oder die Einrichtung ist abgelaufen.</value>
+  </data>
+  <data name="CodeConfirmError" xml:space="preserve">
+    <value>Der Code konnte nicht bestätigt werden. Prüfen Sie die geschützten Serverprotokolle.</value>
+  </data>
+</root>

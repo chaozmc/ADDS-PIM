@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Persons</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Persons</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Manage the business persons that AD accounts will later be deliberately assigned to.</value>
+  </data>
+  <data name="LoadingPersons" xml:space="preserve">
+    <value>Loading persons …</value>
+  </data>
+  <data name="ActivePersonsTitle" xml:space="preserve">
+    <value>Active persons</value>
+  </data>
+  <data name="CreatePersonButton" xml:space="preserve">
+    <value>Create person</value>
+  </data>
+  <data name="NoActivePersonsTitle" xml:space="preserve">
+    <value>No active persons</value>
+  </data>
+  <data name="NoActivePersonsDescription" xml:space="preserve">
+    <value>Onboard a person from the ADDS-PIM user group to be able to grant entitlements.</value>
+  </data>
+  <data name="TableHeaderName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="TableHeaderSince" xml:space="preserve">
+    <value>Since</value>
+  </data>
+  <data name="TableHeaderActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="AccountsButton" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="MfaButton" xml:space="preserve">
+    <value>MFA</value>
+  </data>
+  <data name="DeactivateButton" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="ReactivateButton" xml:space="preserve">
+    <value>Reactivate</value>
+  </data>
+  <data name="DeactivatePersonDangerMessage" xml:space="preserve">
+    <value>Really deactivate {0}? Existing data and future account assignments are preserved historically.</value>
+  </data>
+  <data name="DeactivatePersonConfirmLabel" xml:space="preserve">
+    <value>Deactivate permanently</value>
+  </data>
+  <data name="InactivePersonsToggle" xml:space="preserve">
+    <value>Deactivated persons ({0})</value>
+  </data>
+  <data name="ReactivatePersonPrompt" xml:space="preserve">
+    <value>Reactivate {0}?</value>
+  </data>
+  <data name="OnboardPersonDialogTitle" xml:space="preserve">
+    <value>Onboard PIM person from AD</value>
+  </data>
+  <data name="OnboardPersonDialogIntro" xml:space="preserve">
+    <value>Only user accounts from the ADDS-PIM user group are searched. Choose the correct match deliberately.</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Name or sAMAccountName</value>
+  </data>
+  <data name="SearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="TableHeaderAccount" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="TableHeaderEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="SelectButton" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="MfaFactorsDialogTitle" xml:space="preserve">
+    <value>MFA factors: {0}</value>
+  </data>
+  <data name="LoadingFactors" xml:space="preserve">
+    <value>Loading factors …</value>
+  </data>
+  <data name="NoTotpFactorMessage" xml:space="preserve">
+    <value>No TOTP factor is set up for this person.</value>
+  </data>
+  <data name="TableHeaderEnrolled" xml:space="preserve">
+    <value>Enrolled</value>
+  </data>
+  <data name="TableHeaderConfirmed" xml:space="preserve">
+    <value>Confirmed</value>
+  </data>
+  <data name="TableHeaderStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="RevokeButton" xml:space="preserve">
+    <value>Revoke</value>
+  </data>
+  <data name="RevokeTotpFactorDangerMessage" xml:space="preserve">
+    <value>Really revoke this TOTP factor? The person will then need to set up a new factor before MFA-required requests can be confirmed again.</value>
+  </data>
+  <data name="RevokeFinalConfirmLabel" xml:space="preserve">
+    <value>Revoke permanently</value>
+  </data>
+  <data name="Fido2PasskeysTitle" xml:space="preserve">
+    <value>FIDO2 passkeys</value>
+  </data>
+  <data name="NoPasskeyMessage" xml:space="preserve">
+    <value>No passkey is set up for this person.</value>
+  </data>
+  <data name="TableHeaderLabel" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="RevokedOnLabel" xml:space="preserve">
+    <value>Revoked on {0}</value>
+  </data>
+  <data name="ActiveLabel" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="RevokePasskeyDangerMessage" xml:space="preserve">
+    <value>Really revoke this passkey? The person will then be able to set up a new passkey.</value>
+  </data>
+  <data name="LoadPersonsError" xml:space="preserve">
+    <value>Persons could not be loaded.</value>
+  </data>
+  <data name="LoadMfaFactorsError" xml:space="preserve">
+    <value>The MFA factors could not be loaded.</value>
+  </data>
+  <data name="RevokeFactorError" xml:space="preserve">
+    <value>The factor could not be revoked.</value>
+  </data>
+  <data name="RevokePasskeyError" xml:space="preserve">
+    <value>The passkey could not be revoked.</value>
+  </data>
+  <data name="LockedUntilLabel" xml:space="preserve">
+    <value>Locked until {0}</value>
+  </data>
+  <data name="NotConfirmedLabel" xml:space="preserve">
+    <value>Not confirmed</value>
+  </data>
+  <data name="SearchMinLengthError" xml:space="preserve">
+    <value>Please enter at least two characters.</value>
+  </data>
+  <data name="NoMatchingPersonError" xml:space="preserve">
+    <value>No matching person found in the ADDS-PIM user group.</value>
+  </data>
+  <data name="SearchFailedError" xml:space="preserve">
+    <value>The AD search failed.</value>
+  </data>
+  <data name="OnboardAccountError" xml:space="preserve">
+    <value>The selected AD account is already assigned or could not be verified.</value>
+  </data>
+  <data name="SetPersonActiveError" xml:space="preserve">
+    <value>The person's status could not be changed.</value>
+  </data>
+</root>

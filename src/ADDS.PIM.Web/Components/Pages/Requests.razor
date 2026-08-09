@@ -1,15 +1,17 @@
 @page "/requests"
+@using Microsoft.Extensions.Localization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOperatorRequestClient RequestClient
+@inject IStringLocalizer<Requests> Localizer
 
-<PageTitle>ADDS-PIM · Meine Requests</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="requests-page">
-    <p class="eyebrow">Request-Historie</p>
-    <h1>Meine Requests</h1>
+    <p class="eyebrow">@Localizer["Eyebrow"]</p>
+    <h1>@Localizer["Heading"]</h1>
     @if (_loading)
     {
-        <LoadingIndicator Message="Requests werden geladen …" />
+        <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
     }
     else if (_error is not null)
     {
@@ -19,9 +21,9 @@
     {
         <EditForm class="request-filters" Model="_filters" OnValidSubmit="ApplyFiltersAsync">
             <div class="field">
-                <label for="history-year">Jahr</label>
+                <label for="history-year">@Localizer["YearLabel"]</label>
                 <InputSelect id="history-year" @bind-Value="_filters.Year">
-                    <option value="">Alle Jahre</option>
+                    <option value="">@Localizer["AllYearsOption"]</option>
                     @foreach (var year in _page.AvailableYears)
                     {
                         <option value="@year">@year</option>
@@ -29,9 +31,9 @@
                 </InputSelect>
             </div>
             <div class="field">
-                <label for="history-month">Monat</label>
+                <label for="history-month">@Localizer["MonthLabel"]</label>
                 <InputSelect id="history-month" @bind-Value="_filters.Month">
-                    <option value="">Alle Monate</option>
+                    <option value="">@Localizer["AllMonthsOption"]</option>
                     @for (var month = 1; month <= 12; month++)
                     {
                         <option value="@month">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month)</option>
@@ -39,9 +41,9 @@
                 </InputSelect>
             </div>
             <div class="field">
-                <label for="history-group">Gruppe</label>
+                <label for="history-group">@Localizer["GroupLabel"]</label>
                 <InputSelect id="history-group" @bind-Value="_filters.TargetGroupId">
-                    <option value="">Alle Gruppen</option>
+                    <option value="">@Localizer["AllGroupsOption"]</option>
                     @foreach (var group in _page.TargetGroups)
                     {
                         <option value="@group.Id">@group.DisplayName</option>
@@ -49,9 +51,9 @@
                 </InputSelect>
             </div>
             <div class="field">
-                <label for="history-entitlement">Entitlement</label>
+                <label for="history-entitlement">@Localizer["EntitlementLabel"]</label>
                 <InputSelect id="history-entitlement" @bind-Value="_filters.EntitlementId">
-                    <option value="">Alle Entitlements</option>
+                    <option value="">@Localizer["AllEntitlementsOption"]</option>
                     @foreach (var entitlement in _page.Entitlements)
                     {
                         <option value="@entitlement.Id">@entitlement.DisplayName (@ShortId(entitlement.Id))</option>
@@ -59,7 +61,7 @@
                 </InputSelect>
             </div>
             <div class="field">
-                <label for="history-page-size">Einträge pro Seite</label>
+                <label for="history-page-size">@Localizer["PageSizeLabel"]</label>
                 <InputSelect id="history-page-size" @bind-Value="_filters.PageSize">
                     @foreach (var pageSize in PageSizes)
                     {
@@ -67,22 +69,22 @@
                     }
                 </InputSelect>
             </div>
-            <button class="submit-button" type="submit">Filtern</button>
+            <button class="submit-button" type="submit">@Localizer["FilterButton"]</button>
         </EditForm>
 
         @if (_page.TotalCount == 0)
         {
             <div class="prototype-notice" role="status">
-                <strong>Keine passenden Requests vorhanden</strong>
-                <span>Passen Sie die Filter an oder fordern Sie eine Gruppenberechtigung an.</span>
+                <strong>@Localizer["NoRequestsTitle"]</strong>
+                <span>@Localizer["NoRequestsDescription"]</span>
             </div>
         }
         else
         {
-        <div class="request-table-wrap" role="region" aria-label="Meine Requests" tabindex="0">
+        <div class="request-table-wrap" role="region" aria-label="@Localizer["RequestTableAriaLabel"]" tabindex="0">
             <table class="request-table">
                 <thead>
-                    <tr><th>Datum</th><th>Gruppe</th><th>Zielkonto</th><th>Dauer</th><th>Status</th></tr>
+                    <tr><th>@Localizer["DateColumn"]</th><th>@Localizer["GroupColumn"]</th><th>@Localizer["TargetAccountColumn"]</th><th>@Localizer["DurationColumn"]</th><th>@Localizer["StatusColumn"]</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var request in _page.Items)
@@ -100,11 +102,11 @@
                             <tr class="request-detail-row">
                                 <td colspan="5">
                                     <dl>
-                                        <div><dt>Request-ID</dt><dd><code>@request.RequestId</code></dd></div>
-                                        <div><dt>Entitlement-ID</dt><dd><code>@request.EntitlementId</code></dd></div>
-                                        <div><dt>Gruppen-ID</dt><dd><code>@request.TargetGroupId</code></dd></div>
-                                        <div><dt>Begründung</dt><dd>@request.Reason</dd></div>
-                                        <div><dt>Ticket</dt><dd>@(request.TicketReference ?? "—")</dd></div>
+                                        <div><dt>@Localizer["RequestIdLabel"]</dt><dd><code>@request.RequestId</code></dd></div>
+                                        <div><dt>@Localizer["EntitlementIdLabel"]</dt><dd><code>@request.EntitlementId</code></dd></div>
+                                        <div><dt>@Localizer["GroupIdLabel"]</dt><dd><code>@request.TargetGroupId</code></dd></div>
+                                        <div><dt>@Localizer["ReasonLabel"]</dt><dd>@request.Reason</dd></div>
+                                        <div><dt>@Localizer["TicketLabel"]</dt><dd>@(request.TicketReference ?? "—")</dd></div>
                                     </dl>
                                 </td>
                             </tr>
@@ -113,14 +115,14 @@
                 </tbody>
             </table>
         </div>
-        <nav class="history-pagination" aria-label="Seitennavigation">
-            <button type="button" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)">Zurück</button>
-            <span>Seite @_filters.PageNumber von @PageCount (@_page.TotalCount Einträge)</span>
-            <button type="button" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">Weiter</button>
+        <nav class="history-pagination" aria-label="@Localizer["PaginationAriaLabel"]">
+            <button type="button" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)">@Localizer["PreviousPageButton"]</button>
+            <span>@Localizer["PageSummary", _filters.PageNumber, PageCount, _page.TotalCount]</span>
+            <button type="button" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">@Localizer["NextPageButton"]</button>
         </nav>
         }
     }
-    <NavLink class="request-link" href="new-request">Neue Gruppenberechtigung anfordern <span aria-hidden="true">→</span></NavLink>
+    <NavLink class="request-link" href="new-request">@Localizer["NewRequestLink"] <span aria-hidden="true">→</span></NavLink>
 </section>
 
 @code {
@@ -139,7 +141,7 @@
         _windowsIdentity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
         if (string.IsNullOrWhiteSpace(_windowsIdentity))
         {
-            _error = "Die Request-Historie kann ohne authentifizierte Windows-Identität nicht angezeigt werden.";
+            _error = Localizer["MissingIdentityError"];
             _loading = false;
             return;
         }
@@ -176,7 +178,7 @@
         }
         catch
         {
-            _error = "Die Request-Historie konnte nicht geladen werden. Prüfen Sie die Request-ID und die geschützten Serverprotokolle.";
+            _error = Localizer["LoadError"];
         }
         finally
         {

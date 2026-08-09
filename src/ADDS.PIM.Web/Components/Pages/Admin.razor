@@ -1,19 +1,21 @@
 @page "/admin"
+@using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<Admin> Localizer
 
-<PageTitle>ADDS-PIM – Admin</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <div class="page-header">
     <section class="hero">
         <div>
             <h1>Admin</h1>
-            <p>Wählen Sie einen Verwaltungsbereich.</p>
+            <p>@Localizer["IntroText"]</p>
         </div>
     </section>
 
     <aside class="card cert-status-card" aria-labelledby="certificate-overview-title">
         <div class="card-body">
-            <h2 id="certificate-overview-title" class="cert-status-title">Zertifikatsstatus:</h2>
+            <h2 id="certificate-overview-title" class="cert-status-title">@Localizer["CertificateStatusTitle"]</h2>
             @if (_certificateOverview is null && _certificateOverviewError is null)
             {
                 <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
@@ -40,41 +42,41 @@
     </aside>
 </div>
 
-<ConfirmDialog @ref="_certificateDialog" Title="@(_selectedCertificate?.Label ?? "Zertifikat")">
+<ConfirmDialog @ref="_certificateDialog" Title="@(_selectedCertificate?.Label ?? (string)Localizer["CertificateDialogTitleFallback"])">
     @if (_selectedCertificate is { } certificate)
     {
         <div class="mb-3"><StatusBadge Text="@StatusText(certificate)" Variant="@Variant(certificate)" /></div>
         @if (certificate.Found)
         {
             <dl class="row mb-0">
-                <dt class="col-sm-4">Thumbprint</dt>
+                <dt class="col-sm-4">@Localizer["ThumbprintLabel"]</dt>
                 <dd class="col-sm-8"><code>@certificate.Thumbprint</code></dd>
-                <dt class="col-sm-4">Gültig bis (UTC)</dt>
-                <dd class="col-sm-8">@(certificate.NotAfter?.ToString("u") ?? "unbekannt")</dd>
-                <dt class="col-sm-4">@(certificate.IsLiveCheck ? "Geprüft" : "Zuletzt beobachtet")</dt>
-                <dd class="col-sm-8">@(certificate.IsLiveCheck ? "jetzt (live)" : certificate.ObservedUtc?.ToString("u") ?? "noch nie")</dd>
+                <dt class="col-sm-4">@Localizer["ValidUntilLabel"]</dt>
+                <dd class="col-sm-8">@(certificate.NotAfter?.ToString("u") ?? (string)Localizer["UnknownValue"])</dd>
+                <dt class="col-sm-4">@(certificate.IsLiveCheck ? Localizer["CheckedLabel"] : Localizer["LastObservedLabel"])</dt>
+                <dd class="col-sm-8">@(certificate.IsLiveCheck ? (string)Localizer["NowLiveLabel"] : certificate.ObservedUtc?.ToString("u") ?? (string)Localizer["NeverLabel"])</dd>
                 @if (certificate.WasAccepted is not null)
                 {
-                    <dt class="col-sm-4">Letzte Verbindung</dt>
-                    <dd class="col-sm-8">@(certificate.WasAccepted.Value ? "akzeptiert" : "abgelehnt")</dd>
+                    <dt class="col-sm-4">@Localizer["LastConnectionLabel"]</dt>
+                    <dd class="col-sm-8">@(certificate.WasAccepted.Value ? Localizer["AcceptedLabel"] : Localizer["RejectedLabel"])</dd>
                 }
             </dl>
         }
         else
         {
-            <p class="mb-0">@(certificate.IsLiveCheck ? "Nicht gefunden bzw. nicht konfiguriert." : "Noch keine mTLS-Verbindung zum Worker beobachtet - wird beim nächsten tatsächlichen Membership-Request aktualisiert.")</p>
+            <p class="mb-0">@(certificate.IsLiveCheck ? Localizer["NotFoundOrNotConfigured"] : Localizer["NoMtlsConnectionObserved"])</p>
         }
     }
 </ConfirmDialog>
 
-<section aria-label="Verwaltungsbereiche" class="row g-3">
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-people-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Personen</h2><p>Fachliche Personen anlegen, deaktivieren und reaktivieren.</p><a class="btn btn-primary" href="/admin/persons">Personen verwalten</a></div></article></div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-diagram-3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Gruppenverwaltung</h2><p>AD-Zielgruppen registrieren, Policy konfigurieren und kontrolliert deaktivieren.</p><a class="btn btn-primary" href="/admin/groups">Gruppen verwalten</a></div></article></div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-person-badge-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Direkte Entitlements</h2><p>Berechtigungen für Person, Zielkonto und Zielgruppe verwalten.</p><a class="btn btn-primary" href="/admin/entitlements">Entitlements verwalten</a></div></article></div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-trash3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Bereinigung</h2><p>Inaktive lokale PIM-Objekte prüfen und nach ausdrücklicher Bestätigung bereinigen.</p><a class="btn btn-primary" href="/admin/identity-purge">Bereinigung öffnen</a></div></article></div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-gear-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> Einstellungen</h2><p>Anwendungseinstellungen und Validierungsregeln verwalten.</p><a class="btn btn-primary" href="/admin/settings">Einstellungen öffnen</a></div></article></div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-arrow-repeat" style="color: var(--pim-primary);" aria-hidden="true"></i> AD-Abgleich</h2><p>Aktive PIM-Objekte gegen Active Directory prüfen und Befunde kontrollieren.</p><a class="btn btn-primary" href="/admin/directory-reconciliation">AD-Abgleich öffnen</a></div></article></div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-journal-text" style="color: var(--pim-primary);" aria-hidden="true"></i> Audit-Log</h2><p>Auditereignisse aus der Datenbank durchsuchen und filtern.</p><a class="btn btn-primary" href="/admin/audit-log">Audit-Log öffnen</a></div></article></div>
+<section aria-label="@Localizer["AdminAreasAriaLabel"]" class="row g-3">
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-people-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["PersonsTitle"]</h2><p>@Localizer["PersonsDescription"]</p><a class="btn btn-primary" href="/admin/persons">@Localizer["PersonsLinkText"]</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-diagram-3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["GroupsTitle"]</h2><p>@Localizer["GroupsDescription"]</p><a class="btn btn-primary" href="/admin/groups">@Localizer["GroupsLinkText"]</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-person-badge-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["EntitlementsTitle"]</h2><p>@Localizer["EntitlementsDescription"]</p><a class="btn btn-primary" href="/admin/entitlements">@Localizer["EntitlementsLinkText"]</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-trash3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["PurgeTitle"]</h2><p>@Localizer["PurgeDescription"]</p><a class="btn btn-primary" href="/admin/identity-purge">@Localizer["PurgeLinkText"]</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-gear-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["SettingsTitle"]</h2><p>@Localizer["SettingsDescription"]</p><a class="btn btn-primary" href="/admin/settings">@Localizer["SettingsLinkText"]</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-arrow-repeat" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["ReconciliationTitle"]</h2><p>@Localizer["ReconciliationDescription"]</p><a class="btn btn-primary" href="/admin/directory-reconciliation">@Localizer["ReconciliationLinkText"]</a></div></article></div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-journal-text" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["AuditLogTitle"]</h2><p>@Localizer["AuditLogDescription"]</p><a class="btn btn-primary" href="/admin/audit-log">@Localizer["AuditLogLinkText"]</a></div></article></div>
 </section>
 
 @code {
@@ -86,7 +88,7 @@
     protected override async Task OnInitializedAsync()
     {
         try { _certificateOverview = await AdministrationClient.GetCertificateOverviewAsync(CancellationToken.None); }
-        catch { _certificateOverviewError = "Der Zertifikatsstatus konnte nicht geladen werden."; }
+        catch { _certificateOverviewError = Localizer["CertificateOverviewLoadError"]; }
     }
 
     private async Task ShowCertificateDetailsAsync(MonitoredCertificateStatus certificate)
@@ -125,11 +127,11 @@
         };
     }
 
-    private static string StatusText(MonitoredCertificateStatus certificate)
+    private string StatusText(MonitoredCertificateStatus certificate)
     {
-        if (!certificate.Found) return certificate.IsLiveCheck ? "Nicht gefunden" : "Noch keine Beobachtung";
-        if (certificate.NotAfter is null) return "Unbekannt";
+        if (!certificate.Found) return certificate.IsLiveCheck ? Localizer["StatusNotFound"] : Localizer["StatusNoObservation"];
+        if (certificate.NotAfter is null) return Localizer["StatusUnknown"];
         var daysRemaining = (int)Math.Floor((certificate.NotAfter.Value - DateTimeOffset.UtcNow).TotalDays);
-        return daysRemaining < 0 ? $"seit {-daysRemaining} Tagen abgelaufen" : $"noch {daysRemaining} Tage";
+        return daysRemaining < 0 ? Localizer["StatusExpiredDays", -daysRemaining] : Localizer["StatusRemainingDays", daysRemaining];
     }
 }

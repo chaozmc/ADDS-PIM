@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Globalization
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Web.Components.Shared
+@inherits LayoutComponentBase
 @implements IDisposable
 
 @inject IHttpContextAccessor HttpContextAccessor
@@ -6,6 +9,7 @@
 @inject IOperatorRequestClient RequestClient
 @inject ICurrentPimActorContext CurrentActor
 @inject ADDS.PIM.Application.Administration.IDirectoryAccountResolver DirectoryAccountResolver
+@inject IStringLocalizer<SharedResources> Localizer
 
 <div class="page">
     <div class="sidebar">
@@ -41,8 +45,17 @@
                 <span></span>
             }
             <span class="welcome-message">
-                <span>Willkommen, @_displayName</span>
+                <span>@Localizer["WelcomeGreeting"], @_displayName</span>
                 <span class="welcome-message-badges"><MfaStatusBadge Status="_mfaStatus" /></span>
+                <span class="dropdown language-switcher">
+                    <button class="btn btn-sm btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="@Localizer["LanguageSwitcherLabel"]">
+                        @CurrentLanguageFlag @CurrentLanguageLabel
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item @(IsCurrentCulture("de") ? "active" : "")" href="@BuildCultureSwitchUrl("de")">@GermanFlagSvg @Localizer["LanguageGerman"]</a></li>
+                        <li><a class="dropdown-item @(IsCurrentCulture("en") ? "active" : "")" href="@BuildCultureSwitchUrl("en")">@UsFlagSvg @Localizer["LanguageEnglish"]</a></li>
+                    </ul>
+                </span>
             </span>
         </div>
 
@@ -55,18 +68,18 @@
 </div>
 
 @code {
-    private static readonly Dictionary<string, string> SegmentLabels = new(StringComparer.OrdinalIgnoreCase)
+    private Dictionary<string, string> SegmentLabels => new(StringComparer.OrdinalIgnoreCase)
     {
-        ["admin"] = "Administration",
-        ["persons"] = "Personen",
-        ["groups"] = "Gruppenverwaltung",
-        ["entitlements"] = "Direkte Entitlements",
-        ["identity-purge"] = "Bereinigung",
-        ["settings"] = "Einstellungen",
-        ["directory-reconciliation"] = "AD-Abgleich",
-        ["audit-log"] = "Audit-Log",
-        ["technical-errors"] = "Technische Fehler",
-        ["ticket-reference-patterns"] = "Ticket-Referenzmuster",
+        ["admin"] = Localizer["SegmentAdmin"],
+        ["persons"] = Localizer["SegmentPersons"],
+        ["groups"] = Localizer["SegmentGroups"],
+        ["entitlements"] = Localizer["SegmentEntitlements"],
+        ["identity-purge"] = Localizer["SegmentIdentityPurge"],
+        ["settings"] = Localizer["SegmentSettings"],
+        ["directory-reconciliation"] = Localizer["SegmentDirectoryReconciliation"],
+        ["audit-log"] = Localizer["SegmentAuditLog"],
+        ["technical-errors"] = Localizer["SegmentTechnicalErrors"],
+        ["ticket-reference-patterns"] = Localizer["SegmentTicketReferencePatterns"],
     };
 
     private string _displayName = "";
@@ -77,12 +90,31 @@
     protected override async Task OnInitializedAsync()
     {
         var identity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
-        _displayName = string.IsNullOrWhiteSpace(identity) ? "bei ADDS-PIM" : identity.Split('\\').Last();
+        _displayName = string.IsNullOrWhiteSpace(identity) ? Localizer["WelcomeFallback"] : identity.Split('\\').Last();
         await ResolveFriendlyDisplayNameAsync();
         UpdateSection();
         NavigationManager.LocationChanged += OnLocationChanged;
         await RefreshMfaStatusAsync();
     }
+
+    private string BuildCultureSwitchUrl(string culture)
+    {
+        var redirectUri = Uri.EscapeDataString("/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+        return $"/culture/set?culture={culture}&redirectUri={redirectUri}";
+    }
+
+    private static bool IsCurrentCulture(string culture) =>
+        string.Equals(CultureInfo.CurrentCulture.TwoLetterISOLanguageName, culture, StringComparison.OrdinalIgnoreCase);
+
+    private static readonly MarkupString GermanFlagSvg = new(
+        """<svg width="20" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" class="flag-icon"><rect width="30" height="20" fill="#FFCE00" /><rect width="30" height="13.33" fill="#DD0000" /><rect width="30" height="6.67" fill="#000000" /></svg>""");
+
+    private static readonly MarkupString UsFlagSvg = new(
+        """<svg width="20" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" class="flag-icon"><rect width="30" height="20" fill="#FFFFFF" /><rect y="0" width="30" height="1.54" fill="#B22234" /><rect y="3.08" width="30" height="1.54" fill="#B22234" /><rect y="6.15" width="30" height="1.54" fill="#B22234" /><rect y="9.23" width="30" height="1.54" fill="#B22234" /><rect y="12.31" width="30" height="1.54" fill="#B22234" /><rect y="15.38" width="30" height="1.54" fill="#B22234" /><rect y="18.46" width="30" height="1.54" fill="#B22234" /><rect width="12" height="10.77" fill="#3C3B6E" /></svg>""");
+
+    private MarkupString CurrentLanguageFlag => IsCurrentCulture("en") ? UsFlagSvg : GermanFlagSvg;
+
+    private LocalizedString CurrentLanguageLabel => IsCurrentCulture("en") ? Localizer["LanguageEnglish"] : Localizer["LanguageGerman"];
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
@@ -126,16 +158,17 @@
         _breadcrumbs = _isAdminSection ? BuildBreadcrumbs(relativePath) : [];
     }
 
-    private static List<(string Label, string Href)> BuildBreadcrumbs(string relativePath)
+    private List<(string Label, string Href)> BuildBreadcrumbs(string relativePath)
     {
         var segments = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
         var crumbs = new List<(string Label, string Href)>();
         var href = "";
+        var segmentLabels = SegmentLabels;
 
         foreach (var segment in segments)
         {
             href += "/" + segment;
-            var label = Guid.TryParse(segment, out _) ? "Details" : SegmentLabels.GetValueOrDefault(segment, segment);
+            var label = Guid.TryParse(segment, out _) ? Localizer["DetailsLabel"] : segmentLabels.GetValueOrDefault(segment, segment);
             crumbs.Add((label, href));
         }
 
@@ -146,7 +179,7 @@
 }
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
+    @Localizer["UnhandledErrorMessage"]
+    <a href="." class="reload">@Localizer["ReloadLink"]</a>
     <span class="dismiss">🗙</span>
 </div>

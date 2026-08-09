@@ -13,25 +13,25 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <i class="bi bi-house-door-fill" aria-hidden="true"></i> Start
+                <i class="bi bi-house-door-fill" aria-hidden="true"></i> @Localizer["NavHome"]
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="new-request">
-                <i class="bi bi-key-fill" aria-hidden="true"></i> Zugriff anfordern
+                <i class="bi bi-key-fill" aria-hidden="true"></i> @Localizer["NavRequestAccess"]
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="requests">
-                <i class="bi bi-clock-history" aria-hidden="true"></i> Meine Requests
+                <i class="bi bi-clock-history" aria-hidden="true"></i> @Localizer["NavMyRequests"]
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="mfa">
-                <i class="bi bi-shield-check" aria-hidden="true"></i> Multi-Faktor Authentication
+                <i class="bi bi-shield-check" aria-hidden="true"></i> @Localizer["NavMfa"]
             </NavLink>
         </div>
 
@@ -39,27 +39,28 @@
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="my-approvals">
-                    <i class="bi bi-check2-square" aria-hidden="true"></i> Meine Genehmigungen
+                    <i class="bi bi-check2-square" aria-hidden="true"></i> @Localizer["NavMyApprovals"]
                 </NavLink>
             </div>
         }
 
         <div class="nav-section" aria-label="Administration">
-            <div class="nav-section-title">Admin</div>
-            <div class="nav-item px-3"><NavLink class="nav-link" href="admin" Match="NavLinkMatch.All"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i> Übersicht</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/persons"><i class="bi bi-people-fill" aria-hidden="true"></i> Personen</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/groups"><i class="bi bi-diagram-3-fill" aria-hidden="true"></i> Gruppen</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/entitlements"><i class="bi bi-person-badge-fill" aria-hidden="true"></i> Entitlements</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/directory-reconciliation"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> AD-Abgleich</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/identity-purge"><i class="bi bi-trash3-fill" aria-hidden="true"></i> Bereinigung</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/audit-log"><i class="bi bi-journal-text" aria-hidden="true"></i> Audit-Log</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/technical-errors"><i class="bi bi-bug-fill" aria-hidden="true"></i> Technische Fehler</NavLink></div>
-            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/settings"><i class="bi bi-gear-fill" aria-hidden="true"></i> Einstellungen</NavLink></div>
+            <div class="nav-section-title">@Localizer["NavAdmin"]</div>
+            <div class="nav-item px-3"><NavLink class="nav-link" href="admin" Match="NavLinkMatch.All"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i> @Localizer["NavOverview"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/persons"><i class="bi bi-people-fill" aria-hidden="true"></i> @Localizer["NavPersons"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/groups"><i class="bi bi-diagram-3-fill" aria-hidden="true"></i> @Localizer["NavGroups"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/entitlements"><i class="bi bi-person-badge-fill" aria-hidden="true"></i> @Localizer["NavEntitlements"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/directory-reconciliation"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> @Localizer["NavDirectoryReconciliation"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/identity-purge"><i class="bi bi-trash3-fill" aria-hidden="true"></i> @Localizer["NavIdentityPurge"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/audit-log"><i class="bi bi-journal-text" aria-hidden="true"></i> @Localizer["NavAuditLog"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/technical-errors"><i class="bi bi-bug-fill" aria-hidden="true"></i> @Localizer["NavTechnicalErrors"]</NavLink></div>
+            <div class="nav-item nav-subitem px-3"><NavLink class="nav-link" href="admin/settings"><i class="bi bi-gear-fill" aria-hidden="true"></i> @Localizer["NavSettings"]</NavLink></div>
         </div>
     </nav>
 </div>
 
 @inject IOperatorRequestClient RequestClient
+@inject Microsoft.Extensions.Localization.IStringLocalizer<NavMenu> Localizer
 
 @code {
     // Deny-by-default while loading or on error: this only controls visibility of the nav

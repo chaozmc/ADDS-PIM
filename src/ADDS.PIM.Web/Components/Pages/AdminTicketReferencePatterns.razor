@@ -1,12 +1,16 @@
 @page "/admin/settings/ticket-reference-patterns"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Web.Components.Shared
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminTicketReferencePatterns> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
-<PageTitle>ADDS-PIM - Ticket-Patterns</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>Ticket-Referenz-Patterns</h1>
-        <p>Aktive Patterns werden serverseitig mit begrenzter, nicht-backtracking Regex-Prüfung verwendet.</p>
+        <h1>@Localizer["Heading"]</h1>
+        <p>@Localizer["IntroText"]</p>
     </div>
 </section>
 
@@ -16,22 +20,22 @@
 }
 else if (_patterns is null || _groups is null)
 {
-    <LoadingIndicator Message="Einstellungen werden geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
 }
 else
 {
     <section>
         <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
-            <button class="btn btn-primary" @onclick="New"><i class="bi bi-plus-lg" aria-hidden="true"></i> Pattern hinzufügen</button>
+            <button class="btn btn-primary" @onclick="New"><i class="bi bi-plus-lg" aria-hidden="true"></i> @Localizer["AddPatternButton"]</button>
             <div>
-                <label for="pattern-group-filter" class="form-label">Gruppe filtern</label>
-                <input id="pattern-group-filter" class="form-control" @bind="_groupFilter" @bind:event="oninput" placeholder="Gruppenname eingeben ..." />
+                <label for="pattern-group-filter" class="form-label">@Localizer["GroupFilterLabel"]</label>
+                <input id="pattern-group-filter" class="form-control" @bind="_groupFilter" @bind:event="oninput" placeholder="@Localizer["GroupFilterPlaceholder"]" />
             </div>
         </div>
 
         @if (FilteredGroups.Count == 0)
         {
-            <EmptyState Icon="bi-ticket-perforated" Title="Keine Ticket-Patterns gefunden" Description="Legen Sie ein Pattern an oder passen Sie den Gruppenfilter an." />
+            <EmptyState Icon="bi-ticket-perforated" Title="@Localizer["EmptyStateTitle"]" Description="@Localizer["EmptyStateDescription"]" />
         }
         else
         {
@@ -42,13 +46,13 @@ else
                     <div class="card-header" role="button" tabindex="0" aria-expanded="@groupExpanded" @onclick="() => ToggleGroup(group.TargetGroupId)">
                         <i class="bi @(groupExpanded ? "bi-chevron-down" : "bi-chevron-right") me-1" aria-hidden="true"></i>
                         <strong>@group.TargetGroupDisplayName</strong>
-                        <span class="ms-2 text-muted">(@group.Patterns.Count Pattern@(group.Patterns.Count == 1 ? "" : "s"))</span>
+                        <span class="ms-2 text-muted">(@(group.Patterns.Count == 1 ? Localizer["PatternCountSingular", group.Patterns.Count] : Localizer["PatternCountPlural", group.Patterns.Count]))</span>
                     </div>
                     @if (groupExpanded)
                     {
                         <div class="card-body">
                             <table class="table table-sm mb-0">
-                                <thead><tr><th>Bezeichnung</th><th>Regex</th><th></th></tr></thead>
+                                <thead><tr><th>@Localizer["LabelColumnHeader"]</th><th>@Localizer["RegexColumnHeader"]</th><th></th></tr></thead>
                                 <tbody>
                                     @foreach (var pattern in group.Patterns)
                                     {
@@ -56,9 +60,9 @@ else
                                             <td>@pattern.Label</td>
                                             <td><code>@pattern.Expression</code></td>
                                             <td class="text-end">
-                                                <button class="btn btn-sm btn-secondary" @onclick="() => _editor = new(pattern)"><i class="bi bi-pencil-square" aria-hidden="true"></i> Bearbeiten</button>
-                                                <button class="btn btn-sm btn-outline-primary ms-2" @onclick="() => CopyToNewGroup(pattern)"><i class="bi bi-copy" aria-hidden="true"></i> Kopieren</button>
-                                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => _pendingDeletion = pattern"><i class="bi bi-trash3" aria-hidden="true"></i> Löschen</button>
+                                                <button class="btn btn-sm btn-secondary" @onclick="() => _editor = new(pattern)"><i class="bi bi-pencil-square" aria-hidden="true"></i> @Localizer["EditButton"]</button>
+                                                <button class="btn btn-sm btn-outline-primary ms-2" @onclick="() => CopyToNewGroup(pattern)"><i class="bi bi-copy" aria-hidden="true"></i> @Localizer["CopyButton"]</button>
+                                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => _pendingDeletion = pattern"><i class="bi bi-trash3" aria-hidden="true"></i> @SharedLocalizer["DeleteButton"]</button>
                                             </td>
                                         </tr>
                                     }
@@ -72,8 +76,8 @@ else
 
         @if (_pendingDeletion is not null)
         {
-            <DangerZonePanel Message="@($"{_pendingDeletion.Label} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.")"
-                              ConfirmLabel="Endgültig löschen" IsBusy="_saving"
+            <DangerZonePanel Message="@Localizer["DeleteConfirmMessage", _pendingDeletion.Label]"
+                              ConfirmLabel="@Localizer["DeletePermanentlyButton"]" IsBusy="_saving"
                               OnConfirm="DeleteAsync" OnCancel="() => _pendingDeletion = null" />
         }
 
@@ -84,11 +88,11 @@ else
                 <ValidationSummary />
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="h4">@(_editor.IsNew ? "Pattern hinzufügen" : "Pattern bearbeiten")</h2>
+                        <h2 class="h4">@(_editor.IsNew ? Localizer["AddPatternHeading"] : Localizer["EditPatternHeading"])</h2>
                         <div class="mb-3">
-                            <label>Gruppe</label>
+                            <label>@Localizer["GroupLabel"]</label>
                             <InputSelect class="form-select" @bind-Value="_editor.TargetGroupId" disabled="@(!_editor.IsNew)">
-                                <option value="">Bitte wählen</option>
+                                <option value="">@Localizer["PleaseSelectOption"]</option>
                                 @foreach (var group in _groups)
                                 {
                                     <option value="@group.TargetGroupId">@group.DomainQualifiedName</option>
@@ -96,21 +100,21 @@ else
                             </InputSelect>
                         </div>
                         <div class="mb-3">
-                            <label>Bezeichnung</label>
+                            <label>@Localizer["LabelFieldLabel"]</label>
                             <InputText class="form-control" @bind-Value="_editor.Label" />
                         </div>
                         <div class="mb-3">
-                            <label>Regulärer Ausdruck</label>
+                            <label>@Localizer["ExpressionLabel"]</label>
                             <InputText class="form-control" @bind-Value="_editor.Expression" />
-                            <div class="form-text">Der gesamte Ticketwert sollte mit <code>^</code> und <code>$</code> begrenzt werden, z. B. <code>@("^CHG-[0-9]{5}$")</code>.</div>
+                            <div class="form-text">@Localizer["RegexHintPart1"] <code>^</code> @Localizer["RegexHintPart2"] <code>$</code> @Localizer["RegexHintPart3"] <code>@("^CHG-[0-9]{5}$")</code>.</div>
                         </div>
                         <div class="form-check">
                             <InputCheckbox class="form-check-input" @bind-Value="_editor.IsActive" />
-                            <label class="form-check-label">Aktiv</label>
+                            <label class="form-check-label">@Localizer["ActiveLabel"]</label>
                         </div>
                         <p class="mt-3">
-                            <button class="btn btn-primary" type="submit" disabled="@_saving">Speichern</button>
-                            <button class="btn btn-secondary ms-2" type="button" @onclick="() => _editor = null">Abbrechen</button>
+                            <button class="btn btn-primary" type="submit" disabled="@_saving">@SharedLocalizer["SaveButton"]</button>
+                            <button class="btn btn-secondary ms-2" type="button" @onclick="() => _editor = null">@SharedLocalizer["CancelButton"]</button>
                         </p>
                     </div>
                 </div>
@@ -149,7 +153,7 @@ else
         }
         catch
         {
-            _error = "Die Ticket-Patterns konnten nicht geladen werden.";
+            _error = Localizer["LoadPatternsError"];
         }
     }
 
@@ -163,7 +167,7 @@ else
     {
         if (_editor is null || !Guid.TryParse(_editor.TargetGroupId, out var groupId))
         {
-            _error = "Bitte wählen Sie eine Zielgruppe.";
+            _error = Localizer["SelectGroupRequired"];
             return;
         }
         _saving = true;
@@ -175,7 +179,7 @@ else
         }
         catch
         {
-            _error = "Das Pattern konnte nicht gespeichert werden. Prüfen Sie Format, Eindeutigkeit und parallele Änderungen.";
+            _error = Localizer["SavePatternError"];
         }
         finally
         {
@@ -195,7 +199,7 @@ else
         }
         catch
         {
-            _error = "Das Pattern konnte nicht gelöscht werden; es wurde möglicherweise zwischenzeitlich geändert.";
+            _error = Localizer["DeletePatternError"];
         }
         finally
         {

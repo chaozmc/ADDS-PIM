@@ -1,17 +1,19 @@
+@using Microsoft.Extensions.Localization
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<MfaStatusBadge> Localizer
 
 @if (Status is not null)
 {
     @if (Status.TotpEnrolled)
     {
         <button type="button" class="pim-badge pim-badge-success" @onclick="ShowTotpDialogAsync">
-            <i class="bi bi-shield-check" aria-hidden="true"></i> TOTP eingerichtet
+            <i class="bi bi-shield-check" aria-hidden="true"></i> @Localizer["TotpEnrolledLabel"]
         </button>
     }
     else
     {
         <button type="button" class="pim-badge pim-badge-warning" @onclick="NavigateToTotpEnrollment">
-            <i class="bi bi-shield-exclamation" aria-hidden="true"></i> TOTP nicht eingerichtet
+            <i class="bi bi-shield-exclamation" aria-hidden="true"></i> @Localizer["TotpNotEnrolledLabel"]
         </button>
     }
     @if (Status.Fido2Available)
@@ -19,37 +21,37 @@
         @if (Status.Fido2Enrolled)
         {
             <button type="button" class="pim-badge pim-badge-success" @onclick="ShowFido2DialogAsync">
-                <i class="bi bi-shield-check" aria-hidden="true"></i> Passkey eingerichtet
+                <i class="bi bi-shield-check" aria-hidden="true"></i> @Localizer["Fido2EnrolledLabel"]
             </button>
         }
         else
         {
             <button type="button" class="pim-badge pim-badge-warning" @onclick="NavigateToFido2Enrollment">
-                <i class="bi bi-shield-exclamation" aria-hidden="true"></i> Passkey nicht eingerichtet
+                <i class="bi bi-shield-exclamation" aria-hidden="true"></i> @Localizer["Fido2NotEnrolledLabel"]
             </button>
         }
     }
 
-    <ConfirmDialog @ref="_totpDialog" Title="TOTP-Faktor">
+    <ConfirmDialog @ref="_totpDialog" Title="@Localizer["TotpDialogTitle"]">
         <div class="mfa-status-modal">
             <i class="bi bi-check-circle-fill mfa-status-modal-icon" aria-hidden="true"></i>
-            <p>TOTP ist eingerichtet und schützt Ihre Gruppenanfragen.</p>
+            <p>@Localizer["TotpDialogMessage"]</p>
             @if (Status.TotpConfirmedUtc is { } confirmedUtc)
             {
-                <p class="hint">Eingerichtet am @confirmedUtc.ToLocalTime().ToString("g")</p>
+                <p class="hint">@Localizer["EnrolledOnPrefix"] @confirmedUtc.ToLocalTime().ToString("g")</p>
             }
         </div>
     </ConfirmDialog>
 
     @if (Status.Fido2Available)
     {
-        <ConfirmDialog @ref="_fido2Dialog" Title="Passkey">
+        <ConfirmDialog @ref="_fido2Dialog" Title="@Localizer["Fido2DialogTitle"]">
             <div class="mfa-status-modal">
                 <i class="bi bi-check-circle-fill mfa-status-modal-icon" aria-hidden="true"></i>
-                <p>Ein Passkey ist eingerichtet und schützt Ihre Gruppenanfragen.</p>
+                <p>@Localizer["Fido2DialogMessage"]</p>
                 @if (Status.Fido2ConfirmedUtc is { } fido2ConfirmedUtc)
                 {
-                    <p class="hint">Eingerichtet am @fido2ConfirmedUtc.ToLocalTime().ToString("g")</p>
+                    <p class="hint">@Localizer["EnrolledOnPrefix"] @fido2ConfirmedUtc.ToLocalTime().ToString("g")</p>
                 }
             </div>
         </ConfirmDialog>

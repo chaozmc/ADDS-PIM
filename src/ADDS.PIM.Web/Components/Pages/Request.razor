@@ -1,11 +1,13 @@
 @page "/request/{GroupId:guid}"
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Request> Localizer
 
-<PageTitle>ADDS-PIM · Berechtigung anfordern</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="empty-state">
-    <h1>Dieser Demo-Link ist nicht mehr verfügbar</h1>
-    <p>Wählen Sie die Gruppenberechtigung aus Ihren aktuellen Entitlements auf der Anfrageseite.</p>
-    <NavLink href="new-request">Zu meinen Gruppenberechtigungen</NavLink>
+    <h1>@Localizer["Heading"]</h1>
+    <p>@Localizer["Description"]</p>
+    <NavLink href="new-request">@Localizer["BackToEntitlementsLink"]</NavLink>
 </section>
 
 @code {

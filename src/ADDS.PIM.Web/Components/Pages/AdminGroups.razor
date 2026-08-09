@@ -1,12 +1,16 @@
 @page "/admin/groups"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Web.Components.Shared
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminGroups> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
-<PageTitle>ADDS-PIM - Gruppenverwaltung</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>Gruppenverwaltung</h1>
-        <p>Registrieren und verwalten Sie die über ADDS-PIM anfragbaren AD-Gruppen.</p>
+        <h1>@Localizer["HeroTitle"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
     </div>
 </section>
 
@@ -16,7 +20,7 @@
 }
 else if (_groups is null)
 {
-    <LoadingIndicator Message="Gruppen werden geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingGroups"]" />
 }
 else
 {
@@ -25,33 +29,33 @@ else
 
     <section aria-labelledby="groups-title">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 id="groups-title">Zielgruppen</h2>
-            <button class="btn btn-primary" @onclick="OpenCreateDialogAsync"><i class="bi bi-plus-lg" aria-hidden="true"></i> AD-Gruppe registrieren</button>
+            <h2 id="groups-title">@Localizer["TargetGroupsTitle"]</h2>
+            <button class="btn btn-primary" @onclick="OpenCreateDialogAsync"><i class="bi bi-plus-lg" aria-hidden="true"></i> @Localizer["RegisterGroupButton"]</button>
         </div>
 
         @if (activeGroups.Length == 0)
         {
-            <EmptyState Icon="bi-diagram-3" Title="Keine aktiven Zielgruppen" Description="Registrieren Sie eine AD-Gruppe, um sie über ADDS-PIM anfragbar zu machen." />
+            <EmptyState Icon="bi-diagram-3" Title="@Localizer["EmptyStateTitle"]" Description="@Localizer["EmptyStateDescription"]" />
         }
         else
         {
             <div class="table-responsive">
                 <table class="table">
-                    <thead><tr><th>Gruppe</th><th>TTL</th><th>MFA</th><th>Ticket</th><th>Approval</th><th>Genehmigende</th><th>Aktionen</th></tr></thead>
+                    <thead><tr><th>@Localizer["TableHeaderGroup"]</th><th>@Localizer["TableHeaderTtl"]</th><th>@Localizer["TableHeaderMfa"]</th><th>@Localizer["TableHeaderTicket"]</th><th>@Localizer["TableHeaderApproval"]</th><th>@Localizer["TableHeaderApprovers"]</th><th>@Localizer["TableHeaderActions"]</th></tr></thead>
                     <tbody>
                         @foreach (var group in activeGroups)
                         {
                             <tr>
                                 <td>@group.DomainQualifiedName</td>
-                                <td>@Hours(group.MinimumTtlSeconds)–@Hours(group.MaximumTtlSeconds), Schritt @Hours(group.AllowedTtlStepSeconds)</td>
+                                <td>@Hours(group.MinimumTtlSeconds)–@Hours(group.MaximumTtlSeconds), @Localizer["StepPrefix"] @Hours(group.AllowedTtlStepSeconds)</td>
                                 <td>@SecondFactor(group)</td>
-                                <td>@(group.RequiresTicket ? "Ja" : "Nein")</td>
-                                <td>@(group.RequiresApproval ? "Ja" : "Nein")</td>
-                                <td><button class="btn btn-link p-0" @onclick="() => OpenApproversDialogAsync(group)">Verwalten</button></td>
+                                <td>@(group.RequiresTicket ? Localizer["YesText"] : Localizer["NoText"])</td>
+                                <td>@(group.RequiresApproval ? Localizer["YesText"] : Localizer["NoText"])</td>
+                                <td><button class="btn btn-link p-0" @onclick="() => OpenApproversDialogAsync(group)">@Localizer["ManageButton"]</button></td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-secondary" @onclick="() => OpenEditDialogAsync(group)"><i class="bi bi-pencil-square" aria-hidden="true"></i> Bearbeiten</button>
-                                        <button class="btn btn-outline-danger" @onclick="() => _pendingDeactivation = group"><i class="bi bi-slash-circle" aria-hidden="true"></i> Deaktivieren</button>
+                                        <button class="btn btn-secondary" @onclick="() => OpenEditDialogAsync(group)"><i class="bi bi-pencil-square" aria-hidden="true"></i> @Localizer["EditButton"]</button>
+                                        <button class="btn btn-outline-danger" @onclick="() => _pendingDeactivation = group"><i class="bi bi-slash-circle" aria-hidden="true"></i> @Localizer["DeactivateButton"]</button>
                                     </div>
                                 </td>
                             </tr>
@@ -63,8 +67,8 @@ else
 
         @if (_pendingDeactivation is not null)
         {
-            <DangerZonePanel Message="@($"{_pendingDeactivation.DomainQualifiedName} wirklich für neue Anfragen deaktivieren? Historische Daten bleiben erhalten.")"
-                              ConfirmLabel="Endgültig deaktivieren" IsBusy="_saving"
+            <DangerZonePanel Message="@Localizer["DeactivateConfirmMessage", _pendingDeactivation.DomainQualifiedName].Value"
+                              ConfirmLabel="@Localizer["ConfirmDeactivateLabel"]" IsBusy="_saving"
                               OnConfirm="DeactivateAsync" OnCancel="() => _pendingDeactivation = null" />
         }
 
@@ -72,7 +76,7 @@ else
         {
             <div class="mt-4">
                 <button class="btn btn-link ps-0" type="button" data-bs-toggle="collapse" data-bs-target="#inactive-groups">
-                    <i class="bi bi-chevron-down" aria-hidden="true"></i> Deaktivierte Gruppen (@inactiveGroups.Length)
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i> @Localizer["InactiveGroupsToggle", inactiveGroups.Length]
                 </button>
                 <div class="collapse" id="inactive-groups">
                     <table class="table mt-2">
@@ -81,7 +85,7 @@ else
                             {
                                 <tr>
                                     <td>@group.DomainQualifiedName</td>
-                                    <td class="text-end"><button class="btn btn-sm btn-primary" @onclick="() => _pendingReactivation = group"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reaktivieren</button></td>
+                                    <td class="text-end"><button class="btn btn-sm btn-primary" @onclick="() => _pendingReactivation = group"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> @Localizer["ReactivateButton"]</button></td>
                                 </tr>
                             }
                         </tbody>
@@ -93,25 +97,25 @@ else
         @if (_pendingReactivation is not null)
         {
             <div class="alert alert-primary d-flex justify-content-between align-items-center mt-3">
-                <span>@_pendingReactivation.DomainQualifiedName wieder aktivieren? Die Gruppe wird davor erneut aus AD verifiziert.</span>
+                <span>@Localizer["ReactivateConfirmMessage", _pendingReactivation.DomainQualifiedName]</span>
                 <span class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" @onclick="ReactivateAsync" disabled="@_saving">Reaktivieren</button>
-                    <button class="btn btn-secondary btn-sm" @onclick="() => _pendingReactivation = null" disabled="@_saving">Abbrechen</button>
+                    <button class="btn btn-primary btn-sm" @onclick="ReactivateAsync" disabled="@_saving">@Localizer["ReactivateButton"]</button>
+                    <button class="btn btn-secondary btn-sm" @onclick="() => _pendingReactivation = null" disabled="@_saving">@SharedLocalizer["CancelButton"]</button>
                 </span>
             </div>
         }
     </section>
 }
 
-<ConfirmDialog @ref="_createDialog" Title="AD-Gruppe registrieren" OnClosed="CloseCreateDialog">
+<ConfirmDialog @ref="_createDialog" Title="@Localizer["RegisterGroupButton"]" OnClosed="CloseCreateDialog">
     @if (_newGroup is not null)
     {
         <EditForm Model="_newGroup" OnValidSubmit="CreateAsync">
             <DataAnnotationsValidator />
-            <p>Suchen Sie nach Name oder sAMAccountName. Die Auswahl wird serverseitig gegen AD verifiziert.</p>
+            <p>@Localizer["SearchIntro"]</p>
             <div class="input-group">
-                <InputText class="form-control" @bind-Value="_searchTerm" placeholder="z. B. Server-Admins" />
-                <button class="btn btn-outline-secondary" type="button" @onclick="SearchAsync" disabled="@_saving">Suchen</button>
+                <InputText class="form-control" @bind-Value="_searchTerm" placeholder="@Localizer["SearchPlaceholder"]" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="SearchAsync" disabled="@_saving">@Localizer["SearchButton"]</button>
             </div>
             @if (_searchError is not null)
             {
@@ -120,9 +124,9 @@ else
             @if (_searchResults is not null && _searchResults.Count > 0)
             {
                 <div class="mt-3">
-                    <label>AD-Gruppe auswählen</label>
+                    <label>@Localizer["SelectGroupLabel"]</label>
                     <InputSelect class="form-select" @bind-Value="_newGroup.ObjectGuid">
-                        <option value="">Bitte wählen</option>
+                        <option value="">@Localizer["PleaseSelectOption"]</option>
                         @foreach (var group in _searchResults)
                         {
                             <option value="@group.ObjectGuid">@group.DomainQualifiedName (@group.DisplayName)</option>
@@ -132,21 +136,21 @@ else
             }
             <hr />
             <div class="row g-3">
-                <div class="col"><label>Minimum (h)</label><InputNumber class="form-control" @bind-Value="_newGroup.MinimumHours" /></div>
-                <div class="col"><label>Maximum (h)</label><InputNumber class="form-control" @bind-Value="_newGroup.MaximumHours" /></div>
-                <div class="col"><label>Standard (h)</label><InputNumber class="form-control" @bind-Value="_newGroup.DefaultHours" /></div>
-                <div class="col"><label>Schritt (h)</label><InputNumber class="form-control" @bind-Value="_newGroup.StepHours" /></div>
+                <div class="col"><label>@Localizer["MinimumHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_newGroup.MinimumHours" /></div>
+                <div class="col"><label>@Localizer["MaximumHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_newGroup.MaximumHours" /></div>
+                <div class="col"><label>@Localizer["DefaultHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_newGroup.DefaultHours" /></div>
+                <div class="col"><label>@Localizer["StepHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_newGroup.StepHours" /></div>
             </div>
             <ValidationSummary />
             <div class="d-flex justify-content-end gap-2 mt-3">
-                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
-                <button class="btn btn-primary" type="submit" disabled="@_saving">Registrieren</button>
+                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">@SharedLocalizer["CancelButton"]</button>
+                <button class="btn btn-primary" type="submit" disabled="@_saving">@Localizer["RegisterSubmitButton"]</button>
             </div>
         </EditForm>
     }
 </ConfirmDialog>
 
-<ConfirmDialog @ref="_editDialog" Title="@($"Policy: {_editor?.DomainQualifiedName}")" OnClosed="() => { _editor = null; _editorError = null; }">
+<ConfirmDialog @ref="_editDialog" Title="@Localizer["PolicyDialogTitle", _editor?.DomainQualifiedName ?? string.Empty].Value" OnClosed="() => { _editor = null; _editorError = null; }">
     @if (_editor is not null)
     {
         <EditForm Model="_editor" OnValidSubmit="SaveAsync">
@@ -157,38 +161,38 @@ else
                 <p class="alert alert-danger" role="alert">@_editorError</p>
             }
             <div class="row g-3">
-                <div class="col"><label>Minimum (h)</label><InputNumber class="form-control" @bind-Value="_editor.MinimumHours" /></div>
-                <div class="col"><label>Maximum (h)</label><InputNumber class="form-control" @bind-Value="_editor.MaximumHours" /></div>
-                <div class="col"><label>Standard (h)</label><InputNumber class="form-control" @bind-Value="_editor.DefaultHours" /></div>
-                <div class="col"><label>Schritt (h)</label><InputNumber class="form-control" @bind-Value="_editor.StepHours" /></div>
-                <div class="col-12"><label>Zweite Faktoren</label>
+                <div class="col"><label>@Localizer["MinimumHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_editor.MinimumHours" /></div>
+                <div class="col"><label>@Localizer["MaximumHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_editor.MaximumHours" /></div>
+                <div class="col"><label>@Localizer["DefaultHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_editor.DefaultHours" /></div>
+                <div class="col"><label>@Localizer["StepHoursLabel"]</label><InputNumber class="form-control" @bind-Value="_editor.StepHours" /></div>
+                <div class="col-12"><label>@Localizer["SecondFactorsLabel"]</label>
                     <InputSelect class="form-select" @bind-Value="_editor.AllowedSecondFactorTypes">
-                        <option value="0">Keine</option>
+                        <option value="0">@Localizer["SecondFactorNone"]</option>
                         <option value="1">FIDO2</option>
                         <option value="2">TOTP</option>
-                        <option value="3">TOTP oder FIDO2</option>
+                        <option value="3">@Localizer["SecondFactorTotpOrFido2"]</option>
                     </InputSelect>
                 </div>
             </div>
             <div class="mt-3 d-flex flex-wrap gap-3">
-                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresSecondFactor" @bind-Value:after="EnsureSecondFactorTypeSelected" /><label class="form-check-label">MFA erforderlich</label></div>
-                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresTicket" /><label class="form-check-label">Ticket erforderlich</label></div>
-                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresApproval" /><label class="form-check-label">Approval erforderlich</label></div>
-                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.IsEnabledForRequests" /><label class="form-check-label">Anfragen aktiviert</label></div>
+                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresSecondFactor" @bind-Value:after="EnsureSecondFactorTypeSelected" /><label class="form-check-label">@Localizer["MfaRequiredLabel"]</label></div>
+                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresTicket" /><label class="form-check-label">@Localizer["TicketRequiredLabel"]</label></div>
+                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresApproval" /><label class="form-check-label">@Localizer["ApprovalRequiredLabel"]</label></div>
+                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.IsEnabledForRequests" /><label class="form-check-label">@Localizer["RequestsEnabledLabel"]</label></div>
             </div>
             @if (_editor.RequiresSecondFactor && _editor.AllowedSecondFactorTypes == 0)
             {
-                <div class="form-text text-danger">Bei aktivierter MFA-Pflicht muss unter "Zweite Faktoren" TOTP, FIDO2 oder beides ausgewählt sein.</div>
+                <div class="form-text text-danger">@Localizer["SecondFactorWarning"]</div>
             }
             <div class="d-flex justify-content-end gap-2 mt-3">
-                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">Abbrechen</button>
-                <button class="btn btn-primary" type="submit" disabled="@(_saving || (_editor.RequiresSecondFactor && _editor.AllowedSecondFactorTypes == 0))">Speichern</button>
+                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal" disabled="@_saving">@SharedLocalizer["CancelButton"]</button>
+                <button class="btn btn-primary" type="submit" disabled="@(_saving || (_editor.RequiresSecondFactor && _editor.AllowedSecondFactorTypes == 0))">@SharedLocalizer["SaveButton"]</button>
             </div>
         </EditForm>
     }
 </ConfirmDialog>
 
-<ConfirmDialog @ref="_approversDialog" Title="@($"Genehmigende: {_approversGroup?.DomainQualifiedName}")" OnClosed="() => { _approversGroup = null; _approvers = null; _approverError = null; }">
+<ConfirmDialog @ref="_approversDialog" Title="@Localizer["ApproversDialogTitle", _approversGroup?.DomainQualifiedName ?? string.Empty].Value" OnClosed="() => { _approversGroup = null; _approvers = null; _approverError = null; }">
     @if (_approversGroup is not null)
     {
         @if (_approverError is not null)
@@ -197,14 +201,14 @@ else
         }
         @if (_approvers is null)
         {
-            <LoadingIndicator Message="Genehmigende werden geladen …" />
+            <LoadingIndicator Message="@Localizer["LoadingApprovers"]" />
         }
         else
         {
             var activeApprovers = _approvers.Where(approver => approver.IsActive).ToArray();
             @if (activeApprovers.Length == 0)
             {
-                <p class="text-muted">Dieser Gruppe ist derzeit kein aktiver Approver zugeordnet. Anfragen mit Genehmigungspflicht bleiben ohne Zuordnung dauerhaft wartend.</p>
+                <p class="text-muted">@Localizer["NoApproversMessage"]</p>
             }
             else
             {
@@ -214,17 +218,17 @@ else
                         {
                             <tr>
                                 <td>@approver.PersonDisplayName</td>
-                                <td class="text-end"><button class="btn btn-sm btn-outline-danger" @onclick="() => DeactivateApproverAsync(approver)" disabled="@_savingApprover">Entfernen</button></td>
+                                <td class="text-end"><button class="btn btn-sm btn-outline-danger" @onclick="() => DeactivateApproverAsync(approver)" disabled="@_savingApprover">@Localizer["RemoveButton"]</button></td>
                             </tr>
                         }
                     </tbody>
                 </table>
             }
             <hr />
-            <p>Person als Approver hinzufügen (die Person benötigt bereits ein aktives Anmeldekonto mit Approver-Recht):</p>
+            <p>@Localizer["AddApproverIntro"]</p>
             <div class="input-group">
                 <select class="form-select" @bind="_selectedApproverPersonId">
-                    <option value="">Bitte wählen</option>
+                    <option value="">@Localizer["PleaseSelectOption"]</option>
                     @if (_persons is not null)
                     {
                         @foreach (var person in _persons.Where(p => p.IsActive))
@@ -233,7 +237,7 @@ else
                         }
                     }
                 </select>
-                <button class="btn btn-primary" type="button" @onclick="AddApproverAsync" disabled="@(_savingApprover || string.IsNullOrEmpty(_selectedApproverPersonId))">Hinzufügen</button>
+                <button class="btn btn-primary" type="button" @onclick="AddApproverAsync" disabled="@(_savingApprover || string.IsNullOrEmpty(_selectedApproverPersonId))">@Localizer["AddButton"]</button>
             </div>
         }
     }
@@ -266,7 +270,7 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _groups = await AdministrationClient.GetTargetGroupsAsync(CancellationToken.None); }
-        catch { _error = "Gruppen konnten nicht geladen werden. Prüfen Sie Berechtigung und Serverprotokolle."; }
+        catch { _error = Localizer["LoadGroupsError"]; }
     }
 
     private async Task OpenApproversDialogAsync(ManagedTargetGroup group)
@@ -279,7 +283,7 @@ else
             _persons ??= await AdministrationClient.GetPersonsAsync(CancellationToken.None);
             _approvers = await AdministrationClient.GetGroupApproversAsync(group.TargetGroupId, CancellationToken.None);
         }
-        catch { _approverError = "Genehmigende konnten nicht geladen werden."; }
+        catch { _approverError = Localizer["LoadApproversError"]; }
     }
 
     private async Task AddApproverAsync()
@@ -293,9 +297,9 @@ else
             _approvers = await AdministrationClient.GetGroupApproversAsync(_approversGroup.TargetGroupId, CancellationToken.None);
             _selectedApproverPersonId = string.Empty;
         }
-        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _approverError = "Diese Person kann nicht als Approver zugeordnet werden. Sie benötigt ein aktives Anmeldekonto mit Approver-Recht (siehe Personenverwaltung)."; }
-        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _approverError = "Diese Person ist der Gruppe bereits als aktiver Approver zugeordnet."; }
-        catch { _approverError = "Die Zuordnung konnte nicht gespeichert werden."; }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _approverError = Localizer["AddApproverUnprocessableError"]; }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _approverError = Localizer["AddApproverConflictError"]; }
+        catch { _approverError = Localizer["AddApproverGenericError"]; }
         finally { _savingApprover = false; }
     }
 
@@ -309,12 +313,12 @@ else
             await AdministrationClient.DeactivateGroupApproverAsync(_approversGroup.TargetGroupId, approver, CancellationToken.None);
             _approvers = await AdministrationClient.GetGroupApproversAsync(_approversGroup.TargetGroupId, CancellationToken.None);
         }
-        catch { _approverError = "Die Zuordnung konnte nicht entfernt werden. Sie wurde möglicherweise zwischenzeitlich bereits geändert."; }
+        catch { _approverError = Localizer["RemoveApproverError"]; }
         finally { _savingApprover = false; }
     }
 
     private static string Hours(long seconds) => $"{seconds / 3600m:0.##} h";
-    private static string SecondFactor(ManagedTargetGroup group) => !group.RequiresSecondFactor ? "Nein" : group.AllowedSecondFactorTypes switch { 1 => "FIDO2", 2 => "TOTP", 3 => "TOTP oder FIDO2", _ => "Ungültig" };
+    private string SecondFactor(ManagedTargetGroup group) => !group.RequiresSecondFactor ? Localizer["NoText"] : group.AllowedSecondFactorTypes switch { 1 => "FIDO2", 2 => "TOTP", 3 => Localizer["SecondFactorTotpOrFido2"], _ => Localizer["SecondFactorInvalid"] };
 
     private void EnsureSecondFactorTypeSelected()
     {
@@ -342,21 +346,21 @@ else
 
     private async Task SearchAsync()
     {
-        if (_searchTerm.Trim().Length < 2) { _searchError = "Bitte mindestens zwei Zeichen eingeben."; return; }
+        if (_searchTerm.Trim().Length < 2) { _searchError = Localizer["SearchMinLengthError"]; return; }
         _saving = true;
         try
         {
             _searchError = null;
             _searchResults = await AdministrationClient.SearchDirectoryGroupsAsync(_searchTerm, CancellationToken.None);
-            if (_searchResults.Count == 0) _searchError = "Keine passende AD-Gruppe gefunden. Verfeinern Sie den Suchbegriff oder versuchen Sie einen Teil des sAMAccountName.";
+            if (_searchResults.Count == 0) _searchError = Localizer["SearchNoResultsError"];
         }
-        catch { _searchError = "Die AD-Gruppensuche ist fehlgeschlagen. Bitte versuchen Sie es erneut."; }
+        catch { _searchError = Localizer["SearchFailedError"]; }
         finally { _saving = false; }
     }
 
     private async Task CreateAsync()
     {
-        if (_newGroup is null || !Guid.TryParse(_newGroup.ObjectGuid, out var id)) { _searchError = "Bitte zuerst eine AD-Gruppe auswählen."; return; }
+        if (_newGroup is null || !Guid.TryParse(_newGroup.ObjectGuid, out var id)) { _searchError = Localizer["CreateSelectGroupError"]; return; }
         _saving = true;
         try
         {
@@ -364,7 +368,7 @@ else
             await _createDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _searchError = "Die Gruppe konnte nicht registriert werden. Prüfen Sie die Auswahl und versuchen Sie es erneut."; }
+        catch { _searchError = Localizer["CreateGenericError"]; }
         finally { _saving = false; }
     }
 
@@ -379,10 +383,10 @@ else
             await _editDialog!.HideAsync();
             await LoadAsync();
         }
-        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _editorError = "Die Policy wurde zwischenzeitlich von anderer Stelle geändert. Schließen Sie den Dialog und bearbeiten Sie die Gruppe erneut mit dem aktuellen Stand."; }
-        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _editorError = "Die Policy ist so nicht gültig. Prüfen Sie insbesondere: Bei \"Ticket erforderlich\" muss ein aktives Ticket-Pattern für diese Gruppe existieren; bei \"MFA erforderlich\" muss ein zweiter Faktor ausgewählt sein."; }
-        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound) { _editorError = "Die Gruppe wurde nicht gefunden. Sie wurde möglicherweise inzwischen entfernt."; }
-        catch { _editorError = "Die Policy konnte nicht gespeichert werden. Prüfen Sie Ihre Berechtigung und die geschützten Serverprotokolle."; }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _editorError = Localizer["SaveConflictError"]; }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _editorError = Localizer["SaveUnprocessableError"]; }
+        catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound) { _editorError = Localizer["SaveNotFoundError"]; }
+        catch { _editorError = Localizer["SaveGenericError"]; }
         finally { _saving = false; }
     }
 
@@ -391,7 +395,7 @@ else
         if (_pendingDeactivation is null) return;
         _saving = true;
         try { await AdministrationClient.DeactivateTargetGroupAsync(_pendingDeactivation, CancellationToken.None); _pendingDeactivation = null; await LoadAsync(); }
-        catch { _error = "Die Gruppe konnte nicht deaktiviert werden."; }
+        catch { _error = Localizer["DeactivateGenericError"]; }
         finally { _saving = false; }
     }
 
@@ -400,7 +404,7 @@ else
         if (_pendingReactivation is null) return;
         _saving = true;
         try { await AdministrationClient.ReactivateTargetGroupAsync(_pendingReactivation, CancellationToken.None); _pendingReactivation = null; await LoadAsync(); }
-        catch { _error = "Die Gruppe konnte nicht reaktiviert werden. Prüfen Sie, ob sie weiterhin in AD existiert."; }
+        catch { _error = Localizer["ReactivateGenericError"]; }
         finally { _saving = false; }
     }
 

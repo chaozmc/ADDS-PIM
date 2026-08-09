@@ -1,12 +1,16 @@
 @page "/admin/technical-errors"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Web.Components.Shared
 @inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminTechnicalErrors> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
-<PageTitle>ADDS-PIM – Technische Fehler</PageTitle>
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
 
 <section class="hero">
     <div>
-        <h1>Technische Fehler</h1>
-        <p>Zeigt unbehandelte Ausnahmen der API an, getrennt vom sicherheitsrelevanten Audit-Log. Suchen Sie hier nach der Request-ID aus einer Fehlermeldung.</p>
+        <h1>@Localizer["Heading"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
     </div>
 </section>
 
@@ -16,25 +20,25 @@
 }
 else if (_page is null)
 {
-    <LoadingIndicator Message="Technische Fehler werden geladen …" />
+    <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
 }
 else
 {
     <EditForm class="row g-3 mt-2" Model="_filters" OnValidSubmit="ApplyFiltersAsync">
         <div class="col-md-3">
-            <label for="error-request-id" class="form-label">Request-ID</label>
-            <InputText id="error-request-id" class="form-control" @bind-Value="_filters.RequestId" placeholder="z. B. 18695535-1cbd-4122-a918-ef2e361d2fda" />
+            <label for="error-request-id" class="form-label">@Localizer["RequestIdLabel"]</label>
+            <InputText id="error-request-id" class="form-control" @bind-Value="_filters.RequestId" placeholder="@Localizer["RequestIdPlaceholder"]" />
         </div>
         <div class="col-md-2">
-            <label for="error-from" class="form-label">Von</label>
+            <label for="error-from" class="form-label">@Localizer["FromLabel"]</label>
             <InputDate id="error-from" class="form-control" @bind-Value="_filters.FromLocalDate" />
         </div>
         <div class="col-md-2">
-            <label for="error-to" class="form-label">Bis</label>
+            <label for="error-to" class="form-label">@Localizer["ToLabel"]</label>
             <InputDate id="error-to" class="form-control" @bind-Value="_filters.ToLocalDate" />
         </div>
         <div class="col-md-2">
-            <label for="error-page-size" class="form-label">Einträge pro Seite</label>
+            <label for="error-page-size" class="form-label">@Localizer["PageSizeLabel"]</label>
             <InputSelect id="error-page-size" class="form-select" @bind-Value="_filters.PageSize">
                 @foreach (var pageSize in PageSizes)
                 {
@@ -43,7 +47,7 @@ else
             </InputSelect>
         </div>
         <div class="col-md-1 d-flex align-items-end">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Filtern</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> @Localizer["FilterButton"]</button>
         </div>
     </EditForm>
 
@@ -54,14 +58,14 @@ else
 
     @if (_page.TotalCount == 0)
     {
-        <EmptyState Icon="bi-bug" Title="Keine technischen Fehler gefunden" Description="Passen Sie die Filter an, oder es sind für den gewählten Zeitraum keine unbehandelten Ausnahmen aufgetreten." />
+        <EmptyState Icon="bi-bug" Title="@Localizer["EmptyTitle"]" Description="@Localizer["EmptyDescription"]" />
     }
     else
     {
-        <div class="table-responsive mt-3" role="region" aria-label="Technische Fehler" tabindex="0">
+        <div class="table-responsive mt-3" role="region" aria-label="@Localizer["TableAriaLabel"]" tabindex="0">
             <table class="table table-sm">
                 <thead>
-                    <tr><th>Zeitpunkt (UTC)</th><th>Methode</th><th>Pfad</th><th>Ausnahmetyp</th><th>Request-ID</th></tr>
+                    <tr><th>@Localizer["ColTimestamp"]</th><th>@Localizer["ColMethod"]</th><th>@Localizer["ColPath"]</th><th>@Localizer["ColExceptionType"]</th><th>@Localizer["RequestIdLabel"]</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var entry in _page.Items)
@@ -79,13 +83,13 @@ else
                             <tr>
                                 <td colspan="5">
                                     <dl class="row mb-0">
-                                        <div class="col-md-4"><dt>Error-ID</dt><dd><code>@entry.ErrorId</code></dd></div>
-                                        <div class="col-md-4"><dt>Request-ID</dt><dd><code>@(entry.RequestId?.ToString() ?? "—")</code></dd></div>
-                                        <div class="col-md-4"><dt>Correlation-ID</dt><dd><code>@(entry.CorrelationId?.ToString() ?? "—")</code></dd></div>
-                                        <div class="col-md-4"><dt>Statuscode</dt><dd>@(entry.StatusCode?.ToString() ?? "—")</dd></div>
-                                        <div class="col-md-4"><dt>Quellkomponente</dt><dd>@entry.SourceComponent</dd></div>
-                                        <div class="col-12"><dt>Meldung</dt><dd>@entry.Message</dd></div>
-                                        <div class="col-12"><dt>Stacktrace</dt><dd><pre class="mb-0">@entry.StackTrace</pre></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtErrorId"]</dt><dd><code>@entry.ErrorId</code></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtRequestId"]</dt><dd><code>@(entry.RequestId?.ToString() ?? "—")</code></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtCorrelationId"]</dt><dd><code>@(entry.CorrelationId?.ToString() ?? "—")</code></dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtStatusCode"]</dt><dd>@(entry.StatusCode?.ToString() ?? "—")</dd></div>
+                                        <div class="col-md-4"><dt>@Localizer["DtSourceComponent"]</dt><dd>@entry.SourceComponent</dd></div>
+                                        <div class="col-12"><dt>@Localizer["DtMessage"]</dt><dd>@entry.Message</dd></div>
+                                        <div class="col-12"><dt>@Localizer["DtStackTrace"]</dt><dd><pre class="mb-0">@entry.StackTrace</pre></dd></div>
                                     </dl>
                                 </td>
                             </tr>
@@ -94,10 +98,10 @@ else
                 </tbody>
             </table>
         </div>
-        <nav class="d-flex justify-content-between align-items-center mt-2" aria-label="Seitennavigation">
-            <button type="button" class="btn btn-secondary" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> Zurück</button>
-            <span>Seite @_filters.PageNumber von @PageCount (@_page.TotalCount Einträge)</span>
-            <button type="button" class="btn btn-secondary" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">Weiter <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        <nav class="d-flex justify-content-between align-items-center mt-2" aria-label="@Localizer["PaginationAriaLabel"]">
+            <button type="button" class="btn btn-secondary" @onclick="PreviousPageAsync" disabled="@(_filters.PageNumber == 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> @SharedLocalizer["BackButton"]</button>
+            <span>@Localizer["PageStatus", _filters.PageNumber, PageCount, _page.TotalCount]</span>
+            <button type="button" class="btn btn-secondary" @onclick="NextPageAsync" disabled="@(_filters.PageNumber >= PageCount)">@Localizer["NextButton"] <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
         </nav>
     }
 }
@@ -143,7 +147,7 @@ else
         {
             if (!Guid.TryParse(_filters.RequestId, out var parsedRequestId))
             {
-                _filterError = "Die Request-ID ist ungültig.";
+                _filterError = Localizer["InvalidRequestIdError"];
                 _page ??= new([], 0);
                 return;
             }
@@ -163,7 +167,7 @@ else
         }
         catch
         {
-            _error = "Die technischen Fehler konnten nicht geladen werden.";
+            _error = Localizer["LoadError"];
         }
     }
 

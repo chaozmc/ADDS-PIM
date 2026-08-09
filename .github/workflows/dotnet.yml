@@ -4,10 +4,16 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - "website/**"
+      - ".github/workflows/pages.yml"
 
   pull_request:
     branches:
       - master
+    paths-ignore:
+      - "website/**"
+      - ".github/workflows/pages.yml"
 
   # Ermöglicht einen manuellen Start über die GitHub-Oberfläche.
   workflow_dispatch:

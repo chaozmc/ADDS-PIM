@@ -1,0 +1,122 @@
+name: Bug report
+description: Report a reproducible problem with ADDS-PIM.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem.
+
+        **Do not report security vulnerabilities here.** Follow `SECURITY.md`.
+        Remove or redact production-sensitive information and never post secrets.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      options:
+        - Web / Blazor frontend
+        - Backend API
+        - Active Directory Worker
+        - Authentication / Windows / Kerberos
+        - MFA / FIDO2 / WebAuthn / TOTP
+        - Authorization / entitlements / policies
+        - Approval workflow
+        - Active Directory TTL membership
+        - Database / migrations
+        - Audit / logging
+        - Installer / deployment / IIS
+        - Documentation / GitHub Pages
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: ADDS-PIM version or commit
+      placeholder: "e.g. v0.9.0 or 1a2b3c4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Development / local test environment
+        - Dedicated lab / test domain
+        - Proof of concept
+        - Production-like test environment
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem description
+      description: What happened, and what were you trying to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Configure ...
+        2. Request ...
+        3. Approve ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Relevant logs, correlation IDs or screenshots
+      description: Prefer correlation/request IDs over large log dumps. Do not include secrets or live-environment data.
+      render: text
+
+  - type: textarea
+    id: environment_details
+    attributes:
+      label: Relevant environment details
+      placeholder: |
+        Windows Server:
+        Domain/forest functional level:
+        SQL Server:
+        Browser:
+        IIS:
+        PAM Optional Feature enabled:
+        Deployment topology:
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I reproduced this outside a production Active Directory environment where possible.
+          required: true
+        - label: I removed or redacted secrets and production-sensitive information.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true

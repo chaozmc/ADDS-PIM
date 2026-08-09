@@ -1,0 +1,60 @@
+name: Installation or usage question
+description: Ask for help with installing, configuring or evaluating ADDS-PIM.
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for installation, configuration and evaluation questions.
+        For reproducible defects use **Bug report**. For security vulnerabilities follow `SECURITY.md`.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Topic
+      options:
+        - Installation / setup
+        - IIS / gMSA
+        - SQL Server
+        - Active Directory / PAM Optional Feature
+        - Delegation / least privilege
+        - Kerberos / Windows authentication
+        - Certificates / signing
+        - MFA
+        - Target-group policies / entitlements
+        - Upgrade / migration
+        - Evaluation / proof of concept
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to achieve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Relevant environment details
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I removed or redacted secrets and production-sensitive information.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true

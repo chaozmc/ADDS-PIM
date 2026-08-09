@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/chaozmc/ADDS-PIM/security/policy
+    about: Please report security vulnerabilities privately. Do not open a public issue.
+  - name: Commercial licensing
+    url: https://github.com/chaozmc/ADDS-PIM#license
+    about: Read the licensing summary and commercial-use information before opening an issue.

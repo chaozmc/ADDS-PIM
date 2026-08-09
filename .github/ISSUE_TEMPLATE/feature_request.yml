@@ -1,0 +1,77 @@
+name: Feature request
+description: Propose a new capability or improvement for ADDS-PIM.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ADDS-PIM prioritizes security, correct authorization decisions, auditability,
+        least privilege and maintainability over convenience. Please describe the
+        problem first, then the proposed solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem would this feature solve, and for whom?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - User experience / request flow
+        - Administration
+        - Authentication / Kerberos
+        - MFA / FIDO2 / WebAuthn / TOTP
+        - Authorization / entitlements / policies
+        - Approval workflow
+        - Active Directory / TTL execution
+        - Security architecture
+        - Audit / logging / monitoring
+        - Database
+        - API
+        - Deployment / installer / IIS
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should ADDS-PIM do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and privilege impact
+      description: Could this affect authorization, MFA, privileged AD execution, trust boundaries, gMSA permissions, auditability or Tier-0 exposure?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for a similar request.
+          required: true
+        - label: The request does not weaken server-side authorization or least-privilege boundaries merely for convenience.
+          required: true

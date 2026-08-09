@@ -1,0 +1,49 @@
+name: Documentation improvement
+description: Report missing, unclear or incorrect documentation.
+title: "[Docs] "
+labels: ["documentation"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Documentation area
+      options:
+        - README
+        - Application tour / GitHub Pages
+        - Architecture
+        - Security
+        - Installation / deployment
+        - Operations
+        - API
+        - Active Directory / delegation
+        - Testing
+        - Contributing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: Link to the page, file or section if possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear, missing or incorrect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I checked that the problem still exists in the current default branch.
+          required: true

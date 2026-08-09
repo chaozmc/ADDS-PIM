@@ -11,6 +11,39 @@ ADDS-PIM is a Privileged Identity Management (PIM) system for **time-limited Act
 
 Standing membership in privileged AD groups (Domain Admins, Tier-0 service groups, delegated administrative groups, etc.) is a persistent attack surface: every account with standing access is a target every hour of every day, whether or not the access is actually being used right now. Time-limited, request-driven membership shrinks that window to only the time the access is actually needed, without requiring people to remember to clean up after themselves.
 
+## Screenshots
+
+### Request temporary privileged access
+
+ADDS-PIM provides a simple user-facing workflow for requesting time-limited
+Active Directory privileges while exposing the relevant policy requirements
+before submission.
+
+![ADDS-PIM home](website/assets/screenshots/home.png)
+
+### Policy-driven access requests
+
+Target group, target account, TTL, justification, ticket reference, MFA and
+approval requirements are handled as part of the request workflow.
+
+![Request temporary access](website/assets/screenshots/request-permission.png)
+
+### Administration and policy
+
+Target groups can be configured with individual TTL limits, MFA, ticket and
+approval requirements.
+
+![Target group management](website/assets/screenshots/group-overview.png)
+
+### End-to-end auditability
+
+Every security-relevant decision and state transition is correlated through
+the audit trail.
+
+![ADDS-PIM audit log](website/assets/screenshots/audit-log.png)
+
+[See the full application tour →](https://chaozmc.github.io/ADDS-PIM/)
+
 ## Architecture
 
 Clean/onion architecture with a strict one-way dependency flow and a hard trust boundary around Active Directory execution:

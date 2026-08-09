@@ -2,33 +2,504 @@ name: CI
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches:
+      - master
 
+  pull_request:
+    branches:
+      - master
+
+  # Ermöglicht einen manuellen Start über die GitHub-Oberfläche.
+  workflow_dispatch:
+
+# Die CI benötigt ausschließlich Lesezugriff auf das Repository.
 permissions:
   contents: read
 
+# Wenn für denselben Branch/PR bereits eine ältere CI läuft,
+# wird diese abgebrochen.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BUILD_CONFIGURATION: Release
+  SOLUTION_FILE: ADDS-PIM.slnx
+
 jobs:
-  build-and-test:
+  ci:
     name: Build & Test (.NET 10)
+
+    # ADDS-PIM ist eine Windows-/AD-zentrierte Anwendung.
     runs-on: windows-latest
-    timeout-minutes: 15
+
+    timeout-minutes: 20
 
     steps:
+      # -----------------------------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------------------------
+
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          # Die CI schreibt nichts zurück ins Repository.
+          persist-credentials: false
+
+      # -----------------------------------------------------------------------
+      # .NET SDK
+      # -----------------------------------------------------------------------
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
+      - name: Show .NET information
+        shell: pwsh
+        run: dotnet --info
+
+      # -----------------------------------------------------------------------
+      # Restore
+      # -----------------------------------------------------------------------
+
       - name: Restore
-        run: dotnet restore ADDS-PIM.slnx
+        id: restore
+        shell: pwsh
+        run: >
+          dotnet restore
+          "${{ env.SOLUTION_FILE }}"
+
+      # -----------------------------------------------------------------------
+      # Build
+      # -----------------------------------------------------------------------
 
       - name: Build
-        run: dotnet build ADDS-PIM.slnx --configuration Release --no-restore
+        id: build
+        shell: pwsh
+        run: >
+          dotnet build
+          "${{ env.SOLUTION_FILE }}"
+          --configuration "${{ env.BUILD_CONFIGURATION }}"
+          --no-restore
+          --verbosity minimal
+
+      # -----------------------------------------------------------------------
+      # Tests
+      #
+      # TRX-Dateien werden von jedem Testprojekt unter dessen TestResults-
+      # Verzeichnis erzeugt. Diese werden anschließend für die GitHub Summary
+      # ausgewertet.
+      # -----------------------------------------------------------------------
 
       - name: Run tests
-        run: dotnet test ADDS-PIM.slnx --configuration Release --no-build --verbosity normal
+        id: tests
+        shell: pwsh
+        run: >
+          dotnet test
+          "${{ env.SOLUTION_FILE }}"
+          --configuration "${{ env.BUILD_CONFIGURATION }}"
+          --no-build
+          --no-restore
+          --verbosity normal
+          --logger "trx;LogFilePrefix=test-results"
+
+      # -----------------------------------------------------------------------
+      # GitHub Job Summary
+      #
+      # Dieser Step läuft auch dann, wenn Restore, Build oder Tests fehlschlagen.
+      # Dadurch bleiben die Testergebnisse bei einem roten CI-Run sichtbar.
+      # -----------------------------------------------------------------------
+
+      - name: Create CI summary
+        if: ${{ always() }}
+        shell: pwsh
+
+        env:
+          RESTORE_OUTCOME: ${{ steps.restore.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+
+        run: |
+          # -------------------------------------------------------------------
+          # Hilfsfunktion für Status-Icons
+          # -------------------------------------------------------------------
+
+          function Get-StatusIcon {
+              param(
+                  [string]$Status
+              )
+
+              switch ($Status) {
+                  "success"   { return "✅" }
+                  "failure"   { return "❌" }
+                  "cancelled" { return "⏹️" }
+                  "skipped"   { return "⏭️" }
+                  default     { return "⚠️" }
+              }
+          }
+
+
+          # -------------------------------------------------------------------
+          # TRX-Dateien suchen
+          # -------------------------------------------------------------------
+
+          $trxFiles = @(
+              Get-ChildItem `
+                  -Path "." `
+                  -Filter "*.trx" `
+                  -Recurse `
+                  -File `
+                  -ErrorAction SilentlyContinue
+          )
+
+
+          # -------------------------------------------------------------------
+          # Ergebniscontainer
+          # -------------------------------------------------------------------
+
+          $projects = @{}
+
+          $totalPassed  = 0
+          $totalFailed  = 0
+          $totalSkipped = 0
+          $totalTests   = 0
+
+
+          # -------------------------------------------------------------------
+          # TRX-Dateien auswerten
+          # -------------------------------------------------------------------
+
+          foreach ($file in $trxFiles) {
+
+              try {
+                  [xml]$trx = Get-Content `
+                      -LiteralPath $file.FullName `
+                      -Raw `
+                      -ErrorAction Stop
+
+                  # TRX verwendet normalerweise einen XML-Namespace.
+                  $namespaceUri = $trx.DocumentElement.NamespaceURI
+
+                  if ([string]::IsNullOrWhiteSpace($namespaceUri)) {
+
+                      $counters = $trx.SelectSingleNode(
+                          "//ResultSummary/Counters"
+                      )
+
+                  }
+                  else {
+
+                      $namespaceManager =
+                          New-Object System.Xml.XmlNamespaceManager(
+                              $trx.NameTable
+                          )
+
+                      $namespaceManager.AddNamespace(
+                          "trx",
+                          $namespaceUri
+                      )
+
+                      $counters = $trx.SelectSingleNode(
+                          "//trx:ResultSummary/trx:Counters",
+                          $namespaceManager
+                      )
+                  }
+
+
+                  if ($null -eq $counters) {
+                      Write-Warning "No test counters found in '$($file.FullName)'."
+                      continue
+                  }
+
+
+                  # TRX liegt standardmäßig unter:
+                  #
+                  # tests/
+                  #   ADDS.PIM.Domain.Tests/
+                  #     TestResults/
+                  #       test-results....trx
+                  #
+                  # Parent von TestResults ist daher der Projektname.
+
+                  $projectName = $file.Directory.Parent.Name
+
+
+                  $passed = [int]$counters.GetAttribute("passed")
+                  $failed = [int]$counters.GetAttribute("failed")
+                  $total  = [int]$counters.GetAttribute("total")
+
+                  $notExecuted =
+                      [int]$counters.GetAttribute("notExecuted")
+
+
+                  # -----------------------------------------------------------
+                  # Ergebnisse pro Projekt aggregieren
+                  # -----------------------------------------------------------
+
+                  if (-not $projects.ContainsKey($projectName)) {
+
+                      $projects[$projectName] = [PSCustomObject]@{
+                          Project = $projectName
+                          Passed  = 0
+                          Failed  = 0
+                          Skipped = 0
+                          Total   = 0
+                      }
+                  }
+
+
+                  $projects[$projectName].Passed  += $passed
+                  $projects[$projectName].Failed  += $failed
+                  $projects[$projectName].Skipped += $notExecuted
+                  $projects[$projectName].Total   += $total
+
+
+                  # -----------------------------------------------------------
+                  # Gesamtergebnis
+                  # -----------------------------------------------------------
+
+                  $totalPassed  += $passed
+                  $totalFailed  += $failed
+                  $totalSkipped += $notExecuted
+                  $totalTests   += $total
+              }
+              catch {
+                  Write-Warning `
+                      "Could not parse test result '$($file.FullName)': $($_.Exception.Message)"
+              }
+          }
+
+
+          # -------------------------------------------------------------------
+          # Gesamtstatus bestimmen
+          # -------------------------------------------------------------------
+
+          $ciSuccessful =
+              $env:RESTORE_OUTCOME -eq "success" -and
+              $env:BUILD_OUTCOME   -eq "success" -and
+              $env:TEST_OUTCOME    -eq "success"
+
+
+          if ($ciSuccessful) {
+              $overallIcon = "✅"
+          }
+          else {
+              $overallIcon = "❌"
+          }
+
+
+          # -------------------------------------------------------------------
+          # GitHub Job Summary
+          # -------------------------------------------------------------------
+
+          "# $overallIcon Build & Test (.NET 10)" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          "" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          # -------------------------------------------------------------------
+          # Build
+          # -------------------------------------------------------------------
+
+          "### Build" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          "- $(Get-StatusIcon $env:RESTORE_OUTCOME) Restore" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          "- $(Get-StatusIcon $env:BUILD_OUTCOME) Compile" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          "" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          # -------------------------------------------------------------------
+          # Tests
+          # -------------------------------------------------------------------
+
+          "### Tests" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          if ($projects.Count -gt 0) {
+
+              foreach ($result in (
+                  $projects.Values |
+                      Sort-Object Project
+              )) {
+
+                  if ($result.Failed -gt 0) {
+                      $icon = "❌"
+                  }
+                  elseif ($result.Skipped -gt 0) {
+                      $icon = "⚠️"
+                  }
+                  else {
+                      $icon = "✅"
+                  }
+
+
+                  $line =
+                      "- $icon **$($result.Project)** — " +
+                      "$($result.Passed) / $($result.Total) passed"
+
+
+                  if ($result.Failed -gt 0) {
+                      $line += ", $($result.Failed) failed"
+                  }
+
+
+                  if ($result.Skipped -gt 0) {
+                      $line += ", $($result.Skipped) skipped"
+                  }
+
+
+                  $line |
+                      Out-File `
+                          -FilePath $env:GITHUB_STEP_SUMMARY `
+                          -Encoding utf8 `
+                          -Append
+              }
+          }
+          else {
+
+              if ($env:TEST_OUTCOME -eq "skipped") {
+
+                  "- ⏭️ Tests were not executed because a previous step failed." |
+                      Out-File `
+                          -FilePath $env:GITHUB_STEP_SUMMARY `
+                          -Encoding utf8 `
+                          -Append
+
+              }
+              else {
+
+                  "- ⚠️ No TRX test results were found." |
+                      Out-File `
+                          -FilePath $env:GITHUB_STEP_SUMMARY `
+                          -Encoding utf8 `
+                          -Append
+              }
+          }
+
+
+          "" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          # -------------------------------------------------------------------
+          # Gesamtzahl
+          # -------------------------------------------------------------------
+
+          "### Total" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          if ($projects.Count -gt 0) {
+
+              "- ✅ **$totalPassed passed**" |
+                  Out-File `
+                      -FilePath $env:GITHUB_STEP_SUMMARY `
+                      -Encoding utf8 `
+                      -Append
+
+
+              if ($totalFailed -eq 0) {
+                  "- ❌ **0 failed**" |
+                      Out-File `
+                          -FilePath $env:GITHUB_STEP_SUMMARY `
+                          -Encoding utf8 `
+                          -Append
+              }
+              else {
+                  "- ❌ **$totalFailed failed**" |
+                      Out-File `
+                          -FilePath $env:GITHUB_STEP_SUMMARY `
+                          -Encoding utf8 `
+                          -Append
+              }
+
+
+              if ($totalSkipped -gt 0) {
+                  "- ⏭️ **$totalSkipped skipped**" |
+                      Out-File `
+                          -FilePath $env:GITHUB_STEP_SUMMARY `
+                          -Encoding utf8 `
+                          -Append
+              }
+
+
+              "- 🧪 **$totalTests total**" |
+                  Out-File `
+                      -FilePath $env:GITHUB_STEP_SUMMARY `
+                      -Encoding utf8 `
+                      -Append
+          }
+
+
+          "" |
+              Out-File `
+                  -FilePath $env:GITHUB_STEP_SUMMARY `
+                  -Encoding utf8 `
+                  -Append
+
+
+          # -------------------------------------------------------------------
+          # Abschließender Status
+          # -------------------------------------------------------------------
+
+          if ($ciSuccessful) {
+
+              "> ✅ CI completed successfully." |
+                  Out-File `
+                      -FilePath $env:GITHUB_STEP_SUMMARY `
+                      -Encoding utf8 `
+                      -Append
+
+          }
+          else {
+
+              "> ❌ CI failed. Check the failed step and test results above." |
+                  Out-File `
+                      -FilePath $env:GITHUB_STEP_SUMMARY `
+                      -Encoding utf8 `
+                      -Append
+          }

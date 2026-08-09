@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A visual walkthrough of ADDS-PIM, from requesting temporary privileged access through MFA, approval, Active Directory execution, verification and audit.">
+  <meta name="theme-color" content="#0b1525">
+  <title>ADDS-PIM – Application Tour</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="ADDS-PIM home">
+        <span class="brand-mark" aria-hidden="true">AP</span>
+        <span>
+          <strong>ADDS-PIM</strong>
+          <small>Application Tour</small>
+        </span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#request-flow">Request flow</a>
+        <a href="#administration">Administration</a>
+        <a href="#audit">Audit</a>
+        <a class="button button-small" href="https://github.com/chaozmc/ADDS-PIM">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Active Directory Privileged Identity Management</p>
+          <h1>Time-limited privileged access for Active Directory.</h1>
+          <p class="lead">
+            ADDS-PIM provides controlled, policy-driven and fully auditable access to privileged
+            Active Directory groups using TTL-based memberships.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button" href="#request-flow">Explore the application</a>
+            <a class="button button-secondary" href="https://github.com/chaozmc/ADDS-PIM">View on GitHub</a>
+          </div>
+
+          <ul class="hero-points" aria-label="Highlights">
+            <li>Policy-driven TTL access</li>
+            <li>FIDO2 / WebAuthn &amp; TOTP</li>
+            <li>Approval workflows</li>
+            <li>End-to-end audit trail</li>
+          </ul>
+        </div>
+
+        <figure class="hero-shot screenshot-card">
+          <button class="image-button" type="button" data-lightbox="assets/screenshots/home.png" data-caption="ADDS-PIM start page">
+            <img src="assets/screenshots/home.png" alt="ADDS-PIM start page" loading="eager">
+          </button>
+          <figcaption>Start page with quick access to privileged access requests, request history and MFA.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section intro">
+      <div class="wrap narrow">
+        <p class="eyebrow">How it works</p>
+        <h2>A privileged request is a workflow, not a single write operation.</h2>
+        <p>
+          The frontend prepares the request, but it never makes the final security decision.
+          Entitlement, policy, MFA, request integrity and current directory state are validated
+          server-side. After execution, ADDS-PIM reads the membership back from Active Directory
+          and verifies the effective TTL before the request can be marked successful.
+        </p>
+
+        <ol class="flow-strip">
+          <li><span>1</span>Request</li>
+          <li><span>2</span>Validate</li>
+          <li><span>3</span>MFA</li>
+          <li><span>4</span>Approve</li>
+          <li><span>5</span>Execute</li>
+          <li><span>6</span>Verify</li>
+          <li><span>7</span>Audit</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="request-flow">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow">Privileged access request flow</p>
+          <h2>From request to verified membership</h2>
+          <p>
+            The exact path depends on the target-group policy. MFA, ticket references and approval
+            can be required independently or in combination.
+          </p>
+        </div>
+
+        <article class="feature feature-wide">
+          <div class="feature-copy">
+            <span class="step">01</span>
+            <h3>Request time-limited access</h3>
+            <p>
+              The user selects an entitled target group and target account, chooses an allowed duration,
+              and provides any additional context required by policy.
+            </p>
+            <ul>
+              <li>Minimum, maximum, default and step values are policy-controlled.</li>
+              <li>Justification and ticket references can be mandatory.</li>
+              <li>MFA and approval requirements are visible before submission.</li>
+            </ul>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/request-permission.png" data-caption="Request time-limited access">
+              <img src="assets/screenshots/request-permission.png" alt="Request permission form showing target group, target account, duration, reason and ticket reference" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <span class="step">02</span>
+            <h3>Confirm the concrete request with MFA</h3>
+            <p>
+              If stronger authentication is required, the user confirms the privileged-access request
+              immediately before it can continue.
+            </p>
+            <p>
+              ADDS-PIM supports TOTP and FIDO2/WebAuthn passkeys. The factor is associated with the
+              request flow rather than being treated as a generic long-lived MFA session.
+            </p>
+          </div>
+          <div class="shot-grid two">
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/second-factor-confirmation.png" data-caption="Second-factor confirmation">
+                <img src="assets/screenshots/second-factor-confirmation.png" alt="Second-factor confirmation dialog" loading="lazy">
+              </button>
+              <figcaption>Second-factor confirmation</figcaption>
+            </figure>
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/passkey-verification.png" data-caption="Passkey / security-key verification">
+                <img src="assets/screenshots/passkey-verification.png" alt="Browser passkey or security-key verification prompt" loading="lazy">
+              </button>
+              <figcaption>Passkey / security-key verification</figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <span class="step">03</span>
+            <h3>Enter the approval workflow when required</h3>
+            <p>
+              A request that requires approval enters the <code>AwaitingApproval</code> state and remains
+              blocked until an authorized approver makes a decision.
+            </p>
+            <p>
+              The request retains its unique identifier so that every subsequent validation, approval,
+              execution and audit event can be correlated.
+            </p>
+          </div>
+          <div class="shot-grid two">
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/awaiting-approval.png" data-caption="Awaiting approval">
+                <img src="assets/screenshots/awaiting-approval.png" alt="Request status showing AwaitingApproval" loading="lazy">
+              </button>
+              <figcaption>Request status</figcaption>
+            </figure>
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/request-awaiting-approval.png" data-caption="Request history before approval">
+                <img src="assets/screenshots/request-awaiting-approval.png" alt="My Requests view showing a request waiting for approval" loading="lazy">
+              </button>
+              <figcaption>Requester view</figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="feature feature-wide">
+          <div class="feature-copy">
+            <span class="step">04</span>
+            <h3>Approver reviews the request</h3>
+            <p>
+              Authorized approvers can explicitly approve or reject pending requests.
+            </p>
+            <p>
+              Approval is an additional authorization decision. It does not replace entitlement,
+              policy, MFA, request-integrity or Active Directory validation.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/approvals.png" data-caption="My Approvals">
+              <img src="assets/screenshots/approvals.png" alt="My Approvals view with a pending privileged access request" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature feature-wide">
+          <div class="feature-copy">
+            <span class="step">05</span>
+            <h3>Execute, read back and verify</h3>
+            <p>
+              After every required check and approval has succeeded, the request is sent to the dedicated
+              Active Directory execution component.
+            </p>
+            <p>
+              A successful write is not enough. ADDS-PIM reads the resulting membership back from Active
+              Directory and verifies that the TTL-based membership is actually present. Only then can the
+              request transition to <code>Succeeded</code>.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/request-succeeded.png" data-caption="Successfully verified request">
+              <img src="assets/screenshots/request-succeeded.png" alt="My Requests view showing a successfully completed privileged access request" loading="lazy">
+            </button>
+          </figure>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="mfa">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow">Multi-factor authentication</p>
+          <h2>Phishing-resistant authentication where it matters</h2>
+          <p>
+            Users can manage their registered authentication factors from a dedicated MFA area.
+            The current implementation supports TOTP and multiple FIDO2/WebAuthn passkeys.
+          </p>
+        </div>
+
+        <figure class="screenshot-card showcase">
+          <button class="image-button" type="button" data-lightbox="assets/screenshots/mfa-overview.png" data-caption="MFA overview">
+            <img src="assets/screenshots/mfa-overview.png" alt="MFA overview showing TOTP and registered passkeys" loading="lazy">
+          </button>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="administration">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow">Administration</p>
+          <h2>Policies and entitlements instead of hard-coded privilege</h2>
+          <p>
+            The administration area manages people, linked Active Directory accounts, target groups,
+            entitlements, policies, approvers, security-related settings, reconciliation and audit data.
+          </p>
+        </div>
+
+        <article class="feature feature-wide">
+          <div class="feature-copy">
+            <h3>Administration overview</h3>
+            <p>
+              The admin landing page provides access to the major operational areas and surfaces
+              security-relevant certificate status at a glance.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/admin-overview.png" data-caption="Administration overview">
+              <img src="assets/screenshots/admin-overview.png" alt="ADDS-PIM administration overview" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Target-group management</h3>
+            <p>
+              Administrators register the Active Directory groups that may be requested through ADDS-PIM.
+              Important controls such as TTL range, MFA, ticket and approval requirements are visible in
+              the overview.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/group-overview.png" data-caption="Target-group management">
+              <img src="assets/screenshots/group-overview.png" alt="Target-group administration list" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Group-specific policy</h3>
+            <p>
+              Security requirements follow the sensitivity of the target group instead of being
+              globally hard-coded.
+            </p>
+            <ul>
+              <li>Minimum, maximum, default and step TTL</li>
+              <li>Required second factor</li>
+              <li>Ticket-reference requirement</li>
+              <li>Approval requirement</li>
+              <li>Request enable/disable state</li>
+            </ul>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/group-policy.png" data-caption="Group policy">
+              <img src="assets/screenshots/group-policy.png" alt="Group policy editor" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Explicit approvers</h3>
+            <p>
+              Groups that require approval can have explicitly assigned approvers. Only accounts with
+              the required capability are eligible.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/group-approvers.png" data-caption="Approvers for a target group">
+              <img src="assets/screenshots/group-approvers.png" alt="Approver assignment for a target group" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Persons and account purposes</h3>
+            <p>
+              ADDS-PIM distinguishes a person from the Active Directory accounts associated with that
+              person. Accounts can have explicit purposes such as interactive authentication, receiving
+              temporary privileges or deciding approvals.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/person-accounts.png" data-caption="Persons and account purposes">
+              <img src="assets/screenshots/person-accounts.png" alt="Person view showing linked accounts and account purposes" loading="lazy">
+            </button>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Direct entitlements</h3>
+            <p>
+              Entitlements define who may request which privileged target account for which target group.
+              Optional expiry dates allow access eligibility itself to be time-bounded.
+            </p>
+            <p>
+              Entitlements are re-evaluated server-side during the request workflow; the frontend is never
+              authoritative for authorization.
+            </p>
+          </div>
+          <figure class="screenshot-card">
+            <button class="image-button" type="button" data-lightbox="assets/screenshots/direct-entitlement.png" data-caption="Create direct entitlement">
+              <img src="assets/screenshots/direct-entitlement.png" alt="Create entitlement dialog" loading="lazy">
+            </button>
+          </figure>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="settings">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow">Security-related settings</p>
+          <h2>Operational controls are visible and manageable</h2>
+        </div>
+
+        <div class="cards three">
+          <article class="mini-card">
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/settings-overview.png" data-caption="Settings overview">
+                <img src="assets/screenshots/settings-overview.png" alt="Administration settings overview" loading="lazy">
+              </button>
+            </figure>
+            <h3>Settings overview</h3>
+            <p>
+              Application-wide and security-sensitive configuration is grouped into a dedicated settings area.
+            </p>
+          </article>
+
+          <article class="mini-card">
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/ticket-patterns.png" data-caption="Ticket-reference patterns">
+                <img src="assets/screenshots/ticket-patterns.png" alt="Ticket reference validation patterns" loading="lazy">
+              </button>
+            </figure>
+            <h3>Ticket-reference validation</h3>
+            <p>
+              Accepted ticket formats can be defined per target group and are validated server-side.
+            </p>
+          </article>
+
+          <article class="mini-card">
+            <figure class="screenshot-card">
+              <button class="image-button" type="button" data-lightbox="assets/screenshots/totp-certificate-rollover.png" data-caption="TOTP protection-certificate rollover">
+                <img src="assets/screenshots/totp-certificate-rollover.png" alt="TOTP protection certificate status and rollover" loading="lazy">
+              </button>
+            </figure>
+            <h3>TOTP protection-certificate rollover</h3>
+            <p>
+              Stored TOTP secrets are encrypted at rest. Certificate rollover performs an audited
+              re-encryption after the replacement certificate has been securely provisioned.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="audit">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow">Audit and traceability</p>
+          <h2>Every security-relevant decision is traceable</h2>
+          <p>
+            Audit events correlate the request across validation, MFA, approval, execution and final
+            Active Directory verification. Technical logging and business/security audit data are kept
+            as separate concerns.
+          </p>
+        </div>
+
+        <figure class="screenshot-card showcase">
+          <button class="image-button" type="button" data-lightbox="assets/screenshots/audit-log.png" data-caption="ADDS-PIM audit log">
+            <img src="assets/screenshots/audit-log.png" alt="Audit log with event type, result, request ID, correlation ID, target and TTL information" loading="lazy">
+          </button>
+        </figure>
+
+        <div class="audit-fields">
+          <span>Event type</span>
+          <span>UTC timestamp</span>
+          <span>User / person</span>
+          <span>Target account</span>
+          <span>Target group</span>
+          <span>Request ID</span>
+          <span>Correlation ID</span>
+          <span>Frontend instance</span>
+          <span>Authentication method</span>
+          <span>Requested TTL</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section final-flow">
+      <div class="wrap narrow">
+        <p class="eyebrow">End-to-end flow</p>
+        <h2>The final security decision stays server-side.</h2>
+        <ol class="end-to-end">
+          <li>The user authenticates to ADDS-PIM.</li>
+          <li>The application determines which target groups the user is entitled to request.</li>
+          <li>The user selects the target account, group and requested TTL.</li>
+          <li>Required context such as justification and ticket reference is collected.</li>
+          <li>If required, the user confirms the concrete request with TOTP or FIDO2/WebAuthn.</li>
+          <li>The backend validates the request again using current server-side data.</li>
+          <li>If required, the request enters the approval workflow.</li>
+          <li>The dedicated AD execution component performs the TTL-based membership change.</li>
+          <li>ADDS-PIM reads the membership back from Active Directory and verifies the effective TTL.</li>
+          <li>Only after successful verification is the request marked as successful.</li>
+          <li>Every relevant decision and state transition is written to the audit trail.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section status">
+      <div class="wrap status-box">
+        <div>
+          <p class="eyebrow">Project status</p>
+          <h2>Feature-complete beta</h2>
+          <p>
+            ADDS-PIM has been exercised end-to-end in a test environment. Additional hardening,
+            testing and operational refinement are still in progress before production use.
+          </p>
+        </div>
+        <div class="status-actions">
+          <a class="button" href="https://github.com/chaozmc/ADDS-PIM">Source &amp; documentation</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <p><strong>ADDS-PIM</strong> · Active Directory Domain Services Privileged Identity Management</p>
+      <p><a href="https://github.com/chaozmc/ADDS-PIM">GitHub repository</a></p>
+    </div>
+  </footer>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Screenshot preview">
+    <button class="lightbox-close" type="button" aria-label="Close screenshot">&times;</button>
+    <figure>
+      <img id="lightbox-image" src="" alt="">
+      <figcaption id="lightbox-caption"></figcaption>
+    </figure>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

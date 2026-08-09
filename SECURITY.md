@@ -8,7 +8,7 @@ ADDS-PIM manages privileged Active Directory group memberships. Security reports
 
 Please report security vulnerabilities privately by email:
 
-**chaozmc@is-jo.org**
+**chaozmc[at]is-jo.org**
 
 Include enough information to understand and reproduce the issue, but do not send real credentials, private keys, TOTP secrets, production authentication tokens or other unnecessary sensitive data.
 

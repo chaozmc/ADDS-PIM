@@ -1,6 +1,9 @@
 <p align="center"> <img src="adds-pim-hero.svg" alt="ADDS-PIM" width="480" /> </p>
 
 # ADDS-PIM
+[![Tests](https://github.com/chaozmc/ADDS-PIM/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/chaozmc/ADDS-PIM/actions/workflows/dotnet.yml)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
+![Platform](https://img.shields.io/badge/platform-Windows-blue)
 
 ADDS-PIM is a Privileged Identity Management (PIM) system for **time-limited Active Directory group memberships**. Instead of standing/permanent membership in privileged AD groups, users request temporary access with a bounded TTL; the system grants it, verifies the grant actually took effect in Active Directory, and automatically removes it again once the TTL expires - with a full audit trail of who requested what, who approved it, and what actually happened in the directory.
 

@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminGroups> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminGroups> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -270,7 +271,7 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _groups = await AdministrationClient.GetTargetGroupsAsync(CancellationToken.None); }
-        catch { _error = Localizer["LoadGroupsError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load target groups."); _error = Localizer["LoadGroupsError"]; }
     }
 
     private async Task OpenApproversDialogAsync(ManagedTargetGroup group)
@@ -283,7 +284,7 @@ else
             _persons ??= await AdministrationClient.GetPersonsAsync(CancellationToken.None);
             _approvers = await AdministrationClient.GetGroupApproversAsync(group.TargetGroupId, CancellationToken.None);
         }
-        catch { _approverError = Localizer["LoadApproversError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load approvers for TargetGroupId {TargetGroupId}.", group.TargetGroupId); _approverError = Localizer["LoadApproversError"]; }
     }
 
     private async Task AddApproverAsync()
@@ -299,7 +300,7 @@ else
         }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _approverError = Localizer["AddApproverUnprocessableError"]; }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _approverError = Localizer["AddApproverConflictError"]; }
-        catch { _approverError = Localizer["AddApproverGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to add group approver PersonId {PersonId} to TargetGroupId {TargetGroupId}.", personId, _approversGroup.TargetGroupId); _approverError = Localizer["AddApproverGenericError"]; }
         finally { _savingApprover = false; }
     }
 
@@ -313,7 +314,7 @@ else
             await AdministrationClient.DeactivateGroupApproverAsync(_approversGroup.TargetGroupId, approver, CancellationToken.None);
             _approvers = await AdministrationClient.GetGroupApproversAsync(_approversGroup.TargetGroupId, CancellationToken.None);
         }
-        catch { _approverError = Localizer["RemoveApproverError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to deactivate group approver {GroupApproverId}.", approver.GroupApproverId); _approverError = Localizer["RemoveApproverError"]; }
         finally { _savingApprover = false; }
     }
 
@@ -354,7 +355,7 @@ else
             _searchResults = await AdministrationClient.SearchDirectoryGroupsAsync(_searchTerm, CancellationToken.None);
             if (_searchResults.Count == 0) _searchError = Localizer["SearchNoResultsError"];
         }
-        catch { _searchError = Localizer["SearchFailedError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Directory group search failed for term {SearchTerm}.", _searchTerm); _searchError = Localizer["SearchFailedError"]; }
         finally { _saving = false; }
     }
 
@@ -368,7 +369,7 @@ else
             await _createDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _searchError = Localizer["CreateGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to create target group for ObjectGuid {ObjectGuid}.", id); _searchError = Localizer["CreateGenericError"]; }
         finally { _saving = false; }
     }
 
@@ -386,25 +387,27 @@ else
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _editorError = Localizer["SaveConflictError"]; }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _editorError = Localizer["SaveUnprocessableError"]; }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound) { _editorError = Localizer["SaveNotFoundError"]; }
-        catch { _editorError = Localizer["SaveGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to save target group policy for TargetGroupId {TargetGroupId}.", _editor.Source.TargetGroupId); _editorError = Localizer["SaveGenericError"]; }
         finally { _saving = false; }
     }
 
     private async Task DeactivateAsync()
     {
-        if (_pendingDeactivation is null) return;
+        var group = _pendingDeactivation;
+        if (group is null) return;
         _saving = true;
-        try { await AdministrationClient.DeactivateTargetGroupAsync(_pendingDeactivation, CancellationToken.None); _pendingDeactivation = null; await LoadAsync(); }
-        catch { _error = Localizer["DeactivateGenericError"]; }
+        try { await AdministrationClient.DeactivateTargetGroupAsync(group, CancellationToken.None); _pendingDeactivation = null; await LoadAsync(); }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to deactivate TargetGroupId {TargetGroupId}.", group.TargetGroupId); _error = Localizer["DeactivateGenericError"]; }
         finally { _saving = false; }
     }
 
     private async Task ReactivateAsync()
     {
-        if (_pendingReactivation is null) return;
+        var group = _pendingReactivation;
+        if (group is null) return;
         _saving = true;
-        try { await AdministrationClient.ReactivateTargetGroupAsync(_pendingReactivation, CancellationToken.None); _pendingReactivation = null; await LoadAsync(); }
-        catch { _error = Localizer["ReactivateGenericError"]; }
+        try { await AdministrationClient.ReactivateTargetGroupAsync(group, CancellationToken.None); _pendingReactivation = null; await LoadAsync(); }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to reactivate TargetGroupId {TargetGroupId}.", group.TargetGroupId); _error = Localizer["ReactivateGenericError"]; }
         finally { _saving = false; }
     }
 

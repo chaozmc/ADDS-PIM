@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminEntitlements> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminEntitlements> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -204,7 +205,7 @@ else
             _entitlements = await AdministrationClient.GetEntitlementsAsync(CancellationToken.None);
             _subjects = await AdministrationClient.GetEligibleEntitlementSubjectsAsync(CancellationToken.None);
         }
-        catch { _error = Localizer["LoadError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load entitlements page data."); _error = Localizer["LoadError"]; }
     }
 
     private async Task OpenCreateDialogAsync()
@@ -231,7 +232,7 @@ else
             await LoadAsync();
         }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _dialogError = Localizer["CreateConflictError"]; }
-        catch { _dialogError = Localizer["CreateGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to create direct entitlement for PersonId {PersonId} TargetGroupId {TargetGroupId}.", subject.PersonId, groupId); _dialogError = Localizer["CreateGenericError"]; }
         finally { _saving = false; }
     }
 
@@ -260,16 +261,17 @@ else
         }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _validityError = Localizer["ValidityConflictError"]; }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _validityError = Localizer["ValidityUnprocessableError"]; }
-        catch { _validityError = Localizer["ValidityGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to update direct entitlement validity for EntitlementId {EntitlementId}.", _validityTarget.EntitlementId); _validityError = Localizer["ValidityGenericError"]; }
         finally { _saving = false; }
     }
 
     private async Task DeactivateAsync()
     {
-        if (_pending is null) return;
+        var pending = _pending;
+        if (pending is null) return;
         _saving = true;
-        try { await AdministrationClient.DeactivateDirectEntitlementAsync(_pending, CancellationToken.None); _pending = null; _success = Localizer["DeactivateSuccess"]; await LoadAsync(); }
-        catch { _error = Localizer["DeactivateGenericError"]; }
+        try { await AdministrationClient.DeactivateDirectEntitlementAsync(pending, CancellationToken.None); _pending = null; _success = Localizer["DeactivateSuccess"]; await LoadAsync(); }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to deactivate direct entitlement EntitlementId {EntitlementId}.", pending.EntitlementId); _error = Localizer["DeactivateGenericError"]; }
         finally { _saving = false; }
     }
 }

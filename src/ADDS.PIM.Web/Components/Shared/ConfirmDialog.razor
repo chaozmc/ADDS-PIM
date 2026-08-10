@@ -56,5 +56,10 @@
         catch (JSException)
         {
         }
+        catch (InvalidOperationException)
+        {
+            // Thrown when the component is disposed during static server-side
+            // prerendering, before any circuit exists to receive JS interop calls.
+        }
     }
 }

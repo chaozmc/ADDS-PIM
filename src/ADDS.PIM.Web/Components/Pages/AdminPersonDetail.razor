@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminPersonDetail> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminPersonDetail> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -201,7 +202,7 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _detail = await AdministrationClient.GetPersonDetailAsync(PersonId, CancellationToken.None); }
-        catch { _error = Localizer["LoadPersonError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load person detail for PersonId {PersonId}.", PersonId); _error = Localizer["LoadPersonError"]; }
     }
 
     private async Task OpenAddDialogAsync()
@@ -223,7 +224,7 @@ else
             _searchResults = await AdministrationClient.SearchDirectoryAccountsAsync(_searchTerm, CancellationToken.None);
             if (_searchResults.Count == 0) _searchError = Localizer["NoMatchingAccountError"];
         }
-        catch { _searchError = Localizer["SearchFailedError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Directory account search failed for term {SearchTerm}.", _searchTerm); _searchError = Localizer["SearchFailedError"]; }
         finally { _saving = false; }
     }
 
@@ -240,7 +241,7 @@ else
             await _addDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _searchError = Localizer["CreateLinkError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to create account link for PersonId {PersonId} ObjectGuid {ObjectGuid}.", PersonId, _selectedAccount.ObjectGuid); _searchError = Localizer["CreateLinkError"]; }
         finally { _saving = false; }
     }
 
@@ -263,7 +264,7 @@ else
             await _purposeDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _purposeError = Localizer["SavePurposesError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to save account link purposes for PersonAccountLinkId {PersonAccountLinkId}.", _purposeLink.PersonAccountLinkId); _purposeError = Localizer["SavePurposesError"]; }
         finally { _saving = false; }
     }
 
@@ -273,7 +274,7 @@ else
         if (link is null) return;
         _saving = true;
         try { await AdministrationClient.SetPersonAccountLinkActiveAsync(PersonId, link, active, CancellationToken.None); _pendingDeactivate = null; _pendingReactivate = null; await LoadAsync(); }
-        catch { _error = Localizer["SetLinkActiveError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to set PersonAccountLinkId {PersonAccountLinkId} active={Active}.", link.PersonAccountLinkId, active); _error = Localizer["SetLinkActiveError"]; }
         finally { _saving = false; }
     }
 

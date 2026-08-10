@@ -10,6 +10,7 @@
 @inject ICurrentPimActorContext CurrentActor
 @inject ADDS.PIM.Application.Administration.IDirectoryAccountResolver DirectoryAccountResolver
 @inject IStringLocalizer<SharedResources> Localizer
+@inject ILogger<MainLayout> Logger
 
 <div class="page">
     <div class="sidebar">
@@ -136,13 +137,13 @@
             var account = await DirectoryAccountResolver.ResolveAccountAsync(actor.ObjectGuid, CancellationToken.None);
             if (!string.IsNullOrWhiteSpace(account?.DisplayName)) _displayName = account.DisplayName;
         }
-        catch { /* keep the SAM-derived fallback */ }
+        catch (Exception ex) { Logger.LogWarning(ex, "Failed to resolve friendly AD display name; keeping the SAM-derived fallback."); }
     }
 
     private async Task RefreshMfaStatusAsync()
     {
         try { _mfaStatus = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
-        catch { _mfaStatus = null; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to refresh MFA status for layout badge."); _mfaStatus = null; }
     }
 
     private void UpdateSection()

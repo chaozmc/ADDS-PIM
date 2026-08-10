@@ -3,6 +3,7 @@
 @inject IOperatorRequestClient RequestClient
 @inject IJSRuntime JS
 @inject IStringLocalizer<EnrollFido2> Localizer
+@inject ILogger<EnrollFido2> Logger
 
 <Fido2Interop />
 
@@ -98,7 +99,7 @@ else
             var status = await RequestClient.GetMfaStatusAsync(CancellationToken.None);
             _credentials = status?.Fido2Credentials ?? [];
         }
-        catch { _error = Localizer["StatusLoadError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load MFA status for FIDO2 enrollment."); _error = Localizer["StatusLoadError"]; }
         finally { _loadingStatus = false; }
     }
 
@@ -115,7 +116,7 @@ else
             var assertionJson = await JS.InvokeAsync<string>("pimFido2.authenticate", _stepUpAssertionOptionsJson);
             await RequestRegistrationAsync(_stepUpChallengeId, null, assertionJson);
         }
-        catch { _error = Localizer["PasskeyConfirmError"]; _busy = false; }
+        catch (Exception ex) { Logger.LogError(ex, "FIDO2 passkey step-up confirmation failed."); _error = Localizer["PasskeyConfirmError"]; _busy = false; }
     }
 
     private async Task RequestRegistrationAsync(Guid? stepUpChallengeId, string? stepUpTotpCode, string? stepUpAssertionResponseJson)
@@ -140,7 +141,7 @@ else
             _credentials = (await RequestClient.GetMfaStatusAsync(CancellationToken.None))?.Fido2Credentials ?? _credentials;
             _label = null;
         }
-        catch { _error = Localizer["RegistrationError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "FIDO2 registration failed."); _error = Localizer["RegistrationError"]; }
         finally { _busy = false; }
     }
 

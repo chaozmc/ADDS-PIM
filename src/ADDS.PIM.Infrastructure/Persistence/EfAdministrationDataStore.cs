@@ -7,6 +7,7 @@ using ADDS.PIM.Infrastructure.Mfa;
 using ADDS.PIM.Infrastructure.Persistence.Entities;
 using ADDS.PIM.Infrastructure.Worker;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Data;
 using System.Security.Cryptography;
@@ -20,7 +21,8 @@ public sealed class EfAdministrationDataStore(
     ITotpSecretProtectorFactory totpSecretProtectorFactory,
     IOptions<TotpSecretProtectionOptions> totpSecretProtectionOptions,
     IOptions<WorkerClientOptions> workerClientOptions,
-    IWorkerServerCertificateObservationStore workerServerCertificateObservationStore) : IAdministrationDataStore
+    IWorkerServerCertificateObservationStore workerServerCertificateObservationStore,
+    ILogger<EfAdministrationDataStore> logger) : IAdministrationDataStore
 {
     /// <summary>
     /// Resolves the display identity of the administrator performing the current
@@ -114,7 +116,8 @@ public sealed class EfAdministrationDataStore(
         dbContext.PersonAccountLinks.Add(new PersonAccountLinkEntity { PersonAccountLinkId=Guid.NewGuid(), PersonId=person.PersonId, AccountId=account.AccountId, MayAuthenticate=true, MayReceivePrivileges=false, IsActive=true, ValidFromUtc=now, CreatedBy=auditContext.FrontendClientId, ModifiedBy=auditContext.FrontendClientId, CreatedUtc=now, ModifiedUtc=now });
         var (administratorAccountId, administratorDisplayName) = await ResolveAdministratorAsync(request.Actor, cancellationToken);
         dbContext.AuditEvents.Add(new AuditEventEntity { EventId=Guid.NewGuid(), EventType="PersonOnboardedFromDirectoryAccount", OccurredUtc=now, FrontendClientId=auditContext.FrontendClientId, SourceIpAddress=auditContext.SourceIpAddress, ClientSourceIpAddress=auditContext.ClientSourceIpAddress, SourceComponent="Api", CorrelationId=auditContext.CorrelationId, ActorAccountId=administratorAccountId, ActorAccountDisplayNameSnapshot=administratorDisplayName, PersonId=person.PersonId, PersonDisplayNameSnapshot=person.DisplayName, TargetAccountId=account.AccountId, TargetAccountDisplayNameSnapshot=resolvedAccount.DomainQualifiedName, Result="Succeeded", AuthenticationMethod="Windows", PolicyRequirementsSummary="person-created;initial-actor-account-linked" });
-        try { await dbContext.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken); return AdministrationUpdateResult.Updated; } catch (DbUpdateException) { return AdministrationUpdateResult.Conflict; }
+        try { await dbContext.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken); return AdministrationUpdateResult.Updated; }
+        catch (DbUpdateException ex) { logger.LogError(ex, "CreatePersonFromDirectoryAccountAsync failed to save changes for ObjectGuid {ObjectGuid}.", resolvedAccount.ObjectGuid); return AdministrationUpdateResult.Conflict; }
     }
 
     public Task<AdministrationUpdateResult> DeactivatePersonAsync(DeactivatePersonRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
@@ -196,7 +199,8 @@ public sealed class EfAdministrationDataStore(
         dbContext.PersonAccountLinks.Add(link);
         var (linkAdministratorAccountId, linkAdministratorDisplayName) = await ResolveAdministratorAsync(request.Actor, cancellationToken);
         dbContext.AuditEvents.Add(AccountLinkAudit("PersonAccountLinked", now, person, account, auditContext, linkAdministratorAccountId, linkAdministratorDisplayName, $"authenticate:{request.MayAuthenticate};receive-privileges:{request.MayReceivePrivileges};approve:{request.MayApprove}"));
-        try { await dbContext.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken); return AdministrationUpdateResult.Updated; } catch (DbUpdateException) { return AdministrationUpdateResult.Conflict; }
+        try { await dbContext.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken); return AdministrationUpdateResult.Updated; }
+        catch (DbUpdateException ex) { logger.LogError(ex, "CreatePersonAccountLinkAsync failed to save changes for PersonId {PersonId}.", request.PersonId); return AdministrationUpdateResult.Conflict; }
     }
 
     public async Task<AdministrationUpdateResult> UpdatePersonAccountLinkPurposesAsync(UpdatePersonAccountLinkPurposesRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
@@ -302,7 +306,8 @@ public sealed class EfAdministrationDataStore(
         dbContext.TargetGroups.Add(new TargetGroupEntity { TargetGroupId = groupId, DirectoryScopeId = request.Actor.DirectoryScopeId, ObjectGuid = resolvedGroup.ObjectGuid, ObjectSid = resolvedGroup.ObjectSid, SamAccountName = resolvedGroup.SamAccountName, DistinguishedName = resolvedGroup.DistinguishedName, DomainQualifiedName = resolvedGroup.DomainQualifiedName, DisplayName = resolvedGroup.DisplayName, GroupPolicyId = policyId, IsEnabledForRequests = true, IsWithinAllowedScope = true, LastVerifiedUtc = now, CreatedUtc = now, ModifiedUtc = now });
         var (createGroupAdministratorAccountId, createGroupAdministratorDisplayName) = await ResolveAdministratorAsync(request.Actor, cancellationToken);
         dbContext.AuditEvents.Add(new AuditEventEntity { EventId=Guid.NewGuid(), EventType="TargetGroupRegistered", OccurredUtc=now, FrontendClientId=auditContext.FrontendClientId, SourceIpAddress=auditContext.SourceIpAddress, ClientSourceIpAddress=auditContext.ClientSourceIpAddress, SourceComponent="Api", CorrelationId=auditContext.CorrelationId, ActorAccountId=createGroupAdministratorAccountId, ActorAccountDisplayNameSnapshot=createGroupAdministratorDisplayName, TargetGroupId=groupId, TargetGroupDisplayNameSnapshot=resolvedGroup.DomainQualifiedName, Result="Succeeded", AuthenticationMethod="Windows", PolicyRequirementsSummary="target-group-registered" });
-        try { await dbContext.SaveChangesAsync(cancellationToken); return AdministrationUpdateResult.Updated; } catch (DbUpdateException) { return AdministrationUpdateResult.Conflict; }
+        try { await dbContext.SaveChangesAsync(cancellationToken); return AdministrationUpdateResult.Updated; }
+        catch (DbUpdateException ex) { logger.LogError(ex, "CreateTargetGroupAsync failed to save changes for ObjectGuid {ObjectGuid}.", resolvedGroup.ObjectGuid); return AdministrationUpdateResult.Conflict; }
     }
 
     public async Task<AdministrationUpdateResult> DeactivateTargetGroupAsync(DeactivateTargetGroupRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
@@ -494,7 +499,8 @@ public sealed class EfAdministrationDataStore(
         dbContext.GroupApprovers.Add(approver);
         var (administratorAccountId, administratorDisplayName) = await ResolveAdministratorAsync(request.Actor, cancellationToken);
         dbContext.AuditEvents.Add(new AuditEventEntity { EventId = Guid.NewGuid(), EventType = "GroupApproverAdded", OccurredUtc = now, FrontendClientId = auditContext.FrontendClientId, SourceIpAddress = auditContext.SourceIpAddress, ClientSourceIpAddress = auditContext.ClientSourceIpAddress, SourceComponent = "Api", CorrelationId = auditContext.CorrelationId, ActorAccountId = administratorAccountId, ActorAccountDisplayNameSnapshot = administratorDisplayName, PersonId = person.PersonId, PersonDisplayNameSnapshot = person.DisplayName, TargetGroupId = group.TargetGroupId, TargetGroupDisplayNameSnapshot = group.DomainQualifiedName, Result = "Succeeded", AuthenticationMethod = "Windows", PolicyRequirementsSummary = "group-approver-added" });
-        try { await dbContext.SaveChangesAsync(cancellationToken); return AdministrationUpdateResult.Updated; } catch (DbUpdateException) { return AdministrationUpdateResult.Conflict; }
+        try { await dbContext.SaveChangesAsync(cancellationToken); return AdministrationUpdateResult.Updated; }
+        catch (DbUpdateException ex) { logger.LogError(ex, "AddGroupApproverAsync failed to save changes for TargetGroupId {TargetGroupId} PersonId {PersonId}.", request.TargetGroupId, request.PersonId); return AdministrationUpdateResult.Conflict; }
     }
 
     public async Task<AdministrationUpdateResult> DeactivateGroupApproverAsync(DeactivateGroupApproverRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)

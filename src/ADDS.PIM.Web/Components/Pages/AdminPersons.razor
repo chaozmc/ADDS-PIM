@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminPersons> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminPersons> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -245,7 +246,7 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _persons = await AdministrationClient.GetPersonsAsync(CancellationToken.None); }
-        catch { _error = Localizer["LoadPersonsError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load persons."); _error = Localizer["LoadPersonsError"]; }
     }
 
     private async Task OpenCreateDialogAsync()
@@ -276,7 +277,7 @@ else
             _mfaFactors = await AdministrationClient.ListTotpFactorsAsync(_mfaPerson.PersonId, CancellationToken.None);
             _fido2Credentials = await AdministrationClient.ListFido2CredentialsAsync(_mfaPerson.PersonId, CancellationToken.None);
         }
-        catch { _mfaError = Localizer["LoadMfaFactorsError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load MFA factors for PersonId {PersonId}.", _mfaPerson.PersonId); _mfaError = Localizer["LoadMfaFactorsError"]; }
         finally { _mfaLoading = false; }
     }
 
@@ -285,7 +286,7 @@ else
         if (_mfaPerson is null || _pendingRevoke is null) return;
         _revoking = true;
         try { await AdministrationClient.RevokeTotpFactorAsync(_mfaPerson.PersonId, _pendingRevoke, CancellationToken.None); _pendingRevoke = null; await LoadMfaFactorsAsync(); }
-        catch { _mfaError = Localizer["RevokeFactorError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to revoke TOTP factor for PersonId {PersonId}.", _mfaPerson.PersonId); _mfaError = Localizer["RevokeFactorError"]; }
         finally { _revoking = false; }
     }
 
@@ -294,7 +295,7 @@ else
         if (_mfaPerson is null || _pendingRevokeFido2 is null) return;
         _revoking = true;
         try { await AdministrationClient.RevokeFido2CredentialAsync(_mfaPerson.PersonId, _pendingRevokeFido2, CancellationToken.None); _pendingRevokeFido2 = null; await LoadMfaFactorsAsync(); }
-        catch { _mfaError = Localizer["RevokePasskeyError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to revoke FIDO2 credential for PersonId {PersonId}.", _mfaPerson.PersonId); _mfaError = Localizer["RevokePasskeyError"]; }
         finally { _revoking = false; }
     }
 
@@ -315,7 +316,7 @@ else
             _searchResults = await AdministrationClient.SearchDirectoryUsersAsync(_searchTerm, CancellationToken.None);
             if (_searchResults.Count == 0) _searchError = Localizer["NoMatchingPersonError"];
         }
-        catch { _searchError = Localizer["SearchFailedError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Directory user search failed for term {SearchTerm}.", _searchTerm); _searchError = Localizer["SearchFailedError"]; }
         finally { _saving = false; }
     }
 
@@ -328,7 +329,7 @@ else
             await _createDialog!.HideAsync();
             await LoadAsync();
         }
-        catch { _searchError = Localizer["OnboardAccountError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to onboard person from directory account {ObjectGuid}.", user.ObjectGuid); _searchError = Localizer["OnboardAccountError"]; }
         finally { _saving = false; }
     }
 
@@ -338,7 +339,7 @@ else
         if (person is null) return;
         _saving = true;
         try { await AdministrationClient.SetPersonActiveAsync(person, active, CancellationToken.None); _pendingDeactivation = null; _pendingReactivation = null; await LoadAsync(); }
-        catch { _error = Localizer["SetPersonActiveError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to set PersonId {PersonId} active={Active}.", person.PersonId, active); _error = Localizer["SetPersonActiveError"]; }
         finally { _saving = false; }
     }
 }

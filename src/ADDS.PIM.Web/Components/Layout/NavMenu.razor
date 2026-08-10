@@ -61,6 +61,7 @@
 
 @inject IOperatorRequestClient RequestClient
 @inject Microsoft.Extensions.Localization.IStringLocalizer<NavMenu> Localizer
+@inject ILogger<NavMenu> Logger
 
 @code {
     // Deny-by-default while loading or on error: this only controls visibility of the nav
@@ -71,7 +72,7 @@
     protected override async Task OnInitializedAsync()
     {
         try { _isApprover = await RequestClient.GetApproverEligibilityAsync(CancellationToken.None); }
-        catch { _isApprover = false; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to resolve approver eligibility for nav menu."); _isApprover = false; }
     }
 }
 

@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminTicketReferencePatterns> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminTicketReferencePatterns> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -151,8 +152,9 @@ else
             _patterns = await AdministrationClient.GetTicketReferencePatternsAsync(CancellationToken.None);
             _groups = await AdministrationClient.GetTargetGroupsAsync(CancellationToken.None);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load ticket reference patterns.");
             _error = Localizer["LoadPatternsError"];
         }
     }
@@ -177,8 +179,9 @@ else
             _editor = null;
             await LoadAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to save ticket reference pattern for TargetGroupId {TargetGroupId}.", groupId);
             _error = Localizer["SavePatternError"];
         }
         finally
@@ -189,16 +192,18 @@ else
 
     private async Task DeleteAsync()
     {
-        if (_pendingDeletion is null) return;
+        var pendingDeletion = _pendingDeletion;
+        if (pendingDeletion is null) return;
         _saving = true;
         try
         {
-            await AdministrationClient.DeleteTicketReferencePatternAsync(_pendingDeletion, CancellationToken.None);
+            await AdministrationClient.DeleteTicketReferencePatternAsync(pendingDeletion, CancellationToken.None);
             _pendingDeletion = null;
             await LoadAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to delete ticket reference pattern {TicketReferencePatternId}.", pendingDeletion.TicketReferencePatternId);
             _error = Localizer["DeletePatternError"];
         }
         finally

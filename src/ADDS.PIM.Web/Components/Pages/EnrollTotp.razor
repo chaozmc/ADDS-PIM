@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
 @inject IStringLocalizer<EnrollTotp> Localizer
+@inject ILogger<EnrollTotp> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -93,7 +94,7 @@ else
             var status = await RequestClient.GetMfaStatusAsync(CancellationToken.None);
             _alreadyEnrolled = status?.TotpEnrolled ?? false;
         }
-        catch { _error = Localizer["StatusLoadError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load MFA status for TOTP enrollment."); _error = Localizer["StatusLoadError"]; }
         finally { _loadingStatus = false; }
     }
 
@@ -106,7 +107,7 @@ else
             if (_enrollment is null) { _alreadyEnrolled = true; return; }
             _qrCodeSvg = GenerateQrCodeSvg(_enrollment.ProvisioningUri);
         }
-        catch { _error = Localizer["FactorGenerationError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "TOTP factor enrollment failed."); _error = Localizer["FactorGenerationError"]; }
         finally { _starting = false; }
     }
 
@@ -134,7 +135,7 @@ else
             _confirmed = await RequestClient.ConfirmTotpEnrollmentAsync(_enrollment.TotpFactorId, _confirmForm.Code, CancellationToken.None);
             if (!_confirmed) _confirmError = Localizer["InvalidOrExpiredCodeError"];
         }
-        catch { _confirmError = Localizer["CodeConfirmError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "TOTP enrollment confirmation failed for TotpFactorId {TotpFactorId}.", _enrollment.TotpFactorId); _confirmError = Localizer["CodeConfirmError"]; }
         finally { _confirming = false; }
     }
 

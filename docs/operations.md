@@ -13,7 +13,7 @@ ADDS-PIM currently ships as a single reproducible installation path for one Wind
 Before installing, an administrator provides:
 
 - **IIS with Windows Authentication**, the current .NET ASP.NET Core Hosting Bundle installed, and IIS restarted afterward.
-- **Separate group Managed Service Accounts (gMSAs)** for Web, API, and Worker (e.g. `EXAMPLE\svc-adds-pim-web$`, `EXAMPLE\svc-adds-pim-api$`, `EXAMPLE\svc-adds-pim-worker$`), installed and usable on the target host(s), each with the necessary service principal names (SPNs). Web and API gMSAs receive **no** rights to change AD group memberships. The Worker gMSA receives only the AD rights delegated for the specific target groups it is allowed to manage - never a membership in Domain Admins, Enterprise Admins, or other Tier-0 groups is required.
+- **Separate group Managed Service Accounts (gMSAs)** for Web, API, and Worker (e.g. `EXAMPLE\svc-adds-pim-web$`, `EXAMPLE\svc-adds-pim-api$`, `EXAMPLE\svc-adds-pim-worker$`), installed and usable on the target host(s), each with the necessary service principal names (SPNs). Web and API gMSAs receive **no** rights to change AD group memberships. The Worker gMSA receives only the AD rights delegated for the specific target groups it is allowed to manage - never Domain Admins, Enterprise Admins, or other Tier-0 groups.
 - **DNS resolution** for the Web, API, and Worker host names, with TLS server certificates whose SAN entries cover those names - for example `pim.example.org`, `pim-backend.example.org`, and `pim-worker.example.org:8990` - imported into `LocalMachine\My` with private-key access granted to the corresponding IIS/service gMSA.
 - **A separate API-to-Worker client certificate** for mutual TLS, with its public thumbprint allow-listed on the Worker side.
 - **The two application certificates** the system depends on, either pre-provisioned or the administrator permits their creation during setup:
@@ -64,13 +64,14 @@ Start the Worker service and verify it locally before testing it from the API si
 
 1. `GET https://pim-backend.example.org/health/live` returns HTTP 204. This proves only that the API process is running - not database, Worker, or AD readiness (see [Health checks and monitoring](#5-health-checks-and-monitoring)).
 2. Sign in as the intended user in a Kerberos-capable browser session. The root page is a static welcome page with no entitlement or MFA logic; its "Request access" action leads to the request page, which must show the signed-in user's server-side-resolved entitlements. Entries that cannot currently be requested (for example, approval-required groups) remain visible but disabled with an explanation.
-3. Submit an eligible request with a ticket reference and justification. Approval-required entitlements are visible in the selection UI but not yet requestable (TOTP and FIDO2 MFA are fully implemented). Its status must reach `Succeeded` only after the Worker has executed the change and the AD read-back has verified it - request IDs and API/Worker/SQL audit records must all agree.
+3. Submit an eligible request with a ticket reference and justification. Its status must reach `Succeeded` only after the Worker has executed the change and the AD read-back has verified it - request IDs and API/Worker/SQL audit records must all agree.
 4. Repeat the same request before its TTL expires. The expected result is `Failed` with a clear explanation that the membership already exists - never a silent renewal or replacement.
 5. Recycle the API application pool and repeat step 3. This specifically re-exercises the full mTLS chain including online CRL/OCSP checking, which a liveness check alone does not cover.
 
 ### 2.5 Current limitations
 
 - A complete installer with upgrade, repair, rollback, and uninstall is not yet implemented; the documented scripts cover fresh installation only.
+- Approval-required entitlements are visible in the selection UI but not yet requestable (TOTP and FIDO2 MFA are fully implemented).
 - Ticket-format validation is implemented; integration with an external ticketing system's API is out of scope for the current release.
 
 None of these limitations relax server-side checks - the API always re-evaluates entitlement and policy immediately before Worker execution, regardless of what the frontend displayed earlier.

@@ -3,6 +3,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOperatorRequestClient RequestClient
 @inject IStringLocalizer<Requests> Localizer
+@inject ILogger<Requests> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -176,8 +177,9 @@
         {
             _page = await RequestClient.ListMyRequestsAsync(_filters.PageNumber, _filters.PageSize, _filters.Year, _filters.Month, _filters.EntitlementId, _filters.TargetGroupId, CancellationToken.None);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load my requests page {PageNumber}.", _filters.PageNumber);
             _error = Localizer["LoadError"];
         }
         finally

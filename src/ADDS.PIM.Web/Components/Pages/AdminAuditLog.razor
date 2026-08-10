@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminAuditLog> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminAuditLog> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -178,8 +179,9 @@ else
                 string.IsNullOrWhiteSpace(_filters.ActorAccount) ? null : _filters.ActorAccount,
                 CancellationToken.None);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load audit log page {PageNumber}.", _filters.PageNumber);
             _error = Localizer["LoadAuditLogError"];
         }
     }

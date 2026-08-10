@@ -4,6 +4,7 @@
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminTechnicalErrors> Localizer
 @inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminTechnicalErrors> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -165,8 +166,9 @@ else
                 null,
                 CancellationToken.None);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load technical errors page {PageNumber}.", _filters.PageNumber);
             _error = Localizer["LoadError"];
         }
     }

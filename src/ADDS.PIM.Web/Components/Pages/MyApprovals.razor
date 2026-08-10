@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
 @inject IStringLocalizer<MyApprovals> Localizer
+@inject ILogger<MyApprovals> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -88,8 +89,9 @@
         {
             _page = await RequestClient.ListPendingApprovalsAsync(1, 50, CancellationToken.None);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load pending approvals.");
             _error = Localizer["LoadError"];
         }
         finally
@@ -106,8 +108,9 @@
             await RequestClient.ApproveMembershipRequestAsync(requestId, CancellationToken.None);
             await LoadAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to approve membership request {RequestId}.", requestId);
             _error = Localizer["ApproveError"];
         }
         finally
@@ -136,8 +139,9 @@
             await _rejectDialog!.HideAsync();
             await LoadAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to reject membership request {RequestId}.", _rejectTarget.RequestId);
             _rejectError = Localizer["RejectError"];
         }
         finally

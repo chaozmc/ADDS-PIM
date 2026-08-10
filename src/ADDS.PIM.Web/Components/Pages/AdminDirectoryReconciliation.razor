@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminDirectoryReconciliation> Localizer
+@inject ILogger<AdminDirectoryReconciliation> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -117,23 +118,24 @@ else
     private async Task LoadAsync()
     {
         try { _error = null; _overview = await AdministrationClient.GetDirectoryReconciliationAsync(CancellationToken.None); }
-        catch { _error = Localizer["LoadError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load directory reconciliation overview."); _error = Localizer["LoadError"]; }
     }
 
     private async Task StartAsync()
     {
         _saving = true;
         try { _error = null; await AdministrationClient.StartDirectoryReconciliationAsync(CancellationToken.None); await LoadAsync(); }
-        catch { _error = Localizer["StartError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to start directory reconciliation run."); _error = Localizer["StartError"]; }
         finally { _saving = false; }
     }
 
     private async Task DeactivateAsync()
     {
-        if (_pending is null) return;
+        var pending = _pending;
+        if (pending is null) return;
         _saving = true;
-        try { _error = null; await AdministrationClient.DeactivateDirectoryReconciliationFindingAsync(_pending, CancellationToken.None); _pending = null; await LoadAsync(); }
-        catch { _error = Localizer["DeactivateError"]; }
+        try { _error = null; await AdministrationClient.DeactivateDirectoryReconciliationFindingAsync(pending, CancellationToken.None); _pending = null; await LoadAsync(); }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to deactivate directory reconciliation finding {FindingId}.", pending.FindingId); _error = Localizer["DeactivateError"]; }
         finally { _saving = false; }
     }
 

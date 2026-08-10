@@ -4,6 +4,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IJSRuntime JS
 @inject IStringLocalizer<Home> Localizer
+@inject ILogger<Home> Logger
 
 <Fido2Interop />
 
@@ -141,10 +142,10 @@ else
     {
         _windowsIdentity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
         try { _entitlements = await RequestClient.ListAvailableEntitlementsAsync(CancellationToken.None); if (_entitlements.Count > 0) SelectEntitlement(); }
-        catch { _error = Localizer["LoadEntitlementsError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load available entitlements."); _error = Localizer["LoadEntitlementsError"]; }
         finally { _loading = false; }
         try { _mfaStatus = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
-        catch { _mfaStatus = null; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load MFA status for home page."); _mfaStatus = null; }
     }
 
     private void SelectEntitlement()
@@ -185,16 +186,17 @@ else
                 _error = Localizer["SubmitFailedWithIdError"];
             }
         }
-        catch { _error = Localizer["SubmitFailedGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Membership request submission failed for TargetGroupId {TargetGroupId}.", item.TargetGroupId); _error = Localizer["SubmitFailedGenericError"]; }
         finally { _submitting = false; }
     }
     private async Task VerifySecondFactorAsync()
     {
-        if (_pendingSecondFactor is null || string.IsNullOrWhiteSpace(_secondFactorForm.Code)) return;
+        var pendingSecondFactor = _pendingSecondFactor;
+        if (pendingSecondFactor is null || string.IsNullOrWhiteSpace(_secondFactorForm.Code)) return;
         _verifyingSecondFactor = true; _secondFactorError = null;
         try
         {
-            _result = await RequestClient.VerifyTotpSecondFactorAsync(_pendingSecondFactor.RequestId, _secondFactorForm.Code, CancellationToken.None);
+            _result = await RequestClient.VerifyTotpSecondFactorAsync(pendingSecondFactor.RequestId, _secondFactorForm.Code, CancellationToken.None);
             _pendingSecondFactor = null;
             ResetFormAfterCompletion();
         }
@@ -208,18 +210,19 @@ else
                 _ => Localizer["CodeNotVerifiedError"]
             };
         }
-        catch { _secondFactorError = Localizer["CodeNotVerifiedGenericError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "TOTP second-factor verification failed for RequestId {RequestId}.", pendingSecondFactor.RequestId); _secondFactorError = Localizer["CodeNotVerifiedGenericError"]; }
         finally { _verifyingSecondFactor = false; }
     }
     private async Task VerifyFido2SecondFactorAsync()
     {
-        if (_pendingSecondFactor is null) return;
+        var pendingSecondFactor = _pendingSecondFactor;
+        if (pendingSecondFactor is null) return;
         _verifyingSecondFactor = true; _secondFactorError = null;
         try
         {
-            var options = await RequestClient.GetFido2AssertionOptionsAsync(_pendingSecondFactor.RequestId, CancellationToken.None);
+            var options = await RequestClient.GetFido2AssertionOptionsAsync(pendingSecondFactor.RequestId, CancellationToken.None);
             var assertionJson = await JS.InvokeAsync<string>("pimFido2.authenticate", options.OptionsJson);
-            _result = await RequestClient.VerifyFido2SecondFactorAsync(_pendingSecondFactor.RequestId, assertionJson, CancellationToken.None);
+            _result = await RequestClient.VerifyFido2SecondFactorAsync(pendingSecondFactor.RequestId, assertionJson, CancellationToken.None);
             _pendingSecondFactor = null;
             ResetFormAfterCompletion();
         }
@@ -232,7 +235,7 @@ else
                 _ => Localizer["PasskeyNotVerifiedError"]
             };
         }
-        catch { _secondFactorError = Localizer["PasskeyNotVerifiedError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "FIDO2 second-factor verification failed for RequestId {RequestId}.", pendingSecondFactor.RequestId); _secondFactorError = Localizer["PasskeyNotVerifiedError"]; }
         finally { _verifyingSecondFactor = false; }
     }
     private string SecondFactorLabel(int allowedSecondFactorTypes) => allowedSecondFactorTypes switch

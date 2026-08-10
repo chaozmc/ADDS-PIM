@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
 @inject IStringLocalizer<MfaOverview> Localizer
+@inject ILogger<MfaOverview> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -66,7 +67,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         try { _status = await RequestClient.GetMfaStatusAsync(CancellationToken.None); }
-        catch { _error = Localizer["StatusLoadError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load MFA status overview."); _error = Localizer["StatusLoadError"]; }
         finally { _loading = false; }
     }
 }

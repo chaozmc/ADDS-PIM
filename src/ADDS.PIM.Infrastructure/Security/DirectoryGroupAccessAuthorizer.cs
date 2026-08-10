@@ -1,5 +1,6 @@
 using System.DirectoryServices.Protocols;
 using ADDS.PIM.Application.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ADDS.PIM.Infrastructure.Security;
@@ -18,7 +19,7 @@ public sealed class ApplicationAccessOptions
     }
 }
 
-internal sealed class DirectoryGroupAccessAuthorizer(IOptions<ApplicationAccessOptions> options) : IApplicationAccessAuthorizer
+internal sealed class DirectoryGroupAccessAuthorizer(IOptions<ApplicationAccessOptions> options, ILogger<DirectoryGroupAccessAuthorizer> logger) : IApplicationAccessAuthorizer
 {
     public Task<bool> IsAuthorizedAsync(Guid actorObjectGuid, ApplicationAccessLevel requiredAccess, CancellationToken cancellationToken)
     {
@@ -35,8 +36,8 @@ internal sealed class DirectoryGroupAccessAuthorizer(IOptions<ApplicationAccessO
             if (!IsTransitivelyMember(connection, namingContext, actorObjectGuid, configuration.UsersGroupObjectGuid)) return Task.FromResult(false);
             return Task.FromResult(requiredAccess != ApplicationAccessLevel.Administrator || IsTransitivelyMember(connection, namingContext, actorObjectGuid, configuration.AdministratorsGroupObjectGuid));
         }
-        catch (DirectoryOperationException) { return Task.FromResult(false); }
-        catch (LdapException) { return Task.FromResult(false); }
+        catch (DirectoryOperationException ex) { logger.LogError(ex, "IsAuthorizedAsync(objectGuid) LDAP directory operation failed for actor {ActorObjectGuid}; denying access.", actorObjectGuid); return Task.FromResult(false); }
+        catch (LdapException ex) { logger.LogError(ex, "IsAuthorizedAsync(objectGuid) LDAP bind/search failed (ErrorCode={ErrorCode}) for actor {ActorObjectGuid}; denying access.", ex.ErrorCode, actorObjectGuid); return Task.FromResult(false); }
     }
 
     public Task<bool> IsAuthorizedAsync(string actorSid, ApplicationAccessLevel requiredAccess, CancellationToken cancellationToken)
@@ -57,9 +58,9 @@ internal sealed class DirectoryGroupAccessAuthorizer(IOptions<ApplicationAccessO
             if (actorDn is null || !IsTransitivelyMember(connection, namingContext, actorDn, configuration.UsersGroupObjectGuid)) return Task.FromResult(false);
             return Task.FromResult(requiredAccess != ApplicationAccessLevel.Administrator || IsTransitivelyMember(connection, namingContext, actorDn, configuration.AdministratorsGroupObjectGuid));
         }
-        catch (ArgumentException) { return Task.FromResult(false); }
-        catch (DirectoryOperationException) { return Task.FromResult(false); }
-        catch (LdapException) { return Task.FromResult(false); }
+        catch (ArgumentException ex) { logger.LogError(ex, "IsAuthorizedAsync(sid) received a malformed SID {ActorSid}; denying access.", actorSid); return Task.FromResult(false); }
+        catch (DirectoryOperationException ex) { logger.LogError(ex, "IsAuthorizedAsync(sid) LDAP directory operation failed for SID {ActorSid}; denying access.", actorSid); return Task.FromResult(false); }
+        catch (LdapException ex) { logger.LogError(ex, "IsAuthorizedAsync(sid) LDAP bind/search failed (ErrorCode={ErrorCode}) for SID {ActorSid}; denying access.", ex.ErrorCode, actorSid); return Task.FromResult(false); }
     }
 
     public Task<Guid?> ResolveActorObjectGuidAsync(string actorSid, CancellationToken cancellationToken)
@@ -80,9 +81,9 @@ internal sealed class DirectoryGroupAccessAuthorizer(IOptions<ApplicationAccessO
             if (result.Entries.Count != 1 || !result.Entries[0].Attributes.Contains("objectGUID") || result.Entries[0].Attributes["objectGUID"].Count != 1 || result.Entries[0].Attributes["objectGUID"][0] is not byte[] bytes || bytes.Length != 16) return Task.FromResult<Guid?>(null);
             return Task.FromResult<Guid?>(new Guid(bytes));
         }
-        catch (ArgumentException) { return Task.FromResult<Guid?>(null); }
-        catch (DirectoryOperationException) { return Task.FromResult<Guid?>(null); }
-        catch (LdapException) { return Task.FromResult<Guid?>(null); }
+        catch (ArgumentException ex) { logger.LogError(ex, "ResolveActorObjectGuidAsync received a malformed SID {ActorSid}.", actorSid); return Task.FromResult<Guid?>(null); }
+        catch (DirectoryOperationException ex) { logger.LogError(ex, "ResolveActorObjectGuidAsync LDAP directory operation failed for SID {ActorSid}.", actorSid); return Task.FromResult<Guid?>(null); }
+        catch (LdapException ex) { logger.LogError(ex, "ResolveActorObjectGuidAsync LDAP bind/search failed (ErrorCode={ErrorCode}) for SID {ActorSid}.", ex.ErrorCode, actorSid); return Task.FromResult<Guid?>(null); }
     }
 
     private static string? ResolveDn(LdapConnection connection, string namingContext, Guid objectGuid)

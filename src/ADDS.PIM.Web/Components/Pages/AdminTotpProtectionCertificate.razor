@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminTotpProtectionCertificate> Localizer
+@inject ILogger<AdminTotpProtectionCertificate> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -119,7 +120,7 @@ else
     private async Task LoadStatusAsync()
     {
         try { _error = null; _status = await AdministrationClient.GetTotpProtectionCertificateStatusAsync(CancellationToken.None); }
-        catch { _error = Localizer["LoadStatusError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load TOTP protection certificate status."); _error = Localizer["LoadStatusError"]; }
     }
 
     private async Task ExecuteAsync()
@@ -133,7 +134,7 @@ else
             _incomingThumbprint = string.Empty; _confirmation = string.Empty;
             await LoadStatusAsync();
         }
-        catch { _error = Localizer["RolloverFailureMessage"]; }
+        catch (Exception ex) { Logger.LogError(ex, "TOTP protection certificate rotation failed."); _error = Localizer["RolloverFailureMessage"]; }
         finally { _loading = false; }
     }
 }

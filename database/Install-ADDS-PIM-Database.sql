@@ -1,10 +1,16 @@
 /*
   Run as a SQL Server sysadmin or approved deployment identity with sqlcmd:
-  sqlcmd -S localhost -E -v DatabaseName="ADDS_PIM" WorkerLogin="EXAMPLE\gMSA_PIM_Worker$" ApiLogin="EXAMPLE\gMSA_PIM_API$"
+  sqlcmd -S localhost -E -C -v DatabaseName="ADDS_PIM" WorkerLogin="HOME\gMSA_PIM_Worker$" ApiLogin="HOME\gMSA_PIM_API$"
+
+  DatabaseName/WorkerLogin/ApiLogin are REQUIRED via -v; there are
+  deliberately no :setvar defaults here. sqlcmd's :setvar unconditionally
+  overwrites a variable regardless of how it was previously set (including
+  via -v), so a hardcoded :setvar default would silently discard whatever
+  the caller passed on the command line and grant permissions to the wrong
+  login without raising an error. Running this script without -v now fails
+  loudly ("variable ... not defined") instead of silently permissioning a
+  placeholder account.
 */
-:setvar DatabaseName "ADDS_PIM"
-:setvar WorkerLogin "EXAMPLE\gMSA_PIM_Worker$"
-:setvar ApiLogin "EXAMPLE\gMSA_PIM_API$"
 
 IF DB_ID(N'$(DatabaseName)') IS NULL
 BEGIN
@@ -119,12 +125,15 @@ GO
 
 /* Ticket-reference patterns are ordinary, administrator-managed configuration.
    Their deletion is audit-recorded by the API but is not a purge operation. */
-REVOKE DELETE ON OBJECT::dbo.[TicketReferencePatterns] FROM [ADDS_PIM_ApiRuntime];
-GRANT DELETE ON OBJECT::dbo.[TicketReferencePatterns] TO [ADDS_PIM_ApiRuntime];
+IF OBJECT_ID(N'dbo.TicketReferencePatterns', N'U') IS NOT NULL
+BEGIN
+    REVOKE DELETE ON OBJECT::dbo.[TicketReferencePatterns] FROM [ADDS_PIM_ApiRuntime];
+    GRANT DELETE ON OBJECT::dbo.[TicketReferencePatterns] TO [ADDS_PIM_ApiRuntime];
+END;
 GO
 
 /*
-  Purge graph: the API may delete only local operational identity
+  ADR-0017 purge graph: the API may delete only local operational identity
   records after its signed, server-rechecked purge workflow. Audit, replay,
   reconciliation and outbox evidence remains non-deletable for the API role.
 */

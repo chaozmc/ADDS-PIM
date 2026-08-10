@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<AdminIdentityPurge> Localizer
+@inject ILogger<AdminIdentityPurge> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -249,7 +250,7 @@
     protected override async Task OnInitializedAsync()
     {
         try { _candidates = await AdministrationClient.GetIdentityPurgeCandidatesAsync(CancellationToken.None); }
-        catch { _error = Localizer["LoadCandidatesError"]; _candidates = []; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load identity purge candidates."); _error = Localizer["LoadCandidatesError"]; _candidates = []; }
         await LoadOrphanedRequestsAsync();
         await LoadOrphanedApprovalsAsync();
     }
@@ -257,7 +258,7 @@
     private async Task LoadOrphanedRequestsAsync()
     {
         try { _orphanedError = null; _orphanedRequests = await AdministrationClient.GetOrphanedSecondFactorRequestsAsync(CancellationToken.None); }
-        catch { _orphanedError = Localizer["OrphanedMfaLoadError"]; _orphanedRequests = []; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load orphaned second-factor requests."); _orphanedError = Localizer["OrphanedMfaLoadError"]; _orphanedRequests = []; }
     }
 
     private async Task ExpireOrphanedRequestAsync(Guid requestId)
@@ -270,14 +271,14 @@
             _orphanedSuccess = Localizer["RequestExpiredSuccess"];
             await LoadOrphanedRequestsAsync();
         }
-        catch { _orphanedError = Localizer["OrphanedMfaExpireError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to expire orphaned second-factor request {RequestId}.", requestId); _orphanedError = Localizer["OrphanedMfaExpireError"]; }
         finally { _orphanedBusy = false; }
     }
 
     private async Task LoadOrphanedApprovalsAsync()
     {
         try { _orphanedApprovalError = null; _orphanedApprovals = await AdministrationClient.GetOrphanedApprovalRequestsAsync(CancellationToken.None); }
-        catch { _orphanedApprovalError = Localizer["OrphanedApprovalLoadError"]; _orphanedApprovals = []; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load orphaned approval requests."); _orphanedApprovalError = Localizer["OrphanedApprovalLoadError"]; _orphanedApprovals = []; }
     }
 
     private async Task ExpireOrphanedApprovalAsync(Guid requestId)
@@ -290,7 +291,7 @@
             _orphanedApprovalSuccess = Localizer["RequestExpiredSuccess"];
             await LoadOrphanedApprovalsAsync();
         }
-        catch { _orphanedApprovalError = Localizer["OrphanedApprovalExpireError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to expire orphaned approval request {RequestId}.", requestId); _orphanedApprovalError = Localizer["OrphanedApprovalExpireError"]; }
         finally { _orphanedApprovalBusy = false; }
     }
 
@@ -299,23 +300,24 @@
         if (!TrySelected(out var type, out var id)) { _error = Localizer["SelectObjectError"]; return; }
         _loading = true;
         try { _error = null; _success = null; _confirmation = string.Empty; _preview = await AdministrationClient.GetIdentityPurgeScopePreviewAsync(type, id, CancellationToken.None); }
-        catch { _error = Localizer["ScopePreviewLoadError"]; _preview = null; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load purge scope preview for {InitiatorType} {InitiatorId}.", type, id); _error = Localizer["ScopePreviewLoadError"]; _preview = null; }
         finally { _loading = false; }
     }
 
     private async Task ExecuteAsync()
     {
-        if (_preview is null) return;
+        var preview = _preview;
+        if (preview is null) return;
         _loading = true;
         try
         {
             _error = null;
-            await AdministrationClient.ExecuteIdentityPurgeAsync(_preview.InitiatorType, _preview.InitiatorId, _confirmation, CancellationToken.None);
+            await AdministrationClient.ExecuteIdentityPurgeAsync(preview.InitiatorType, preview.InitiatorId, _confirmation, CancellationToken.None);
             _preview = null; _confirmation = string.Empty; _selected = string.Empty;
             _candidates = await AdministrationClient.GetIdentityPurgeCandidatesAsync(CancellationToken.None);
             _success = Localizer["PurgeSuccessMessage"];
         }
-        catch { _error = Localizer["PurgeExecuteError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to execute identity purge for {InitiatorType} {InitiatorId}.", preview.InitiatorType, preview.InitiatorId); _error = Localizer["PurgeExecuteError"]; }
         finally { _loading = false; }
     }
 

@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Localization
 @inject IAdministrationClient AdministrationClient
 @inject IStringLocalizer<Admin> Localizer
+@inject ILogger<Admin> Logger
 
 <PageTitle>@Localizer["PageTitle"]</PageTitle>
 
@@ -88,7 +89,7 @@
     protected override async Task OnInitializedAsync()
     {
         try { _certificateOverview = await AdministrationClient.GetCertificateOverviewAsync(CancellationToken.None); }
-        catch { _certificateOverviewError = Localizer["CertificateOverviewLoadError"]; }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load certificate overview status."); _certificateOverviewError = Localizer["CertificateOverviewLoadError"]; }
     }
 
     private async Task ShowCertificateDetailsAsync(MonitoredCertificateStatus certificate)

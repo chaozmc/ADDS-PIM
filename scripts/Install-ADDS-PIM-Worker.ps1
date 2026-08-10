@@ -9,6 +9,10 @@ param(
     [string] $WorkerGmsaAccount,
 
     [Parameter(Mandatory)]
+    [ValidatePattern('^[^\\]+\\[^\\]+\$$')]
+    [string] $ApiGmsaAccount,
+
+    [Parameter(Mandatory)]
     [ValidatePattern('^(?!0\.0\.0\.0$)(?!::$)(?!127\.0\.0\.1$)(?!::1$).+')]
     [string] $BindAddress,
 
@@ -112,8 +116,8 @@ Assert-GmsaPrerequisite $WorkerGmsaAccount
 
 if (-not $SkipDatabase) {
     if ($PSCmdlet.ShouldProcess("$SqlServerInstance/$DatabaseName", 'Create database and Worker runtime login')) {
-        Invoke-SqlCmd @('-S', $SqlServerInstance, '-E', '-b', '-i', $bootstrapScript,
-            '-v', "DatabaseName=$DatabaseName", "WorkerLogin=$WorkerGmsaAccount")
+        Invoke-SqlCmd @('-S', $SqlServerInstance, '-E', '-C', '-b', '-i', $bootstrapScript,
+            '-v', "DatabaseName=$DatabaseName", "WorkerLogin=$WorkerGmsaAccount", "ApiLogin=$ApiGmsaAccount")
     }
 
     if ($PSCmdlet.ShouldProcess($DatabaseName, 'Apply versioned EF Core migrations')) {
@@ -130,8 +134,8 @@ if (-not $SkipDatabase) {
         finally {
             Pop-Location
         }
-        Invoke-SqlCmd @('-S', $SqlServerInstance, '-E', '-b', '-i', $bootstrapScript,
-            '-v', "DatabaseName=$DatabaseName", "WorkerLogin=$WorkerGmsaAccount")
+        Invoke-SqlCmd @('-S', $SqlServerInstance, '-E', '-C', '-b', '-i', $bootstrapScript,
+            '-v', "DatabaseName=$DatabaseName", "WorkerLogin=$WorkerGmsaAccount", "ApiLogin=$ApiGmsaAccount")
     }
 }
 

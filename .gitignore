@@ -14,6 +14,10 @@ TestResults/
 .env
 .env.*
 
+# Real per-host settings; appsettings.json must only ever contain placeholders.
+**/appsettings.Production.json
+**/appsettings.Local.json
+
 # Private signing keys and certificate containers
 *.pfx
 *.p12

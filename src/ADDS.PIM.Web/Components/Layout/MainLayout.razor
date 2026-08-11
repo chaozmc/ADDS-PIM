@@ -1,10 +1,11 @@
 ﻿@using System.Globalization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Localization
 @using ADDS.PIM.Web.Components.Shared
 @inherits LayoutComponentBase
 @implements IDisposable
 
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IOperatorRequestClient RequestClient
 @inject ICurrentPimActorContext CurrentActor
@@ -90,7 +91,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var identity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var identity = authenticationState.User.Identity?.Name;
         _displayName = string.IsNullOrWhiteSpace(identity) ? Localizer["WelcomeFallback"] : identity.Split('\\').Last();
         await ResolveFriendlyDisplayNameAsync();
         UpdateSection();

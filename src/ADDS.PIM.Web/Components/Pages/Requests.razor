@@ -1,6 +1,7 @@
 @page "/requests"
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Localization
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IOperatorRequestClient RequestClient
 @inject IStringLocalizer<Requests> Localizer
 @inject ILogger<Requests> Logger
@@ -139,7 +140,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _windowsIdentity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _windowsIdentity = authenticationState.User.Identity?.Name;
         if (string.IsNullOrWhiteSpace(_windowsIdentity))
         {
             _error = Localizer["MissingIdentityError"];

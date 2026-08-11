@@ -1,7 +1,8 @@
 @page "/new-request"
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Localization
 @inject IOperatorRequestClient RequestClient
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
 @inject IStringLocalizer<Home> Localizer
 @inject ILogger<Home> Logger
@@ -140,7 +141,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _windowsIdentity = HttpContextAccessor.HttpContext?.User.Identity?.Name;
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _windowsIdentity = authenticationState.User.Identity?.Name;
         try { _entitlements = await RequestClient.ListAvailableEntitlementsAsync(CancellationToken.None); if (_entitlements.Count > 0) SelectEntitlement(); }
         catch (Exception ex) { Logger.LogError(ex, "Failed to load available entitlements."); _error = Localizer["LoadEntitlementsError"]; }
         finally { _loading = false; }

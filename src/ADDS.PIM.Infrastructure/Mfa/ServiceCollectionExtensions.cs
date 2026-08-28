@@ -1,4 +1,5 @@
-using ADDS.PIM.Application.Mfa;
+using ADDS.PIM.Application.Security;
+using ADDS.PIM.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,8 +10,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPimTotpSecretProtection(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<TotpSecretProtectionOptions>().Bind(configuration.GetSection(TotpSecretProtectionOptions.SectionName));
-        services.AddSingleton<ITotpSecretProtector, CertificateTotpSecretProtector>();
-        services.AddSingleton<ITotpSecretProtectorFactory, CertificateTotpSecretProtectorFactory>();
+        services.AddSingleton<ICertificateSecretProtector, CertificateSecretProtector>();
+        services.AddSingleton<ICertificateSecretProtectorFactory, CertificateSecretProtectorFactory>();
         return services;
     }
 }

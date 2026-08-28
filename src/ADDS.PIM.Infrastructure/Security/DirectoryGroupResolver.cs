@@ -1,11 +1,12 @@
 using System.DirectoryServices.Protocols;
 using ADDS.PIM.Application.Administration;
 using ADDS.PIM.Application.Authorization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ADDS.PIM.Infrastructure.Security;
 
-internal sealed class DirectoryGroupResolver(IOptions<ApplicationAccessOptions> options, DirectoryScopeConfiguration directoryScope) : IDirectoryGroupResolver
+internal sealed class DirectoryGroupResolver(IOptions<ApplicationAccessOptions> options, DirectoryScopeConfiguration directoryScope, ILogger<DirectoryGroupResolver> logger) : IDirectoryGroupResolver
 {
     public Task<ResolvedDirectoryGroup?> ResolveAsync(Guid objectGuid, CancellationToken cancellationToken)
     {
@@ -24,8 +25,8 @@ internal sealed class DirectoryGroupResolver(IOptions<ApplicationAccessOptions> 
             if (response.Entries.Count != 1) return Task.FromResult<ResolvedDirectoryGroup?>(null);
             return Task.FromResult(ToGroup(response.Entries[0], objectGuid));
         }
-        catch (DirectoryOperationException) { return Task.FromResult<ResolvedDirectoryGroup?>(null); }
-        catch (LdapException) { return Task.FromResult<ResolvedDirectoryGroup?>(null); }
+        catch (DirectoryOperationException ex) { logger.LogError(ex, "ResolveAsync LDAP directory operation failed for ObjectGuid {ObjectGuid}.", objectGuid); return Task.FromResult<ResolvedDirectoryGroup?>(null); }
+        catch (LdapException ex) { logger.LogError(ex, "ResolveAsync LDAP bind/search failed (ErrorCode={ErrorCode}) for ObjectGuid {ObjectGuid}.", ex.ErrorCode, objectGuid); return Task.FromResult<ResolvedDirectoryGroup?>(null); }
     }
 
     public Task<IReadOnlyList<ResolvedDirectoryGroup>> SearchAsync(string searchTerm, CancellationToken cancellationToken)
@@ -47,8 +48,8 @@ internal sealed class DirectoryGroupResolver(IOptions<ApplicationAccessOptions> 
             var groups = response.Entries.Cast<SearchResultEntry>().Select(entry => ToGroup(entry, ReadGuid(entry, "objectGUID"))).Where(group => group is not null).Cast<ResolvedDirectoryGroup>().OrderBy(group => group.DomainQualifiedName, StringComparer.OrdinalIgnoreCase).ToArray();
             return Task.FromResult<IReadOnlyList<ResolvedDirectoryGroup>>(groups);
         }
-        catch (DirectoryOperationException) { return Task.FromResult<IReadOnlyList<ResolvedDirectoryGroup>>([]); }
-        catch (LdapException) { return Task.FromResult<IReadOnlyList<ResolvedDirectoryGroup>>([]); }
+        catch (DirectoryOperationException ex) { logger.LogError(ex, "SearchAsync LDAP directory operation failed for search term {SearchTerm}.", searchTerm); return Task.FromResult<IReadOnlyList<ResolvedDirectoryGroup>>([]); }
+        catch (LdapException ex) { logger.LogError(ex, "SearchAsync LDAP bind/search failed (ErrorCode={ErrorCode}) for search term {SearchTerm}.", ex.ErrorCode, searchTerm); return Task.FromResult<IReadOnlyList<ResolvedDirectoryGroup>>([]); }
     }
 
     private ResolvedDirectoryGroup? ToGroup(SearchResultEntry entry, Guid objectGuid)

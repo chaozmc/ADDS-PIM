@@ -105,7 +105,7 @@ public sealed class ApproveMembershipRequestUseCase(
             request.TargetGroupId,
             request.RequestedTtlSeconds,
             request.TicketReference,
-            auditContext with { AdministratorAccountId = approver.AccountId, AdministratorDisplayName = approver.DisplayName });
+            auditContext with { AdministratorAccountId = approver.AccountId, AdministratorDisplayName = approver.DisplayName, DecidingApproverPersonId = approver.PersonId, DecidingApproverDisplayName = approver.DisplayName });
 
         var execution = await executor.ExecuteFromApprovedAsync(command, cancellationToken);
         return new(ApprovalDecisionOutcome.Accepted, execution);
@@ -152,7 +152,7 @@ public sealed class RejectMembershipRequestUseCase(
                 requestId,
                 MembershipRequestStatus.AwaitingApproval,
                 MembershipRequestStatus.Rejected,
-                auditContext with { FailureCategory = "ApproverRejected", AdministratorAccountId = approver.AccountId, AdministratorDisplayName = approver.DisplayName },
+                auditContext with { FailureCategory = "ApproverRejected", AdministratorAccountId = approver.AccountId, AdministratorDisplayName = approver.DisplayName, DecidingApproverPersonId = approver.PersonId, DecidingApproverDisplayName = approver.DisplayName },
                 rejectionReason.Trim(),
                 cancellationToken);
         }

@@ -2,15 +2,19 @@ using ADDS.PIM.Application.Administration;
 using ADDS.PIM.Contracts.Administration.V1;
 using ADDS.PIM.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ADDS.PIM.Infrastructure.Persistence;
 
-public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeProvider timeProvider) : IDirectoryReconciliationStore
+public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeProvider timeProvider, ILogger<EfDirectoryReconciliationStore> logger) : IDirectoryReconciliationStore
 {
     public async Task<AdministrationUpdateResult> QueueAsync(AdministrationActor actor, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
     {
         if (await dbContext.DirectoryReconciliationRuns.AnyAsync(run => run.Status == DirectoryReconciliationRunStatus.Queued || run.Status == DirectoryReconciliationRunStatus.Executing, cancellationToken))
+        {
+            logger.LogWarning("QueueAsync conflict: a reconciliation run is already Queued or Executing for DirectoryScopeId {DirectoryScopeId}.", actor.DirectoryScopeId);
             return AdministrationUpdateResult.Conflict;
+        }
 
         var now = timeProvider.GetUtcNow();
         var run = new DirectoryReconciliationRunEntity
@@ -29,7 +33,7 @@ public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeP
             AuthenticationMethod = "Windows", PolicyRequirementsSummary = $"run:{run.RunId:D};scope:{actor.DirectoryScopeId:D}"
         });
         try { await dbContext.SaveChangesAsync(cancellationToken); return AdministrationUpdateResult.Updated; }
-        catch (DbUpdateException) { return AdministrationUpdateResult.Conflict; }
+        catch (DbUpdateException ex) { logger.LogWarning(ex, "QueueAsync failed to save the new reconciliation run for DirectoryScopeId {DirectoryScopeId}.", actor.DirectoryScopeId); return AdministrationUpdateResult.Conflict; }
     }
 
     public async Task<ReconciliationWorkItem?> ClaimNextAsync(CancellationToken cancellationToken)
@@ -46,7 +50,7 @@ public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeP
             await transaction.CommitAsync(cancellationToken);
             return new ReconciliationWorkItem(run.RunId);
         }
-        catch (DbUpdateException) { await transaction.RollbackAsync(cancellationToken); return null; }
+        catch (DbUpdateException ex) { logger.LogWarning(ex, "ClaimNextAsync failed to claim RunId {RunId}; rolled back.", run.RunId); await transaction.RollbackAsync(cancellationToken); return null; }
     }
 
     public async Task<IReadOnlyList<ReconciliationCandidate>> ListCandidatesAsync(Guid runId, CancellationToken cancellationToken)
@@ -102,7 +106,12 @@ public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeP
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var finding = await dbContext.DirectoryReconciliationFindings.SingleOrDefaultAsync(item => item.FindingId == request.FindingId, cancellationToken);
         if (finding is null) return AdministrationUpdateResult.NotFound;
-        if (!finding.RowVersion.SequenceEqual(findingRowVersion) || finding.IsResolved || finding.DirectoryScopeId != request.Actor.DirectoryScopeId) return AdministrationUpdateResult.Conflict;
+        if (!finding.RowVersion.SequenceEqual(findingRowVersion) || finding.IsResolved || finding.DirectoryScopeId != request.Actor.DirectoryScopeId)
+        {
+            logger.LogWarning("DeactivateFromFindingAsync conflict for FindingId {FindingId}: RowVersionMismatch={RowVersionMismatch}, AlreadyResolved={AlreadyResolved}, DirectoryScopeMismatch={DirectoryScopeMismatch}.",
+                request.FindingId, !finding.RowVersion.SequenceEqual(findingRowVersion), finding.IsResolved, finding.DirectoryScopeId != request.Actor.DirectoryScopeId);
+            return AdministrationUpdateResult.Conflict;
+        }
 
         var now = timeProvider.GetUtcNow();
         if (finding.EntityType == DirectoryReconciliationEntityType.DirectoryAccount)
@@ -123,7 +132,12 @@ public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeP
             if (group is null) return AdministrationUpdateResult.NotFound;
             var policy = await dbContext.GroupPolicies.SingleOrDefaultAsync(item => item.GroupPolicyId == group.GroupPolicyId, cancellationToken);
             if (policy is null) return AdministrationUpdateResult.NotFound;
-            if (!group.IsEnabledForRequests || !policy.IsActive) return AdministrationUpdateResult.Conflict;
+            if (!group.IsEnabledForRequests || !policy.IsActive)
+            {
+                logger.LogWarning("DeactivateFromFindingAsync conflict for FindingId {FindingId}: GroupAlreadyDisabled={GroupAlreadyDisabled}, PolicyAlreadyInactive={PolicyAlreadyInactive}.",
+                    request.FindingId, !group.IsEnabledForRequests, !policy.IsActive);
+                return AdministrationUpdateResult.Conflict;
+            }
             group.IsEnabledForRequests = false; group.ModifiedUtc = now; policy.IsActive = false; policy.ModifiedUtc = now;
             var entitlements = await dbContext.DirectEntitlements.Where(entitlement => entitlement.TargetGroupId == group.TargetGroupId && entitlement.IsActive).ToArrayAsync(cancellationToken);
             foreach (var entitlement in entitlements) { entitlement.IsActive = false; entitlement.ModifiedUtc = now; entitlement.ModifiedBy = auditContext.FrontendClientId; }
@@ -137,7 +151,7 @@ public sealed class EfDirectoryReconciliationStore(PimDbContext dbContext, TimeP
             await transaction.CommitAsync(cancellationToken);
             return AdministrationUpdateResult.Updated;
         }
-        catch (DbUpdateConcurrencyException) { await transaction.RollbackAsync(cancellationToken); return AdministrationUpdateResult.Conflict; }
+        catch (DbUpdateConcurrencyException ex) { logger.LogWarning(ex, "DeactivateFromFindingAsync hit a concurrent update for FindingId {FindingId}; rolled back.", request.FindingId); await transaction.RollbackAsync(cancellationToken); return AdministrationUpdateResult.Conflict; }
     }
 
     private async Task SetFinalStatusAsync(Guid runId, DirectoryReconciliationRunStatus status, string? failureCategory, DateTimeOffset completedUtc, CancellationToken cancellationToken)

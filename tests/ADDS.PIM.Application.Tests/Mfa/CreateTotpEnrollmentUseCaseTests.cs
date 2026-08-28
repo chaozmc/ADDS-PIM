@@ -1,4 +1,5 @@
 using ADDS.PIM.Application.Mfa;
+using ADDS.PIM.Application.Security;
 
 namespace ADDS.PIM.Application.Tests.Mfa;
 
@@ -26,7 +27,7 @@ public sealed class CreateTotpEnrollmentUseCaseTests
         Assert.Empty(store.Created);
     }
 
-    private sealed class FakeProtector : ITotpSecretProtector
+    private sealed class FakeProtector : ICertificateSecretProtector
     {
         public string KeyId => "test-key";
         public byte[] Protect(ReadOnlySpan<byte> secret) => secret.ToArray().Reverse().ToArray();

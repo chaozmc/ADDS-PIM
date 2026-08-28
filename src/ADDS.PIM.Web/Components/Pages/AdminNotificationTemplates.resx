@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Benachrichtigungs-Vorlagen</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Benachrichtigungs-Vorlagen</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Betreff und Inhalt der Benachrichtigungs-E-Mails anpassen. Der Text gilt für alle Zielgruppen und beide Ergebnisse (erfolgreich/nicht erfolgreich) - Unterschiede kommen über die Platzhalter unten in den Text.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Vorlage wird geladen…</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Die Vorlage konnte nicht geladen werden.</value>
+  </data>
+  <data name="MembershipRequestOutcomeHeading" xml:space="preserve">
+    <value>Request result - Group-Notification</value>
+  </data>
+  <data name="RequesterOutcomeNotificationHeading" xml:space="preserve">
+    <value>Request result - Requester Notification</value>
+  </data>
+  <data name="ApprovalPendingNotificationHeading" xml:space="preserve">
+    <value>Approval pending - Approver Notification</value>
+  </data>
+  <data name="ApprovalDecisionNotificationHeading" xml:space="preserve">
+    <value>Approval decided - Other Approvers Notification</value>
+  </data>
+  <data name="TemplateSelectorLabel" xml:space="preserve">
+    <value>Vorlage</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>Betreff</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>Inhalt</value>
+  </data>
+  <data name="SaveSuccessMessage" xml:space="preserve">
+    <value>Die Vorlage wurde gespeichert.</value>
+  </data>
+  <data name="SaveError" xml:space="preserve">
+    <value>Die Vorlage konnte nicht gespeichert werden.</value>
+  </data>
+  <data name="PlaceholdersHeading" xml:space="preserve">
+    <value>Verfügbare Platzhalter</value>
+  </data>
+  <data name="PlaceholdersIntro" xml:space="preserve">
+    <value>Diese Platzhalter werden beim Versand durch die tatsächlichen Werte des jeweiligen Antrags ersetzt.</value>
+  </data>
+  <data name="PlaceholderColumnHeader" xml:space="preserve">
+    <value>Platzhalter</value>
+  </data>
+  <data name="PlaceholderDescriptionColumnHeader" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="PlaceholderPersonDisplayName" xml:space="preserve">
+    <value>Name der antragstellenden Person</value>
+  </data>
+  <data name="PlaceholderActorAccountDisplayName" xml:space="preserve">
+    <value>Name des ausführenden Kontos (Actor)</value>
+  </data>
+  <data name="PlaceholderTargetAccountDisplayName" xml:space="preserve">
+    <value>Name des Zielkontos</value>
+  </data>
+  <data name="PlaceholderTargetGroupDisplayName" xml:space="preserve">
+    <value>Name der Zielgruppe</value>
+  </data>
+  <data name="PlaceholderRequestedTtlHours" xml:space="preserve">
+    <value>Angeforderte Gültigkeitsdauer in Stunden</value>
+  </data>
+  <data name="PlaceholderTicketReference" xml:space="preserve">
+    <value>Ticket-Referenz (leer, falls keine angegeben wurde)</value>
+  </data>
+  <data name="PlaceholderRequestReason" xml:space="preserve">
+    <value>Begründung, die der Antragsteller beim Stellen des Antrags angegeben hat</value>
+  </data>
+  <data name="PlaceholderStatusText" xml:space="preserve">
+    <value>Tatsächlicher Endstatus: Succeeded, Failed, Rejected, Expired oder Cancelled</value>
+  </data>
+  <data name="PlaceholderOutcomeText" xml:space="preserve">
+    <value>Grobe Zusammenfassung: "Successful" oder "Not successful"</value>
+  </data>
+  <data name="PlaceholderOutcomeReason" xml:space="preserve">
+    <value>Begründung des Endstatus (z. B. Ablehnungsgrund oder Fehlermeldung)</value>
+  </data>
+  <data name="PlaceholderOccurredUtc" xml:space="preserve">
+    <value>Zeitpunkt des Abschlusses (UTC)</value>
+  </data>
+  <data name="PlaceholderRequestId" xml:space="preserve">
+    <value>Eindeutige ID des Antrags</value>
+  </data>
+  <data name="PlaceholderDecidingApproverDisplayName" xml:space="preserve">
+    <value>Anzeigename des Genehmigers, der entschieden hat (nur bei Genehmigt/Abgelehnt-Vorlage relevant)</value>
+  </data>
+</root>

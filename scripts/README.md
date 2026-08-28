@@ -29,6 +29,7 @@ environment's execution policy requires it (`AllSigned`).
 | `Install-ADDS-PIM-Worker.ps1` | End-to-end AD Worker install: database bootstrap + EF Core migrations, host configuration, Windows service creation under a gMSA. |
 | `Install-AdWorkerHostConfiguration.ps1` | Writes just the Worker's registry-based host configuration (called by `Install-ADDS-PIM-Worker.ps1`, or standalone to reconfigure an existing install). |
 | `Grant-ADDS-PIM-DatabasePermissions.ps1` | Standalone re-run of the Worker/API gMSA database login, role membership and table grants against an already-installed database, without touching migrations, the Worker service, or IIS. |
+| `Update-ADDS-PIM-Database.ps1` | Comfortable re-run of "apply pending EF Core migrations, then re-grant gMSA permissions" against an already-installed environment (e.g. a separate int/test system) after pulling in a change that added a migration. Calls `Grant-ADDS-PIM-DatabasePermissions.ps1` itself; does not publish or restart Web/API. |
 | `Initialize-ADDS-PIM-DirectoryScope.ps1` | One-time, idempotent creation of the `dbo.DirectoryScopes` row for this environment's configured `Directory:ScopeId` - required before any Person/DirectoryAccount/TargetGroup can be created through the admin UI. Seeds no other data. |
 | `Uninstall-ADDS-PIM-Worker.ps1` | Removes the Worker Windows service (and optionally its registry configuration). |
 | `Register-ADDS-PIM-WebSigningCertificate.ps1` | One-time bootstrap (or rotation) of the Web-to-API request-signing certificate in the database. |

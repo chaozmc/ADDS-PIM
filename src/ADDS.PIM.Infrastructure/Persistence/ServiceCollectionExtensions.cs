@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 using ADDS.PIM.Application.Audit;
 using ADDS.PIM.Infrastructure.Audit;
 using ADDS.PIM.Application.Diagnostics;
+using ADDS.PIM.Application.Notifications;
+using ADDS.PIM.Infrastructure.Mail;
 
 namespace ADDS.PIM.Infrastructure.Persistence;
 
@@ -56,6 +58,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IApprovalDataSource, EfApprovalDataSource>();
         services.AddScoped<IOrphanedApprovalRequestStore, EfOrphanedApprovalRequestStore>();
         services.AddScoped<ADDS.PIM.Application.Worker.IWorkerServerCertificateObservationStore, EfWorkerServerCertificateObservationStore>();
+        services.AddScoped<IMailSender, SmtpMailSender>();
+        services.AddScoped<IResolvedMailSettingsProvider, EfResolvedMailSettingsProvider>();
+        services.AddScoped<IMailNotificationOutboxStore, EfMailNotificationOutboxStore>();
         return services;
     }
 }

@@ -62,6 +62,27 @@
   <data name="StatusLabel" xml:space="preserve">
     <value>Status:</value>
   </data>
+  <data name="NotificationEmailTitle" xml:space="preserve">
+    <value>Notification Email</value>
+  </data>
+  <data name="NotificationEmailAdSourceLabel" xml:space="preserve">
+    <value>From AD (login account):</value>
+  </data>
+  <data name="NotificationEmailNone" xml:space="preserve">
+    <value>none</value>
+  </data>
+  <data name="NotificationEmailOverrideLabel" xml:space="preserve">
+    <value>Manual override address</value>
+  </data>
+  <data name="NotificationEmailOverrideHint" xml:space="preserve">
+    <value>Takes precedence over the AD address when set (e.g. at the person's request). Leave blank to use the AD address.</value>
+  </data>
+  <data name="NotificationEmailSaveSuccess" xml:space="preserve">
+    <value>The notification email was saved.</value>
+  </data>
+  <data name="NotificationEmailSaveError" xml:space="preserve">
+    <value>The notification email could not be saved.</value>
+  </data>
   <data name="LinkedAccountsTitle" xml:space="preserve">
     <value>Linked AD accounts</value>
   </data>

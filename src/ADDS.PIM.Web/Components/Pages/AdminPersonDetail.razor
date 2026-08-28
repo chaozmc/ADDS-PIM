@@ -28,6 +28,32 @@ else
     <section>
         <h2>@_detail.Person.DisplayName</h2>
         <p>@Localizer["StatusLabel"] <StatusBadge Text="@(_detail.Person.IsActive ? Localizer["StatusActive"] : Localizer["StatusDeactivated"])" Variant="@(_detail.Person.IsActive ? StatusBadge.BadgeVariant.Success : StatusBadge.BadgeVariant.Neutral)" /></p>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="h5">@Localizer["NotificationEmailTitle"]</h3>
+                <p class="mb-2">@Localizer["NotificationEmailAdSourceLabel"] <strong>@(DirectoryNotificationEmail ?? Localizer["NotificationEmailNone"].Value)</strong></p>
+                @if (_notificationEmailError is not null)
+                {
+                    <p class="submission-result failed" role="alert">@_notificationEmailError</p>
+                }
+                @if (_notificationEmailSuccess is not null)
+                {
+                    <p class="submission-result succeeded" role="status">@_notificationEmailSuccess</p>
+                }
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-8">
+                        <label class="form-label" for="notification-email-override">@Localizer["NotificationEmailOverrideLabel"]</label>
+                        <input id="notification-email-override" class="form-control" @bind="_notificationEmailOverride" @bind:event="oninput" />
+                        <div class="form-text">@Localizer["NotificationEmailOverrideHint"]</div>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary" @onclick="SaveNotificationEmailOverrideAsync" disabled="@_savingNotificationEmail">@SharedLocalizer["SaveButton"]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="mb-0">@Localizer["LinkedAccountsTitle"]</h3>
             <button class="btn btn-primary" @onclick="OpenAddDialogAsync" disabled="@(!_detail.Person.IsActive)"><i class="bi bi-link-45deg" aria-hidden="true"></i> @Localizer["AssignAccountButton"]</button>
@@ -196,13 +222,43 @@ else
     private ManagedPersonAccountLink? _pendingReactivate;
     private ConfirmDialog? _addDialog;
     private ConfirmDialog? _purposeDialog;
+    private string? _notificationEmailOverride;
+    private bool _savingNotificationEmail;
+    private string? _notificationEmailError;
+    private string? _notificationEmailSuccess;
 
     protected override Task OnParametersSetAsync() => LoadAsync();
 
     private async Task LoadAsync()
     {
-        try { _error = null; _detail = await AdministrationClient.GetPersonDetailAsync(PersonId, CancellationToken.None); }
+        try
+        {
+            _error = null;
+            _detail = await AdministrationClient.GetPersonDetailAsync(PersonId, CancellationToken.None);
+            _notificationEmailOverride = _detail.Person.NotificationEmailOverride;
+        }
         catch (Exception ex) { Logger.LogError(ex, "Failed to load person detail for PersonId {PersonId}.", PersonId); _error = Localizer["LoadPersonError"]; }
+    }
+
+    private string? DirectoryNotificationEmail => _detail?.Accounts.FirstOrDefault(link => link.IsActive && link.MayAuthenticate)?.EmailAddress;
+
+    private async Task SaveNotificationEmailOverrideAsync()
+    {
+        if (_detail is null) return;
+        _savingNotificationEmail = true;
+        try
+        {
+            _notificationEmailError = null; _notificationEmailSuccess = null;
+            await AdministrationClient.SetPersonNotificationEmailOverrideAsync(PersonId, _notificationEmailOverride, _detail.Person.RowVersion, CancellationToken.None);
+            _notificationEmailSuccess = Localizer["NotificationEmailSaveSuccess"];
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save notification email override for PersonId {PersonId}.", PersonId);
+            _notificationEmailError = Localizer["NotificationEmailSaveError"];
+        }
+        finally { _savingNotificationEmail = false; }
     }
 
     private async Task OpenAddDialogAsync()

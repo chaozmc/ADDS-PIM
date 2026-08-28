@@ -1,10 +1,11 @@
 using System.Security.Cryptography;
 using ADDS.PIM.Application.Audit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ADDS.PIM.Infrastructure.Persistence;
 
-public sealed class EfPurgeEventOutboxStore(PimDbContext dbContext) : IPurgeEventOutboxStore
+public sealed class EfPurgeEventOutboxStore(PimDbContext dbContext, ILogger<EfPurgeEventOutboxStore> logger) : IPurgeEventOutboxStore
 {
     public async Task<IReadOnlyList<PurgeEventOutboxMessage>> ListPendingAsync(int maximumCount, CancellationToken cancellationToken)
     {
@@ -44,7 +45,7 @@ public sealed class EfPurgeEventOutboxStore(PimDbContext dbContext) : IPurgeEven
         if (entity is null || entity.DeliveredUtc is not null || !CryptographicOperations.FixedTimeEquals(entity.RowVersion, rowVersion)) return false;
         update(entity);
         try { await dbContext.SaveChangesAsync(cancellationToken); return true; }
-        catch (DbUpdateConcurrencyException) { return false; }
+        catch (DbUpdateConcurrencyException ex) { logger.LogWarning(ex, "UpdateAsync hit a concurrent update for OutboxId {OutboxId}.", outboxId); return false; }
     }
 
     private static PurgeEventOutboxMessage Map(Entities.PurgeEventOutboxEntity entity)

@@ -4,6 +4,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using ADDS.PIM.Application.Worker;
 using ADDS.PIM.Contracts.Worker.V1;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ADDS.PIM.Infrastructure.Worker;
@@ -13,7 +14,8 @@ internal sealed class HttpsWorkerMembershipClient(
     IOptions<WorkerClientOptions> options,
     TimeProvider timeProvider,
     WorkerServerCertificateObservationCache observationCache,
-    IWorkerServerCertificateObservationStore observationStore) : IWorkerMembershipClient
+    IWorkerServerCertificateObservationStore observationStore,
+    ILogger<HttpsWorkerMembershipClient> logger) : IWorkerMembershipClient
 {
     public async Task<WorkerMembershipDispatchResult> DispatchAsync(
         DispatchTemporaryGroupMembershipCommand request,
@@ -39,14 +41,17 @@ internal sealed class HttpsWorkerMembershipClient(
                     : new(WorkerMembershipDispatchKind.Completed, result, (int)response.StatusCode, null);
             }
 
+            logger.LogWarning("DispatchAsync: worker rejected RequestId {RequestId} at {Endpoint} with status code {StatusCode}.", request.RequestId, endpoint, (int)response.StatusCode);
             return new(WorkerMembershipDispatchKind.Rejected, null, (int)response.StatusCode, "WorkerRejectedCommand");
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
+            logger.LogError(ex, "DispatchAsync timed out for RequestId {RequestId} at {Endpoint}.", request.RequestId, endpoint);
             return new(WorkerMembershipDispatchKind.Timeout, null, null, "WorkerTimeout");
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
+            logger.LogError(ex, "DispatchAsync transport failure for RequestId {RequestId} at {Endpoint}.", request.RequestId, endpoint);
             return new(WorkerMembershipDispatchKind.TransportFailure, null, null, "WorkerTransportFailure");
         }
         finally
@@ -65,9 +70,10 @@ internal sealed class HttpsWorkerMembershipClient(
         {
             await observationStore.RecordAsync(observation, CancellationToken.None);
         }
-        catch
+        catch (Exception ex)
         {
             // Diagnostic cache only - a write failure here must never surface as a membership dispatch failure.
+            logger.LogWarning(ex, "PersistObservedServerCertificateAsync failed to record the observed worker server certificate (Thumbprint={Thumbprint}); certificate-overview diagnostics may be stale.", observation.Thumbprint);
         }
     }
 

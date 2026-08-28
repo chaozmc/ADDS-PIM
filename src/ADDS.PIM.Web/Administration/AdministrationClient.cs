@@ -13,6 +13,11 @@ public interface IAdministrationClient
     Task<IReadOnlyList<ManagedTicketReferencePattern>> GetTicketReferencePatternsAsync(CancellationToken cancellationToken);
     Task UpsertTicketReferencePatternAsync(ManagedTicketReferencePattern pattern, CancellationToken cancellationToken);
     Task DeleteTicketReferencePatternAsync(ManagedTicketReferencePattern pattern, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ManagedGroupNotificationRecipient>> GetGroupNotificationRecipientsAsync(CancellationToken cancellationToken);
+    Task UpsertGroupNotificationRecipientAsync(ManagedGroupNotificationRecipient recipient, CancellationToken cancellationToken);
+    Task DeleteGroupNotificationRecipientAsync(ManagedGroupNotificationRecipient recipient, CancellationToken cancellationToken);
+    Task<NotificationTemplateSnapshot> GetNotificationTemplateAsync(string templateKey, CancellationToken cancellationToken);
+    Task UpsertNotificationTemplateAsync(string templateKey, string subject, string body, string? rowVersion, CancellationToken cancellationToken);
     Task<DirectoryReconciliationOverview> GetDirectoryReconciliationAsync(CancellationToken cancellationToken);
     Task<AuditLogPage> GetAuditLogAsync(int pageNumber, int pageSize, DateTimeOffset? fromUtc, DateTimeOffset? toUtc, string? eventType, string? result, string? actorAccount, CancellationToken cancellationToken);
     Task<TechnicalErrorLogPage> GetTechnicalErrorsAsync(int pageNumber, int pageSize, DateTimeOffset? fromUtc, DateTimeOffset? toUtc, Guid? requestId, Guid? correlationId, CancellationToken cancellationToken);
@@ -50,11 +55,20 @@ public interface IAdministrationClient
     Task<IReadOnlyList<ManagedGroupApprover>> GetGroupApproversAsync(Guid targetGroupId, CancellationToken cancellationToken);
     Task AddGroupApproverAsync(Guid targetGroupId, Guid personId, CancellationToken cancellationToken);
     Task DeactivateGroupApproverAsync(Guid targetGroupId, ManagedGroupApprover approver, CancellationToken cancellationToken);
+    Task UpdateGroupApproverNotificationPreferenceAsync(Guid targetGroupId, ManagedGroupApprover approver, bool notifyByEmail, CancellationToken cancellationToken);
     Task<IReadOnlyList<ManagedOrphanedApprovalRequest>> GetOrphanedApprovalRequestsAsync(CancellationToken cancellationToken);
     Task ExpireOrphanedApprovalRequestAsync(Guid requestId, CancellationToken cancellationToken);
     Task<TotpProtectionCertificateStatus> GetTotpProtectionCertificateStatusAsync(CancellationToken cancellationToken);
     Task RotateTotpProtectionCertificateAsync(string incomingCertificateThumbprint, string confirmation, CancellationToken cancellationToken);
     Task<CertificateOverview> GetCertificateOverviewAsync(CancellationToken cancellationToken);
+    Task<MailSettingsSnapshot> GetMailSettingsAsync(CancellationToken cancellationToken);
+    Task UpsertMailSettingsAsync(bool isEnabled, string smtpHost, int smtpPort, string senderAddress, string? username, string? newPassword, bool clearPassword, SmtpTlsMode tlsMode, string? rowVersion, CancellationToken cancellationToken);
+    Task<MailSettingsTestResult> TestMailSettingsAsync(string recipientAddress, CancellationToken cancellationToken);
+    Task<MailNotificationOutboxStatus> GetMailNotificationOutboxStatusAsync(CancellationToken cancellationToken);
+    Task PurgeMailNotificationOutboxAsync(CancellationToken cancellationToken);
+    Task<RequesterNotificationSettingsSnapshot> GetRequesterNotificationSettingsAsync(CancellationToken cancellationToken);
+    Task UpsertRequesterNotificationSettingsAsync(string? ccAddress, string? bccAddress, string? rowVersion, CancellationToken cancellationToken);
+    Task SetPersonNotificationEmailOverrideAsync(Guid personId, string? notificationEmailOverride, string rowVersion, CancellationToken cancellationToken);
 }
 
 /// <summary>Every call resolves the real, currently Kerberos-authenticated actor via <see cref="ICurrentPimActorContext"/> - the Actor identity sent to the API (and therefore the ActorAccountId attributed on every resulting audit event) is never a static configuration value.</summary>
@@ -151,6 +165,42 @@ public sealed class AdministrationClient(HttpClient httpClient, OperatorTestOpti
         using var response = await SendAsync(HttpMethod.Delete, path, body, cancellationToken); response.EnsureSuccessStatusCode();
     }
 
+    public Task<IReadOnlyList<ManagedGroupNotificationRecipient>> GetGroupNotificationRecipientsAsync(CancellationToken cancellationToken)
+        => PostAsync<IReadOnlyList<ManagedGroupNotificationRecipient>>("/api/v1/admin/settings/group-notification-recipients/query", cancellationToken);
+
+    public async Task UpsertGroupNotificationRecipientAsync(ManagedGroupNotificationRecipient recipient, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var path = $"/api/v1/admin/settings/group-notification-recipients/{recipient.GroupNotificationRecipientId:D}";
+        var body = JsonSerializer.SerializeToUtf8Bytes(new UpsertGroupNotificationRecipientRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), recipient.GroupNotificationRecipientId, recipient.TargetGroupId, recipient.EmailAddress, recipient.RecipientType, recipient.IsActive, recipient.RowVersion));
+        using var response = await SendAsync(HttpMethod.Put, path, body, cancellationToken); response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeleteGroupNotificationRecipientAsync(ManagedGroupNotificationRecipient recipient, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var path = $"/api/v1/admin/settings/group-notification-recipients/{recipient.GroupNotificationRecipientId:D}";
+        var body = JsonSerializer.SerializeToUtf8Bytes(new DeleteGroupNotificationRecipientRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), recipient.GroupNotificationRecipientId, recipient.RowVersion));
+        using var response = await SendAsync(HttpMethod.Delete, path, body, cancellationToken); response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<NotificationTemplateSnapshot> GetNotificationTemplateAsync(string templateKey, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var body = JsonSerializer.SerializeToUtf8Bytes(new QueryNotificationTemplateRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), templateKey));
+        using var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/settings/notification-templates/query", body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<NotificationTemplateSnapshot>(cancellationToken) ?? throw new InvalidOperationException("The API response was invalid.");
+    }
+
+    public async Task UpsertNotificationTemplateAsync(string templateKey, string subject, string body, string? rowVersion, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var requestBody = JsonSerializer.SerializeToUtf8Bytes(new UpsertNotificationTemplateRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), templateKey, subject, body, rowVersion));
+        using var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/settings/notification-templates/upsert", requestBody, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
     public Task<TotpProtectionCertificateStatus> GetTotpProtectionCertificateStatusAsync(CancellationToken cancellationToken)
         => PostAsync<TotpProtectionCertificateStatus>("/api/v1/admin/settings/totp-protection-certificate/status/query", cancellationToken);
 
@@ -164,6 +214,56 @@ public sealed class AdministrationClient(HttpClient httpClient, OperatorTestOpti
 
     public Task<CertificateOverview> GetCertificateOverviewAsync(CancellationToken cancellationToken)
         => PostAsync<CertificateOverview>("/api/v1/admin/certificates/overview/query", cancellationToken);
+
+    public Task<MailSettingsSnapshot> GetMailSettingsAsync(CancellationToken cancellationToken)
+        => PostAsync<MailSettingsSnapshot>("/api/v1/admin/settings/mail/query", cancellationToken);
+
+    public async Task UpsertMailSettingsAsync(bool isEnabled, string smtpHost, int smtpPort, string senderAddress, string? username, string? newPassword, bool clearPassword, SmtpTlsMode tlsMode, string? rowVersion, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var body = JsonSerializer.SerializeToUtf8Bytes(new UpsertMailSettingsRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), isEnabled, smtpHost, smtpPort, senderAddress, username, newPassword, clearPassword, tlsMode, rowVersion));
+        using var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/settings/mail/upsert", body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public Task<MailNotificationOutboxStatus> GetMailNotificationOutboxStatusAsync(CancellationToken cancellationToken)
+        => PostAsync<MailNotificationOutboxStatus>("/api/v1/admin/settings/mail/outbox-status/query", cancellationToken);
+
+    public async Task PurgeMailNotificationOutboxAsync(CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var body = JsonSerializer.SerializeToUtf8Bytes(new PurgeMailNotificationOutboxRequest(new(actor.DirectoryScopeId, actor.ObjectGuid)));
+        using var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/settings/mail/outbox/purge", body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<MailSettingsTestResult> TestMailSettingsAsync(string recipientAddress, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var body = JsonSerializer.SerializeToUtf8Bytes(new TestMailSettingsRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), recipientAddress));
+        using var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/settings/mail/test", body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<MailSettingsTestResult>(cancellationToken) ?? throw new InvalidOperationException("The API response was invalid.");
+    }
+
+    public Task<RequesterNotificationSettingsSnapshot> GetRequesterNotificationSettingsAsync(CancellationToken cancellationToken)
+        => PostAsync<RequesterNotificationSettingsSnapshot>("/api/v1/admin/settings/notification-requester/query", cancellationToken);
+
+    public async Task UpsertRequesterNotificationSettingsAsync(string? ccAddress, string? bccAddress, string? rowVersion, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var body = JsonSerializer.SerializeToUtf8Bytes(new UpsertRequesterNotificationSettingsRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), ccAddress, bccAddress, rowVersion));
+        using var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/settings/notification-requester/upsert", body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task SetPersonNotificationEmailOverrideAsync(Guid personId, string? notificationEmailOverride, string rowVersion, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var body = JsonSerializer.SerializeToUtf8Bytes(new SetPersonNotificationEmailOverrideRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), personId, notificationEmailOverride, rowVersion));
+        using var response = await SendAsync(HttpMethod.Post, $"/api/v1/admin/persons/{personId:D}/notification-email-override", body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
 
     public Task<IReadOnlyList<ManagedPerson>> GetPersonsAsync(CancellationToken cancellationToken) => PostAsync<IReadOnlyList<ManagedPerson>>("/api/v1/admin/persons/query", cancellationToken);
     public async Task<ManagedPersonDetail> GetPersonDetailAsync(Guid personId, CancellationToken cancellationToken) => await PostAsync<ManagedPersonDetail>($"/api/v1/admin/persons/{personId:D}/detail/query", cancellationToken);
@@ -369,6 +469,15 @@ public sealed class AdministrationClient(HttpClient httpClient, OperatorTestOpti
         var actor = await RequireActorAsync(cancellationToken);
         var path = $"/api/v1/admin/target-groups/{targetGroupId:D}/approvers/{approver.GroupApproverId:D}/deactivate";
         var body = JsonSerializer.SerializeToUtf8Bytes(new DeactivateGroupApproverRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), targetGroupId, approver.GroupApproverId, approver.RowVersion));
+        using var response = await SendAsync(HttpMethod.Post, path, body, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task UpdateGroupApproverNotificationPreferenceAsync(Guid targetGroupId, ManagedGroupApprover approver, bool notifyByEmail, CancellationToken cancellationToken)
+    {
+        var actor = await RequireActorAsync(cancellationToken);
+        var path = $"/api/v1/admin/target-groups/{targetGroupId:D}/approvers/{approver.GroupApproverId:D}/notification-preference";
+        var body = JsonSerializer.SerializeToUtf8Bytes(new UpdateGroupApproverNotificationPreferenceRequest(new(actor.DirectoryScopeId, actor.ObjectGuid), targetGroupId, approver.GroupApproverId, notifyByEmail, approver.RowVersion));
         using var response = await SendAsync(HttpMethod.Post, path, body, cancellationToken);
         response.EnsureSuccessStatusCode();
     }

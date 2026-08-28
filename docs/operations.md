@@ -1,6 +1,6 @@
 # Operations
 
-This page is the reference for AD operations technicians and administrators who install, configure, operate, and troubleshoot ADDS-PIM: what has to exist before installation, how the components go in, how the signing and secret-protection certificates are provisioned and rotated, how the Worker host is configured, what to monitor, and what the error categories mean when something goes wrong. Certificate operations also matter to security-governance reviewers, since certificate rollover is a security-relevant administrative action that is audited like any other.
+This page is the reference for AD operations technicians and administrators who install, configure, operate, and troubleshoot ADDS-PIM: what has to exist before installation, how the components go in, how the signing and secret-protection certificates are provisioned and rotated, how outbound email/notifications are configured, how the Worker host is configured, what to monitor, and what the error categories mean when something goes wrong. Certificate operations also matter to security-governance reviewers, since certificate rollover is a security-relevant administrative action that is audited like any other.
 
 For the architecture behind what is being installed, see `architecture.md`. For the authorization, signing, and MFA guarantees these procedures protect, see `security-model.md`. For how AD writes are executed and verified by the Worker, see `active-directory-worker.md`. For audit event details, see `audit-and-observability.md`.
 
@@ -62,7 +62,7 @@ Start the Worker service and verify it locally before testing it from the API si
 
 ### 2.4 Post-installation acceptance checks
 
-1. `GET https://pim-backend.example.org/health/live` returns HTTP 204. This proves only that the API process is running - not database, Worker, or AD readiness (see [Health checks and monitoring](#5-health-checks-and-monitoring)).
+1. `GET https://pim-backend.example.org/health/live` returns HTTP 204. This proves only that the API process is running - not database, Worker, or AD readiness (see [Health checks and monitoring](#6-health-checks-and-monitoring)).
 2. Sign in as the intended user in a Kerberos-capable browser session. The root page is a static welcome page with no entitlement or MFA logic; its "Request access" action leads to the request page, which must show the signed-in user's server-side-resolved entitlements. Entries that cannot currently be requested (for example, approval-required groups) remain visible but disabled with an explanation.
 3. Submit an eligible request with a ticket reference and justification. Its status must reach `Succeeded` only after the Worker has executed the change and the AD read-back has verified it - request IDs and API/Worker/SQL audit records must all agree.
 4. Repeat the same request before its TTL expires. The expected result is `Failed` with a clear explanation that the membership already exists - never a silent renewal or replacement.
@@ -137,7 +137,27 @@ A rollover is a one-time, transactional re-encryption of every stored secret fro
 
 Do not confuse this procedure with Web signing certificate rotation, the IIS HTTPS certificate, or the API-to-Worker mTLS certificate - each is operated independently.
 
-## 4. Worker host configuration
+## 4. Outbound email and notifications
+
+ADDS-PIM can send outbound email for four distinct, independently opt-in events, all delivered through the same durable outbox pattern used for other post-commit obligations (see [Mail notifications](data-model.md#mail-notifications) in `data-model.md`): a membership request reaching a terminal outcome, sent to the target group's configured recipients and separately to the requester themselves; a request entering the awaiting-approval state, sent to the group's approvers; and an approver's decision, sent to the group's other approvers. Nothing is sent until an administrator explicitly configures it - each notification type is inert on its own until both its recipients and its template exist, and there is additionally one global switch covering all four at once (below).
+
+**SMTP configuration** (`/admin/settings/mail`) - host, port, sender address, optional username/password, TLS mode (none / implicit / explicit), and a global "mail sending enabled" switch. Turning that switch off is a soft pause, not a kill switch: events keep enqueuing outbox rows exactly as before, but the dispatcher defers all of them - the same deferral it already applies to an unreachable or misconfigured SMTP server - and they are sent automatically, in order, once the switch is turned back on; nothing already queued is lost or dropped. A stored password is encrypted at rest with the same certificate-backed protector used for TOTP secrets (see [TOTP secret-protection certificate rollover](#totp-secret-protection-certificate-rollover) above) and is never returned to the admin UI once saved. A "send test email" action on the same page always exercises the currently *saved* settings (and is itself blocked while sending is disabled) - a successful test genuinely confirms what real notifications will use.
+
+The same page shows a small queue-status icon next to its heading: how many outbox messages are currently pending, and how many of those have at least one failed delivery attempt recorded, expanding into a detail popover on click. This is the same kind of operational signal as the purge-completion outbox described in `data-model.md` - a backlog is worth investigating, not a silent failure - just surfaced directly on the admin page rather than only in the technical log. A "purge queue" action (inside that same popover) lets an administrator permanently discard every currently pending message (e.g. after a long outage, so a backlog of now-stale notifications is not sent all at once once mail is re-enabled); it never touches already-delivered history, requires an explicit confirmation, and is itself an audited administrative action. The same at-a-glance status also appears as one of the small colored icons on the `/admin` landing page's system-status overview (below), so a mail backlog is visible without navigating into settings.
+
+**System status overview** (`/admin`) - a row of small colored icons, one per monitored signal, each opening a detail popover on click: the four certificates (see [Certificate operations](#3-certificate-operations) above), the mail notification queue just described, membership requests stuck awaiting a second factor or an approval decision past a reasonable window (the same candidates the orphaned-request cleanup action targets), directory-reconciliation findings not yet reviewed, and technical errors logged in the last 24 hours. None of these counts introduce a new source of truth - each reuses an existing query (the same ones backing their respective dedicated admin pages) purely for an at-a-glance color (green/amber/red); the dedicated pages remain the place to actually act on what the icon is reporting.
+
+**Recipients and per-notification opt-in:**
+
+- **Group outcome recipients** (`/admin/settings/notification-recipients`) - zero or more email addresses per target group, each independently marked as a `To`, `Cc`, or `Bcc` recipient.
+- **Requester notification** - the person who submitted the request is emailed at the address of their currently active sign-in-enabled AD account, or an administrator-set override address (`/admin/persons/{id}`) if that person asked to receive these somewhere else. A global Cc/Bcc for this notification type only is configured at `/admin/settings/notification-requester`.
+- **Approver notifications** - each approver assigned to a target group (see [GroupApprover](data-model.md#groupapprover) in `data-model.md`) can opt in or out via a checkbox on their row in the "Manage Approvers" dialog (`/admin/groups`).
+
+**Templates** (`/admin/settings/notification-templates`) - one admin-editable Subject/Body pair per notification type, using a fixed set of `{Placeholder}` tokens (person/group/account display names, TTL, ticket reference, justification, outcome, and, for the approval-decision template only, the deciding approver's display name) rather than a general templating engine. Saving rejects a blank Subject or Body, so a saved template row is always real content - an admin can never end up with a notification type that looks configured but silently sends an empty email; a notification type without a saved template is instead recognizably inert (nothing enqueues for it at all, per the opt-in-via-existence rule above).
+
+**Delivery** - a background dispatcher polls for pending outbox entries and sends them, retrying with the same backoff behavior as the purge-completion outbox described in `data-model.md`. A notification's rendered Subject/Body are fixed at the moment the triggering event occurs; editing a template afterward never changes an already-queued message. A backlog of undelivered notification emails is a visible operational condition worth investigating (see the queue-status widget above, and [Health checks and monitoring](#6-health-checks-and-monitoring) below), not a silent failure.
+
+## 5. Worker host configuration
 
 The Worker reads its startup configuration only from `HKLM\SOFTWARE\ADDS-PIM\Worker` on its host; a configuration change requires a service restart. The registry holds identifiers and connection settings only - never private keys or certificate files.
 
@@ -155,7 +175,7 @@ The Worker writes to the Windows Event Log under the fixed name `ADDS-PIM` with 
 
 The repository's Worker host configuration script is the elevated helper for writing these registry values and the Event Log source. It deliberately does not create a certificate, grant private-key access, install the Windows service, or open a firewall rule - those remain separately reviewed deployment actions.
 
-## 5. Health checks and monitoring
+## 6. Health checks and monitoring
 
 What exists today is intentionally minimal - there is no readiness or diagnostics endpoint yet, only a liveness check on each of the two long-running processes:
 
@@ -167,13 +187,13 @@ Both are deliberately liveness-only: a `200`/`204` from either one only means th
 Beyond the two liveness endpoints, the following exist and are useful for monitoring, but are not exposed as a unified health-check API:
 
 - **API startup Event Log check.** At startup, the API verifies that its dedicated Windows Event Log source is registered and writable, and deliberately refuses to serve traffic if it is absent, assigned to another log, or unwritable - Event Log source registration is an elevated, one-time setup responsibility, not something the API runtime creates for itself.
-- **Admin certificate-status pages.** The TOTP secret-protection certificate status page and the certificate-status overview (see [certificate operations](#3-certificate-operations) below) surface certificate validity and private-key accessibility, but as authenticated admin UI, not as a machine-readable health endpoint.
+- **Admin certificate-status pages.** The dedicated secrets-encryption-certificate status page (labeled generically since this certificate now also protects the SMTP password, not just TOTP factors - see [TOTP secret-protection certificate rollover](#totp-secret-protection-certificate-rollover) above) and the certificate-status overview (see [certificate operations](#3-certificate-operations) above) surface certificate validity and private-key accessibility, but as authenticated admin UI, not as a machine-readable health endpoint.
 - **Pre-install prerequisite check.** `scripts/Test-AddsPimPrerequisites.ps1` verifies domain membership, the RSAT Active Directory PowerShell module, and the AD PAM optional feature - this runs once, before installation, not continuously against a running deployment.
 - **Purge-completion outbox monitoring.** Any open purge-completion outbox entries are logged in the protected technical log and retried; they are an operational alert worth investigating, not something a health endpoint currently surfaces.
 
 A combined readiness/diagnostics health-check endpoint covering database, Worker, and AD reachability is a natural next step, not something implemented today - don't rely on `/health/live` for anything beyond "the process is running."
 
-## 6. Error catalog
+## 7. Error catalog
 
 Every error in ADDS-PIM is classified into one of the categories below. Each concrete error additionally carries a stable error code, a correlation ID, the affected component, and whether it is `Transient` or `Permanent` - transience depends on the specific error code; the category alone never authorizes a retry. HTTP status mapping and audit fields for these categories are documented in `api-reference.md` and `audit-and-observability.md` respectively - this table is the normative source for what each category means.
 
@@ -195,7 +215,7 @@ Every error in ADDS-PIM is classified into one of the categories below. Each con
 | `Verification` | The AD read-back after a change did not produce a conclusively positive result. |
 | `Unexpected` | An unanticipated internal error. |
 
-## 7. Error-handling philosophy
+## 8. Error-handling philosophy
 
 Errors are classified internally against the catalog above and are never swallowed or silently converted into success-like fallback values. Expected security failures, transient infrastructure failures, and truly unexpected exceptions remain distinguishable from one another rather than collapsed into a generic failure state.
 

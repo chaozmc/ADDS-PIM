@@ -66,6 +66,7 @@ A different forest gets a new `DirectoryScopeId`. Existing objects are never mov
 | `PersonId` | Internal, immutable primary key |
 | `DisplayName` | Display name only; not an authorization identity |
 | `ExternalReference` | Optional reference to a future HR/IAM system |
+| `NotificationEmailOverride` | Optional email address for outcome notifications addressed to this person, taking precedence over their AD account's email whenever set (see [Mail notifications](#mail-notifications) below) |
 | `IsActive` | An inactive person may not create new requests |
 | `ValidFromUtc`, `ValidUntilUtc` | Business validity window |
 | `CreatedUtc`, `ModifiedUtc` | UTC management timestamps |
@@ -151,6 +152,7 @@ Ticket-pattern requirements and the approval workflow are both implemented, but 
 | `TargetGroupId` | The group this person may approve requests for |
 | `PersonId` | The approving person |
 | `IsActive` | Whether this approver assignment currently applies |
+| `NotifyByEmail` | Whether this approver receives the approval-pending/approval-decision emails (see [Mail notifications](#mail-notifications) below); defaults to `true` |
 | `ValidFromUtc`, `ValidUntilUtc` | Validity window |
 | `CreatedBy`, `ModifiedBy` | Administrative actors |
 
@@ -238,6 +240,16 @@ The chosen design writes a mandatory Event Log intent *before* any deletion happ
 Minimum fields: an outbox ID, event ID/type, correlation ID, a canonical structured payload, created UTC, delivery-attempt count, last-attempt UTC, delivered UTC, a protected last-failure category, and a row version. Entries are not authorization data, and they are not deleted as part of the identity-purge graph itself - their retention is a separate, not-yet-decided operational policy; until that's decided they are kept indefinitely. A pending (undelivered) outbox row is a visible operational recovery condition for the team running the system, but it does not block unrelated membership workflows and does not turn the application into a high-availability logging subsystem in its own right.
 
 As of this writing, the API exposes only a server-computed, read-only purge-scope preview; no destructive purge command has been exposed yet, so this table exists and is exercised in tests ahead of the destructive endpoint that will populate it in production use.
+
+### Mail notifications
+
+Four tables back ADDS-PIM's outbound email, all reusing the same post-commit outbox pattern as `PurgeEventOutbox` above rather than a second, divergent design: an event's enqueue and the state change that caused it commit together in one transaction, and a separate background dispatcher delivers the queued email afterward with its own retry/backoff. See [Outbound email and notifications](operations.md#4-outbound-email-and-notifications) in `operations.md` for the administrative side of configuring all of this.
+
+`MailSettings` is a single-row table holding the outbound SMTP host, port, sender address, optional username, an optionally encrypted password, and TLS mode. The password, if set, is encrypted at rest with the same certificate-backed protector used for TOTP secrets, and is never returned to the admin UI once saved.
+
+`GroupNotificationRecipients` holds zero or more email addresses per target group, each flagged as a `To`, `Cc`, or `Bcc` recipient. `NotificationTemplates` is keyed by a template key rather than being a singleton, so each of the four notification types below (membership-request outcome, requester outcome, approval pending, approval decided) has its own admin-editable Subject/Body pair without further schema changes as more types are added; the body may reference a fixed set of `{Placeholder}` tokens replaced by literal substitution, not a general templating engine. `RequesterNotificationSettings` is a second single-row table holding a global Cc/Bcc applied to every requester-outcome email specifically - deliberately separate from `MailSettings`, since one is SMTP transport configuration and the other is recipient-side policy for a single notification type.
+
+`MailNotificationOutbox` is the delivery queue itself: an immutable, already-rendered Subject/Body (editing a template later never changes an already-queued message), a request ID, per-header `To`/`Cc`/`Bcc` address lists, delivery-attempt bookkeeping, and a row version. A membership request reaching a terminal state can enqueue up to two rows here (group recipients, requester), and a request entering or leaving `AwaitingApproval` can enqueue a third (pending approvers, or the other approvers once one of them decides) - all in the same transaction as the underlying state transition. Each notification type is inert - nothing is enqueued - until both its recipients/opt-in and its template exist; there is no separate feature-wide enable flag.
 
 ## Integrity rules enforced by the schema
 

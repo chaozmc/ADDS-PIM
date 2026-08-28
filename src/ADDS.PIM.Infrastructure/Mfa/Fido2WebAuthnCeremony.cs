@@ -2,6 +2,7 @@ using System.Text.Json;
 using ADDS.PIM.Application.Mfa;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
+using Microsoft.Extensions.Logging;
 
 namespace ADDS.PIM.Infrastructure.Mfa;
 
@@ -10,7 +11,7 @@ namespace ADDS.PIM.Infrastructure.Mfa;
 /// Application only ever sees opaque JSON strings and raw byte arrays via
 /// <see cref="IFido2RegistrationCeremony"/>/<see cref="IFido2AssertionCeremony"/>.
 /// </summary>
-public sealed class Fido2WebAuthnCeremony(IFido2 fido2) : IFido2RegistrationCeremony, IFido2AssertionCeremony
+public sealed class Fido2WebAuthnCeremony(IFido2 fido2, ILogger<Fido2WebAuthnCeremony> logger) : IFido2RegistrationCeremony, IFido2AssertionCeremony
 {
     public Fido2CeremonyOptions BeginRegistration(Guid personId, string personDisplayName, IReadOnlyList<byte[]> excludeCredentialIds)
     {
@@ -62,8 +63,9 @@ public sealed class Fido2WebAuthnCeremony(IFido2 fido2) : IFido2RegistrationCere
 
             return new NewFido2Credential(result.Id, result.PublicKey, result.SignCount, result.AaGuid == Guid.Empty ? null : result.AaGuid.ToString());
         }
-        catch (Fido2VerificationException)
+        catch (Fido2VerificationException ex)
         {
+            logger.LogWarning(ex, "CompleteRegistration failed FIDO2 attestation verification.");
             return null;
         }
     }
@@ -92,6 +94,7 @@ public sealed class Fido2WebAuthnCeremony(IFido2 fido2) : IFido2RegistrationCere
         var matched = candidates.SingleOrDefault(candidate => candidate.CredentialId.AsSpan().SequenceEqual(assertionResponse.RawId));
         if (matched is null)
         {
+            logger.LogWarning("CompleteAssertion received a CredentialId {CredentialId} that does not match any allowed candidate.", Convert.ToBase64String(assertionResponse.RawId));
             return null;
         }
 
@@ -114,13 +117,16 @@ public sealed class Fido2WebAuthnCeremony(IFido2 fido2) : IFido2RegistrationCere
                 // never implement a counter and always report 0 (e.g. Apple's synced/platform passkeys on
                 // iOS/macOS) - without this exclusion every assertion from such an authenticator regresses
                 // 0 <= 0 and is rejected as a clone, even though nothing was cloned.
+                logger.LogWarning("CompleteAssertion rejected CredentialId {CredentialId}: returned SignCount {SignCount} did not exceed the stored SignatureCounter {StoredSignatureCounter} - possible cloned/replayed FIDO2 credential.",
+                    Convert.ToBase64String(matched.CredentialId), result.SignCount, matched.SignatureCounter);
                 return null;
             }
 
             return new Fido2AssertionOutcome(matched.CredentialId, result.SignCount);
         }
-        catch (Fido2VerificationException)
+        catch (Fido2VerificationException ex)
         {
+            logger.LogWarning(ex, "CompleteAssertion failed FIDO2 assertion verification for CredentialId {CredentialId}.", Convert.ToBase64String(matched.CredentialId));
             return null;
         }
     }

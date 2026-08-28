@@ -62,6 +62,27 @@
   <data name="StatusLabel" xml:space="preserve">
     <value>Status:</value>
   </data>
+  <data name="NotificationEmailTitle" xml:space="preserve">
+    <value>Benachrichtigungs-E-Mail</value>
+  </data>
+  <data name="NotificationEmailAdSourceLabel" xml:space="preserve">
+    <value>Aus AD (Login-Konto):</value>
+  </data>
+  <data name="NotificationEmailNone" xml:space="preserve">
+    <value>keine</value>
+  </data>
+  <data name="NotificationEmailOverrideLabel" xml:space="preserve">
+    <value>Manuelle Override-Adresse</value>
+  </data>
+  <data name="NotificationEmailOverrideHint" xml:space="preserve">
+    <value>Hat Vorrang vor der AD-Adresse, wenn gesetzt (z. B. auf Wunsch des Nutzers). Leer lassen, um die AD-Adresse zu verwenden.</value>
+  </data>
+  <data name="NotificationEmailSaveSuccess" xml:space="preserve">
+    <value>Die Benachrichtigungs-E-Mail wurde gespeichert.</value>
+  </data>
+  <data name="NotificationEmailSaveError" xml:space="preserve">
+    <value>Die Benachrichtigungs-E-Mail konnte nicht gespeichert werden.</value>
+  </data>
   <data name="LinkedAccountsTitle" xml:space="preserve">
     <value>Verknüpfte AD-Konten</value>
   </data>

@@ -1,0 +1,321 @@
+@page "/admin/settings/mail"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Contracts.Administration.V1
+@using ADDS.PIM.Web.Components.Shared
+@inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminMailSettings> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminMailSettings> Logger
+
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
+
+<section class="hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1>@Localizer["Heading"]</h1>
+            <p>@Localizer["HeroDescription"]</p>
+        </div>
+        @if (_outboxStatus is not null)
+        {
+            <button type="button" class="pim-cert-icon pim-badge-@OutboxVariant().ToString().ToLowerInvariant()"
+                    title="@OutboxStatusText" aria-label="@OutboxStatusText"
+                    @onclick="ShowOutboxDialogAsync">
+                <i class="bi bi-envelope-fill" aria-hidden="true"></i>
+            </button>
+        }
+    </div>
+</section>
+
+<ConfirmDialog @ref="_outboxDialog" Title="@Localizer["OutboxStatusHeading"]" OnClosed="() => { _confirmingPurge = false; }">
+    @if (_outboxStatus is not null)
+    {
+        <div class="mb-3"><StatusBadge Text="@OutboxStatusText" Variant="@OutboxVariant()" /></div>
+        <dl class="row mb-0">
+            <dt class="col-sm-6">@Localizer["OutboxPendingLabel"]</dt>
+            <dd class="col-sm-6">@_outboxStatus.PendingCount</dd>
+            <dt class="col-sm-6">@Localizer["OutboxFailedLabel"]</dt>
+            <dd class="col-sm-6">@_outboxStatus.FailedCount</dd>
+        </dl>
+        @if (_purgeError is not null)
+        {
+            <p class="submission-result failed mt-2" role="alert">@_purgeError</p>
+        }
+        @if (_purgeSuccess is not null)
+        {
+            <p class="submission-result succeeded mt-2" role="status">@_purgeSuccess</p>
+        }
+        @if (_outboxStatus.PendingCount > 0)
+        {
+            @if (_confirmingPurge)
+            {
+                <div class="mt-3">
+                    <DangerZonePanel Message="@Localizer["PurgeQueueConfirmMessage", _outboxStatus.PendingCount]"
+                                      ConfirmLabel="@Localizer["PurgeQueueButton"]" IsBusy="_purging"
+                                      OnConfirm="PurgeQueueAsync" OnCancel="() => _confirmingPurge = false" />
+                </div>
+            }
+            else
+            {
+                <button class="btn btn-outline-danger btn-sm mt-3" type="button" @onclick="() => _confirmingPurge = true" disabled="@_purging">
+                    <i class="bi bi-trash3" aria-hidden="true"></i> @Localizer["PurgeQueueButton"]
+                </button>
+            }
+        }
+    }
+</ConfirmDialog>
+
+@if (_form is null)
+{
+    <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
+}
+else
+{
+    @if (_error is not null)
+    {
+        <p class="submission-result failed" role="alert">@_error</p>
+    }
+    @if (_success is not null)
+    {
+        <p class="submission-result succeeded" role="status">@_success</p>
+    }
+
+    <EditForm Model="_form" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h4">@Localizer["SmtpHeading"]</h2>
+                <div class="form-check form-switch mb-3">
+                    <InputCheckbox class="form-check-input" id="mail-enabled" @bind-Value="_form.IsEnabled" />
+                    <label class="form-check-label" for="mail-enabled">@Localizer["MailEnabledLabel"]</label>
+                    <div class="form-text">@Localizer["MailEnabledHint"]</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label" for="smtp-host">@Localizer["HostLabel"]</label>
+                        <InputText id="smtp-host" class="form-control" @bind-Value="_form.SmtpHost" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="smtp-port">@Localizer["PortLabel"]</label>
+                        <InputNumber id="smtp-port" class="form-control" @bind-Value="_form.SmtpPort" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="sender-address">@Localizer["SenderAddressLabel"]</label>
+                        <InputText id="sender-address" class="form-control" @bind-Value="_form.SenderAddress" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="tls-mode">@Localizer["TlsModeLabel"]</label>
+                        <InputSelect id="tls-mode" class="form-select" @bind-Value="_form.TlsMode">
+                            <option value="@SmtpTlsMode.None">@Localizer["TlsModeNone"]</option>
+                            <option value="@SmtpTlsMode.Implicit">@Localizer["TlsModeImplicit"]</option>
+                            <option value="@SmtpTlsMode.Explicit">@Localizer["TlsModeExplicit"]</option>
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="smtp-username">@Localizer["UsernameLabel"]</label>
+                        <InputText id="smtp-username" class="form-control" @bind-Value="_form.Username" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="smtp-password">@Localizer["PasswordLabel"]</label>
+                        <InputText id="smtp-password" type="password" class="form-control" @bind-Value="_form.NewPassword" autocomplete="new-password" />
+                        <div class="form-text">@(_hasStoredPassword ? Localizer["PasswordStoredHint"] : Localizer["PasswordNotStoredHint"])</div>
+                    </div>
+                    <div class="col-md-6 form-check mt-4">
+                        <InputCheckbox class="form-check-input" id="clear-password" @bind-Value="_form.ClearPassword" />
+                        <label class="form-check-label" for="clear-password">@Localizer["ClearPasswordLabel"]</label>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    <button class="btn btn-primary" type="submit" disabled="@_saving">@SharedLocalizer["SaveButton"]</button>
+                </p>
+            </div>
+        </div>
+    </EditForm>
+
+    <section class="mt-4" aria-labelledby="test-title">
+        <h2 id="test-title">@Localizer["TestHeading"]</h2>
+        <p>@Localizer["TestDescription"]</p>
+        @if (_testError is not null)
+        {
+            <p class="submission-result failed" role="alert">@_testError</p>
+        }
+        @if (_testSuccess is not null)
+        {
+            <p class="submission-result succeeded" role="status">@_testSuccess</p>
+        }
+        <div class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label" for="test-recipient">@Localizer["RecipientLabel"]</label>
+                <input id="test-recipient" class="form-control" @bind="_testRecipient" @bind:event="oninput" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-secondary" type="button" disabled="@(_testing || string.IsNullOrWhiteSpace(_testRecipient))" @onclick="TestAsync">@Localizer["SendTestButton"]</button>
+            </div>
+        </div>
+    </section>
+}
+
+@code {
+    private FormModel? _form;
+    private bool _hasStoredPassword;
+    private string? _rowVersion;
+    private bool _saving;
+    private bool _testing;
+    private string? _error;
+    private string? _success;
+    private string? _testError;
+    private string? _testSuccess;
+    private string _testRecipient = string.Empty;
+    private MailNotificationOutboxStatus? _outboxStatus;
+    private ConfirmDialog? _outboxDialog;
+    private bool _confirmingPurge;
+    private bool _purging;
+    private string? _purgeError;
+    private string? _purgeSuccess;
+
+    private string OutboxStatusText => _outboxStatus switch
+    {
+        null => string.Empty,
+        { FailedCount: > 0 } => Localizer["OutboxStatusFailing", _outboxStatus.FailedCount],
+        { PendingCount: > 0 } => Localizer["OutboxStatusPending", _outboxStatus.PendingCount],
+        _ => Localizer["OutboxStatusOk"],
+    };
+
+    private StatusBadge.BadgeVariant OutboxVariant() => _outboxStatus switch
+    {
+        { FailedCount: > 0 } => StatusBadge.BadgeVariant.Critical,
+        { PendingCount: > 0 } => StatusBadge.BadgeVariant.Warning,
+        _ => StatusBadge.BadgeVariant.Success,
+    };
+
+    private async Task ShowOutboxDialogAsync()
+    {
+        if (_outboxDialog is not null) await _outboxDialog.ShowAsync();
+    }
+
+    protected override Task OnInitializedAsync() => Task.WhenAll(LoadAsync(), LoadOutboxStatusAsync());
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error = null;
+            var snapshot = await AdministrationClient.GetMailSettingsAsync(CancellationToken.None);
+            _hasStoredPassword = snapshot.HasPassword;
+            _rowVersion = snapshot.Configured ? snapshot.RowVersion : null;
+            _form = new FormModel
+            {
+                IsEnabled = snapshot.IsEnabled,
+                SmtpHost = snapshot.SmtpHost,
+                SmtpPort = snapshot.Configured ? snapshot.SmtpPort : 587,
+                SenderAddress = snapshot.SenderAddress,
+                Username = snapshot.Username,
+                TlsMode = snapshot.TlsMode,
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load mail settings.");
+            _error = Localizer["LoadError"];
+        }
+    }
+
+    private async Task LoadOutboxStatusAsync()
+    {
+        try
+        {
+            _outboxStatus = await AdministrationClient.GetMailNotificationOutboxStatusAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load mail notification outbox status.");
+        }
+    }
+
+    private async Task PurgeQueueAsync()
+    {
+        _purging = true;
+        try
+        {
+            _purgeError = null; _purgeSuccess = null;
+            await AdministrationClient.PurgeMailNotificationOutboxAsync(CancellationToken.None);
+            _confirmingPurge = false;
+            _purgeSuccess = Localizer["PurgeQueueSuccessMessage"];
+            await LoadOutboxStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to purge the mail notification outbox.");
+            _purgeError = Localizer["PurgeQueueError"];
+        }
+        finally
+        {
+            _purging = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_form is null) return;
+        _saving = true;
+        try
+        {
+            _error = null; _success = null;
+            await AdministrationClient.UpsertMailSettingsAsync(_form.IsEnabled, _form.SmtpHost, _form.SmtpPort, _form.SenderAddress, _form.Username, _form.NewPassword, _form.ClearPassword, _form.TlsMode, _rowVersion, CancellationToken.None);
+            _success = Localizer["SaveSuccessMessage"];
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save mail settings.");
+            _error = Localizer["SaveError"];
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task TestAsync()
+    {
+        _testing = true;
+        try
+        {
+            _testError = null; _testSuccess = null;
+            var result = await AdministrationClient.TestMailSettingsAsync(_testRecipient.Trim(), CancellationToken.None);
+            if (result.Succeeded) _testSuccess = Localizer["TestSuccessMessage"];
+            else _testError = result.ErrorMessage ?? Localizer["TestFailureMessage"];
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Mail settings test send failed.");
+            _testError = Localizer["TestFailureMessage"];
+        }
+        finally
+        {
+            _testing = false;
+        }
+    }
+
+    private sealed class FormModel
+    {
+        public bool IsEnabled { get; set; } = true;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(256)]
+        public string SmtpHost { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(1, 65535)]
+        public int SmtpPort { get; set; } = 587;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string SenderAddress { get; set; } = string.Empty;
+
+        public string? Username { get; set; }
+
+        public string? NewPassword { get; set; }
+
+        public bool ClearPassword { get; set; }
+
+        public SmtpTlsMode TlsMode { get; set; } = SmtpTlsMode.Explicit;
+    }
+}

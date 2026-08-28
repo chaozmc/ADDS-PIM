@@ -63,12 +63,48 @@
     <value>Manage patterns</value>
   </data>
   <data name="TotpCertificateTitle" xml:space="preserve">
-    <value>TOTP Protection Certificate</value>
+    <value>Secrets Encryption Certificate</value>
   </data>
   <data name="TotpCertificateDescription" xml:space="preserve">
-    <value>Check the validity of the certificate that encrypts TOTP secrets in the database, and perform a rollover.</value>
+    <value>Check the validity of the certificate that encrypts stored secrets (TOTP factors and the SMTP password), and perform a rollover.</value>
   </data>
   <data name="TotpCertificateLinkText" xml:space="preserve">
     <value>Manage certificate</value>
+  </data>
+  <data name="MailSettingsTitle" xml:space="preserve">
+    <value>Mail Settings</value>
+  </data>
+  <data name="MailSettingsDescription" xml:space="preserve">
+    <value>Configure the SMTP server used for outgoing email and verify the connection with a test message.</value>
+  </data>
+  <data name="MailSettingsLinkText" xml:space="preserve">
+    <value>Manage mail settings</value>
+  </data>
+  <data name="NotificationRecipientsTitle" xml:space="preserve">
+    <value>Notification Recipients</value>
+  </data>
+  <data name="NotificationRecipientsDescription" xml:space="preserve">
+    <value>Set the email addresses per target group that get notified when a request finishes, successfully or not.</value>
+  </data>
+  <data name="NotificationRecipientsLinkText" xml:space="preserve">
+    <value>Manage recipients</value>
+  </data>
+  <data name="NotificationTemplatesTitle" xml:space="preserve">
+    <value>Notification Templates</value>
+  </data>
+  <data name="NotificationTemplatesDescription" xml:space="preserve">
+    <value>Customize the subject and content of notification emails.</value>
+  </data>
+  <data name="NotificationTemplatesLinkText" xml:space="preserve">
+    <value>Manage templates</value>
+  </data>
+  <data name="RequesterNotificationTitle" xml:space="preserve">
+    <value>Requester Notification</value>
+  </data>
+  <data name="RequesterNotificationDescription" xml:space="preserve">
+    <value>Configure a global Cc/Bcc address for the outcome email sent to the requester themselves.</value>
+  </data>
+  <data name="RequesterNotificationLinkText" xml:space="preserve">
+    <value>Manage settings</value>
   </data>
 </root>

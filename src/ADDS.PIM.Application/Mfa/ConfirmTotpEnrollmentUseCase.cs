@@ -1,3 +1,5 @@
+using ADDS.PIM.Application.Security;
+
 namespace ADDS.PIM.Application.Mfa;
 
 public sealed record PendingTotpEnrollment(Guid TotpFactorId, Guid PersonId, byte[] EncryptedSecret, string ProtectionKeyId, DateTimeOffset EnrollmentExpiresUtc);
@@ -11,7 +13,7 @@ public interface ITotpEnrollmentConfirmationStore
     Task RecordRejectionAsync(Guid personId, Guid factorId, string eventType, DateTimeOffset occurredUtc, Guid correlationId, string frontendClientId, string? sourceIpAddress, string? clientSourceIpAddress, CancellationToken cancellationToken);
 }
 
-public sealed class ConfirmTotpEnrollmentUseCase(ITotpSecretProtector protector, ITotpEnrollmentConfirmationStore store, TimeProvider timeProvider)
+public sealed class ConfirmTotpEnrollmentUseCase(ICertificateSecretProtector protector, ITotpEnrollmentConfirmationStore store, TimeProvider timeProvider)
 {
     public async Task<bool> ExecuteAsync(ConfirmTotpEnrollmentCommand command, CancellationToken cancellationToken)
     {

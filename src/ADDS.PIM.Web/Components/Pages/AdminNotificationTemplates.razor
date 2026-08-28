@@ -1,0 +1,165 @@
+@page "/admin/settings/notification-templates"
+@using Microsoft.Extensions.Localization
+@using ADDS.PIM.Contracts.Notifications
+@using ADDS.PIM.Web.Components.Shared
+@inject IAdministrationClient AdministrationClient
+@inject IStringLocalizer<AdminNotificationTemplates> Localizer
+@inject IStringLocalizer<SharedResources> SharedLocalizer
+@inject ILogger<AdminNotificationTemplates> Logger
+
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
+
+<section class="hero">
+    <div>
+        <h1>@Localizer["Heading"]</h1>
+        <p>@Localizer["HeroDescription"]</p>
+    </div>
+</section>
+
+@if (_form is null)
+{
+    <LoadingIndicator Message="@Localizer["LoadingMessage"]" />
+}
+else
+{
+    @if (_error is not null)
+    {
+        <p class="submission-result failed" role="alert">@_error</p>
+    }
+    @if (_success is not null)
+    {
+        <p class="submission-result succeeded" role="status">@_success</p>
+    }
+
+    <div class="mb-3">
+        <label class="form-label" for="template-selector">@Localizer["TemplateSelectorLabel"]</label>
+        <select id="template-selector" class="form-select" style="max-width: 32rem;" value="@_selectedTemplateKey" @onchange="OnTemplateSelectedAsync">
+            @foreach (var option in TemplateOptions)
+            {
+                <option value="@option.Key">@Localizer[option.DisplayNameResourceKey]</option>
+            }
+        </select>
+    </div>
+
+    <EditForm Model="_form" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h4">@Localizer[CurrentTemplateOption.DisplayNameResourceKey]</h2>
+                <div class="mb-3">
+                    <label class="form-label" for="template-subject">@Localizer["SubjectLabel"]</label>
+                    <InputText id="template-subject" class="form-control" @bind-Value="_form.Subject" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="template-body">@Localizer["BodyLabel"]</label>
+                    <InputTextArea id="template-body" class="form-control" rows="10" @bind-Value="_form.Body" />
+                </div>
+                <p class="mt-3">
+                    <button class="btn btn-primary" type="submit" disabled="@_saving">@SharedLocalizer["SaveButton"]</button>
+                </p>
+            </div>
+        </div>
+    </EditForm>
+
+    <section class="mt-4" aria-labelledby="placeholders-title">
+        <h2 id="placeholders-title" class="h5">@Localizer["PlaceholdersHeading"]</h2>
+        <p>@Localizer["PlaceholdersIntro"]</p>
+        <table class="table table-sm">
+            <thead><tr><th>@Localizer["PlaceholderColumnHeader"]</th><th>@Localizer["PlaceholderDescriptionColumnHeader"]</th></tr></thead>
+            <tbody>
+                <tr><td><code>{PersonDisplayName}</code></td><td>@Localizer["PlaceholderPersonDisplayName"]</td></tr>
+                <tr><td><code>{ActorAccountDisplayName}</code></td><td>@Localizer["PlaceholderActorAccountDisplayName"]</td></tr>
+                <tr><td><code>{TargetAccountDisplayName}</code></td><td>@Localizer["PlaceholderTargetAccountDisplayName"]</td></tr>
+                <tr><td><code>{TargetGroupDisplayName}</code></td><td>@Localizer["PlaceholderTargetGroupDisplayName"]</td></tr>
+                <tr><td><code>{RequestedTtlHours}</code></td><td>@Localizer["PlaceholderRequestedTtlHours"]</td></tr>
+                <tr><td><code>{TicketReference}</code></td><td>@Localizer["PlaceholderTicketReference"]</td></tr>
+                <tr><td><code>{RequestReason}</code></td><td>@Localizer["PlaceholderRequestReason"]</td></tr>
+                <tr><td><code>{StatusText}</code></td><td>@Localizer["PlaceholderStatusText"]</td></tr>
+                <tr><td><code>{OutcomeText}</code></td><td>@Localizer["PlaceholderOutcomeText"]</td></tr>
+                <tr><td><code>{OutcomeReason}</code></td><td>@Localizer["PlaceholderOutcomeReason"]</td></tr>
+                <tr><td><code>{OccurredUtc}</code></td><td>@Localizer["PlaceholderOccurredUtc"]</td></tr>
+                <tr><td><code>{RequestId}</code></td><td>@Localizer["PlaceholderRequestId"]</td></tr>
+                <tr><td><code>{DecidingApproverDisplayName}</code></td><td>@Localizer["PlaceholderDecidingApproverDisplayName"]</td></tr>
+            </tbody>
+        </table>
+    </section>
+}
+
+@code {
+    /// <summary>Every template this page can edit. Currently just the one, but the selector below is already
+    /// wired up for more - adding a template later only means adding an entry here (plus its own resx display
+    /// name) rather than reworking the page.</summary>
+    private static readonly (string Key, string DisplayNameResourceKey)[] TemplateOptions =
+    [
+        (NotificationTemplateKeys.MembershipRequestOutcome, "MembershipRequestOutcomeHeading"),
+        (NotificationTemplateKeys.RequesterOutcomeNotification, "RequesterOutcomeNotificationHeading"),
+        (NotificationTemplateKeys.ApprovalPendingNotification, "ApprovalPendingNotificationHeading"),
+        (NotificationTemplateKeys.ApprovalDecisionNotification, "ApprovalDecisionNotificationHeading"),
+    ];
+
+    private (string Key, string DisplayNameResourceKey) CurrentTemplateOption => TemplateOptions.First(option => option.Key == _selectedTemplateKey);
+
+    private string _selectedTemplateKey = TemplateOptions[0].Key;
+    private FormModel? _form;
+    private string? _rowVersion;
+    private bool _saving;
+    private string? _error;
+    private string? _success;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private Task OnTemplateSelectedAsync(ChangeEventArgs args)
+    {
+        _selectedTemplateKey = args.Value?.ToString() ?? TemplateOptions[0].Key;
+        _form = null;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error = null; _success = null;
+            var snapshot = await AdministrationClient.GetNotificationTemplateAsync(_selectedTemplateKey, CancellationToken.None);
+            _rowVersion = snapshot.RowVersion;
+            _form = new FormModel { Subject = snapshot.Subject, Body = snapshot.Body };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load notification template {TemplateKey}.", _selectedTemplateKey);
+            _error = Localizer["LoadError"];
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_form is null) return;
+        _saving = true;
+        try
+        {
+            _error = null; _success = null;
+            await AdministrationClient.UpsertNotificationTemplateAsync(_selectedTemplateKey, _form.Subject, _form.Body, _rowVersion, CancellationToken.None);
+            _success = Localizer["SaveSuccessMessage"];
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save notification template {TemplateKey}.", _selectedTemplateKey);
+            _error = Localizer["SaveError"];
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed class FormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(256)]
+        public string Subject { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(4000)]
+        public string Body { get; set; } = string.Empty;
+    }
+}

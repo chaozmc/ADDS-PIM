@@ -18,6 +18,12 @@ public sealed class PersonEntity
     public Guid PersonId { get; set; }
     public required string DisplayName { get; set; }
     public string? ExternalReference { get; set; }
+    /// <summary>Admin-settable email for outcome-notification delivery to the person themselves. Takes
+    /// precedence over the AD-sourced <see cref="DirectoryAccountEntity.EmailAddress"/> of the person's
+    /// <see cref="PersonAccountLinkEntity.MayAuthenticate"/> account whenever set (e.g. the person asked to
+    /// receive these at an address other than their AD/Exchange mailbox); AD is only used as the fallback when
+    /// this is empty.</summary>
+    public string? NotificationEmailOverride { get; set; }
     public bool IsActive { get; set; }
     public DateTimeOffset ValidFromUtc { get; set; }
     public DateTimeOffset? ValidUntilUtc { get; set; }
@@ -119,6 +125,11 @@ public sealed class GroupApproverEntity
     public Guid TargetGroupId { get; set; }
     public Guid PersonId { get; set; }
     public bool IsActive { get; set; }
+    /// <summary>Whether this approver receives the approval-pending/approval-decision outcome emails
+    /// (see ADR-0025 addendum). Defaults to <c>true</c> so existing approvers keep receiving them once the
+    /// templates are configured, matching this feature's opt-in-via-template-existence pattern rather than a
+    /// separate feature-wide enable flag.</summary>
+    public bool NotifyByEmail { get; set; } = true;
     public DateTimeOffset ValidFromUtc { get; set; }
     public DateTimeOffset? ValidUntilUtc { get; set; }
     public required string CreatedBy { get; set; }

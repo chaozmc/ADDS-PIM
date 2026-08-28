@@ -63,12 +63,48 @@
     <value>Patterns verwalten</value>
   </data>
   <data name="TotpCertificateTitle" xml:space="preserve">
-    <value>TOTP-Schutzzertifikat</value>
+    <value>Secrets-Verschlüsselungszertifikat</value>
   </data>
   <data name="TotpCertificateDescription" xml:space="preserve">
-    <value>Gültigkeit des Zertifikats prüfen, das TOTP-Secrets in der Datenbank verschlüsselt, und einen Rollover durchführen.</value>
+    <value>Gültigkeit des Zertifikats prüfen, das gespeicherte Secrets verschlüsselt (TOTP-Faktoren und das SMTP-Passwort), und einen Rollover durchführen.</value>
   </data>
   <data name="TotpCertificateLinkText" xml:space="preserve">
     <value>Zertifikat verwalten</value>
+  </data>
+  <data name="MailSettingsTitle" xml:space="preserve">
+    <value>Mail-Einstellungen</value>
+  </data>
+  <data name="MailSettingsDescription" xml:space="preserve">
+    <value>SMTP-Server für ausgehende E-Mails konfigurieren und die Verbindung per Testmail prüfen.</value>
+  </data>
+  <data name="MailSettingsLinkText" xml:space="preserve">
+    <value>Mail-Einstellungen verwalten</value>
+  </data>
+  <data name="NotificationRecipientsTitle" xml:space="preserve">
+    <value>Benachrichtigungsempfänger</value>
+  </data>
+  <data name="NotificationRecipientsDescription" xml:space="preserve">
+    <value>E-Mailadressen je Zielgruppe festlegen, die bei erfolgreichem oder nicht erfolgreichem Antragsabschluss benachrichtigt werden.</value>
+  </data>
+  <data name="NotificationRecipientsLinkText" xml:space="preserve">
+    <value>Empfänger verwalten</value>
+  </data>
+  <data name="NotificationTemplatesTitle" xml:space="preserve">
+    <value>Benachrichtigungs-Vorlagen</value>
+  </data>
+  <data name="NotificationTemplatesDescription" xml:space="preserve">
+    <value>Betreff und Inhalt der Benachrichtigungs-E-Mails anpassen.</value>
+  </data>
+  <data name="NotificationTemplatesLinkText" xml:space="preserve">
+    <value>Vorlagen verwalten</value>
+  </data>
+  <data name="RequesterNotificationTitle" xml:space="preserve">
+    <value>Benachrichtigung an Antragsteller</value>
+  </data>
+  <data name="RequesterNotificationDescription" xml:space="preserve">
+    <value>Globale Cc/Bcc-Adresse für die Ergebnis-E-Mail an den Antragsteller selbst konfigurieren.</value>
+  </data>
+  <data name="RequesterNotificationLinkText" xml:space="preserve">
+    <value>Einstellungen verwalten</value>
   </data>
 </root>

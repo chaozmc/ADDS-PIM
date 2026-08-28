@@ -23,9 +23,9 @@ ADDS-PIM is a Privileged Identity Management (PIM) system for time-limited Activ
 | [api-reference.md](api-reference.md) | REST conventions, contract versioning, the endpoint surface, and HTTP status code semantics. |
 | [frontend.md](frontend.md) | The Blazor frontend's non-authoritative role, UX approach, and the user-facing request/MFA flow. |
 | [active-directory-worker.md](active-directory-worker.md) | Why the AD Worker is isolated, how it talks to the API, how it writes TTL memberships to AD, and the mandatory read-back verification step. |
-| [data-model.md](data-model.md) | The core schema (accounts, groups, policies, entitlements, requests, reconciliation), and why SQL Server and Active Directory are each authoritative for different things. |
+| [data-model.md](data-model.md) | The core schema (accounts, groups, policies, entitlements, requests, reconciliation, mail notifications), and why SQL Server and Active Directory are each authoritative for different things. |
 | [audit-and-observability.md](audit-and-observability.md) | The audit record model, why it's append-only, its separation from technical/diagnostic logs, and Windows Event Log integration. |
-| [operations.md](operations.md) | Prerequisites, installation, certificate operations, Worker host configuration, health checks, and the error catalog. |
+| [operations.md](operations.md) | Prerequisites, installation, certificate operations, outbound email/notifications, Worker host configuration, health checks, and the error catalog. |
 | [testing.md](testing.md) | Test project layout and which scenarios are treated as security-critical. |
 | [dependencies.md](dependencies.md) | The policy for adding and vetting external dependencies. |
 

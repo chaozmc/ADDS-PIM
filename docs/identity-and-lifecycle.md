@@ -120,6 +120,8 @@ Several non-terminal states can move to `Rejected` or `Expired` when there is a 
 
 `Succeeded` is reachable only after a positive TTL read-back verification against Active Directory - see [active-directory-worker.md](active-directory-worker.md) for exactly what that verification checks. A request is never marked successful merely because the AD write call returned without an error.
 
+Reaching any terminal state can optionally trigger outbound email: to email addresses configured on the target group, and separately to the requester themselves. Both are opt-in, inert until an administrator configures them, and never block or slow down the transition itself - see [Outbound email and notifications](operations.md#4-outbound-email-and-notifications) in `operations.md` for how they're configured and delivered.
+
 ### Persistence and traceability of transitions
 
 Every transition is recorded transactionally with a UTC timestamp, the acting actor or component, a reason, the previous and new state, and an optimistic-concurrency token. A retry always re-reads the current persisted state first rather than assuming its own view is still accurate. If the API or worker process crashes mid-flight, the persisted history is designed to make the true situation reconstructible - whether an AD operation never started, is still running, may have completed, or still needs verification - so an unclear outcome is never quietly treated as a success.
@@ -145,6 +147,8 @@ Approval follows an any-one-of-many model: whichever assigned approver acts firs
 Both the requirement for approval and the specific approver's authorization for that target group are re-evaluated immediately before the approval decision takes effect - a stale list view, a since-revoked approver assignment, or a deactivated approval right cannot be exploited by acting on outdated information.
 
 `AwaitingApproval` requests do not expire automatically on a timer. An administrator runs an explicit cleanup action that lists stale `AwaitingApproval` requests and expires selected ones deliberately - the same pattern used for orphaned second-factor confirmations. This keeps a human in control of what "stale" means for a low-volume, human-paced workflow rather than introducing a background service with an arbitrary fixed timeout. Administrators are expected to assign at least one active approver to a group before turning on its approval requirement; otherwise requests will pile up in `AwaitingApproval` until someone is assigned and either approves them or an administrator expires them.
+
+A group's approvers can each individually opt in to email notifications: once opted in, an approver is emailed when a request enters `AwaitingApproval` for their group, and every other opted-in approver is emailed again when one of them approves or rejects it (the one who just decided is excluded from that second email). Like the outcome notifications above, this is entirely opt-in and configured per approver - see [Outbound email and notifications](operations.md#4-outbound-email-and-notifications) in `operations.md`.
 
 ## 6. Ticket-reference validation
 

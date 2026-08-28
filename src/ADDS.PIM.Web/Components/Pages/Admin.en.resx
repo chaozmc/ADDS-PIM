@@ -47,8 +47,77 @@
   <data name="IntroText" xml:space="preserve">
     <value>Choose an administration area.</value>
   </data>
-  <data name="CertificateStatusTitle" xml:space="preserve">
-    <value>Certificate status:</value>
+  <data name="SystemHealthTitle" xml:space="preserve">
+    <value>System status:</value>
+  </data>
+  <data name="MailQueueLabel" xml:space="preserve">
+    <value>Mail queue</value>
+  </data>
+  <data name="MailQueuePendingLabel" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="MailQueueFailedLabel" xml:space="preserve">
+    <value>Failed delivery attempts</value>
+  </data>
+  <data name="MailQueueManageLink" xml:space="preserve">
+    <value>Manage mail settings</value>
+  </data>
+  <data name="MailQueueStatusOk" xml:space="preserve">
+    <value>No pending messages</value>
+  </data>
+  <data name="MailQueueStatusPending" xml:space="preserve">
+    <value>{0} message(s) awaiting delivery</value>
+  </data>
+  <data name="MailQueueStatusFailing" xml:space="preserve">
+    <value>{0} message(s) failing to deliver</value>
+  </data>
+  <data name="OrphanedRequestsLabel" xml:space="preserve">
+    <value>Stuck requests</value>
+  </data>
+  <data name="OrphanedApprovalsLabel" xml:space="preserve">
+    <value>Awaiting approval</value>
+  </data>
+  <data name="OrphanedSecondFactorLabel" xml:space="preserve">
+    <value>Awaiting second factor</value>
+  </data>
+  <data name="OrphanedManageLink" xml:space="preserve">
+    <value>Manage cleanup</value>
+  </data>
+  <data name="OrphanedRequestsStatusOk" xml:space="preserve">
+    <value>No stuck requests</value>
+  </data>
+  <data name="OrphanedRequestsStatusPending" xml:space="preserve">
+    <value>{0} stuck request(s)</value>
+  </data>
+  <data name="ReconciliationFindingsLabel" xml:space="preserve">
+    <value>Directory reconciliation findings</value>
+  </data>
+  <data name="ReconciliationUnresolvedLabel" xml:space="preserve">
+    <value>Not yet reviewed</value>
+  </data>
+  <data name="ReconciliationManageLink" xml:space="preserve">
+    <value>Manage reconciliation</value>
+  </data>
+  <data name="ReconciliationStatusOk" xml:space="preserve">
+    <value>No open findings</value>
+  </data>
+  <data name="ReconciliationStatusPending" xml:space="preserve">
+    <value>{0} open finding(s)</value>
+  </data>
+  <data name="TechnicalErrorsLabel" xml:space="preserve">
+    <value>Technical errors</value>
+  </data>
+  <data name="TechnicalErrorsRecentLabel" xml:space="preserve">
+    <value>Last 24 hours</value>
+  </data>
+  <data name="TechnicalErrorsManageLink" xml:space="preserve">
+    <value>View error log</value>
+  </data>
+  <data name="TechnicalErrorsStatusOk" xml:space="preserve">
+    <value>No errors in the last 24 hours</value>
+  </data>
+  <data name="TechnicalErrorsStatusPending" xml:space="preserve">
+    <value>{0} error(s) in the last 24 hours</value>
   </data>
   <data name="CertificateOverviewLoadError" xml:space="preserve">
     <value>The certificate status could not be loaded.</value>

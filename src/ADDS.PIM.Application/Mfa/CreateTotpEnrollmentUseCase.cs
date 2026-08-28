@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using ADDS.PIM.Application.Security;
 
 namespace ADDS.PIM.Application.Mfa;
 
@@ -21,7 +22,7 @@ public interface ITotpFactorEnrollmentStore
 /// factor already exists - resetting an existing factor requires a separately authorized, audited
 /// administrative workflow (not implemented in the MVP). Returns null when an active factor already exists.
 /// </summary>
-public sealed class CreateTotpEnrollmentUseCase(ITotpSecretProtector protector, ITotpFactorEnrollmentStore store, TimeProvider timeProvider)
+public sealed class CreateTotpEnrollmentUseCase(ICertificateSecretProtector protector, ITotpFactorEnrollmentStore store, TimeProvider timeProvider)
 {
     public async Task<TotpEnrollment?> ExecuteAsync(CreateTotpEnrollmentCommand command, CancellationToken cancellationToken)
     {

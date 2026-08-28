@@ -599,6 +599,11 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("ModifiedUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("NotifyByEmail")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<Guid>("PersonId")
                         .HasColumnType("uniqueidentifier");
 
@@ -630,6 +635,52 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
                     b.ToTable("GroupApprovers", null, t =>
                         {
                             t.HasCheckConstraint("CK_GroupApprovers_Validity", "[ValidUntilUtc] IS NULL OR [ValidUntilUtc] > [ValidFromUtc]");
+                        });
+                });
+
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.GroupNotificationRecipientEntity", b =>
+                {
+                    b.Property<Guid>("GroupNotificationRecipientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EmailAddress")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("ModifiedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RecipientType")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid>("TargetGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("GroupNotificationRecipientId");
+
+                    b.HasIndex("TargetGroupId", "EmailAddress")
+                        .IsUnique()
+                        .HasFilter("[IsActive] = 1");
+
+                    b.ToTable("GroupNotificationRecipients", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GroupNotificationRecipients_EmailAddress", "LEN([EmailAddress]) > 0");
+
+                            t.HasCheckConstraint("CK_GroupNotificationRecipients_RecipientType", "[RecipientType] IN (0, 1, 2)");
                         });
                 });
 
@@ -685,6 +736,134 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_GroupPolicies_SecondFactor", "([RequiresSecondFactor] = 0 OR [AllowedSecondFactorTypes] IN (1, 2, 3)) AND [AllowedSecondFactorTypes] IN (0, 1, 2, 3)");
 
                             t.HasCheckConstraint("CK_GroupPolicies_Ttl", "[MinimumTtlSeconds] > 0 AND [MaximumTtlSeconds] >= [MinimumTtlSeconds] AND [DefaultTtlSeconds] BETWEEN [MinimumTtlSeconds] AND [MaximumTtlSeconds] AND [AllowedTtlStepSeconds] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.MailNotificationOutboxEntity", b =>
+                {
+                    b.Property<Guid>("OutboxId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BccAddresses")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("CcAddresses")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeliveredUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DeliveryAttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("LastAttemptUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastFailureMessage")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ToAddresses")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("OutboxId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("DeliveredUtc", "CreatedUtc");
+
+                    b.ToTable("MailNotificationOutbox", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MailNotificationOutbox_DeliveryAttempts", "[DeliveryAttemptCount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.MailSettingsEntity", b =>
+                {
+                    b.Property<Guid>("MailSettingsId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("EncryptedPassword")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ProtectionKeyId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SenderAddress")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SmtpHost")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("SmtpPort")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TlsMode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("MailSettingsId");
+
+                    b.ToTable("MailSettings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MailSettings_TlsMode", "[TlsMode] IN (0, 1, 2)");
                         });
                 });
 
@@ -883,6 +1062,49 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.NotificationTemplateEntity", b =>
+                {
+                    b.Property<Guid>("NotificationTemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("TemplateKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("NotificationTemplateId");
+
+                    b.HasIndex("TemplateKey")
+                        .IsUnique();
+
+                    b.ToTable("NotificationTemplates", (string)null);
+                });
+
             modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.PersonAccountLinkEntity", b =>
                 {
                     b.Property<Guid>("PersonAccountLinkId")
@@ -978,6 +1200,10 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("ModifiedUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("NotificationEmailOverride")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -994,6 +1220,8 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Persons", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Persons_NotificationEmailOverride", "[NotificationEmailOverride] IS NULL OR LEN([NotificationEmailOverride]) > 0");
+
                             t.HasCheckConstraint("CK_Persons_Validity", "[ValidUntilUtc] IS NULL OR [ValidUntilUtc] > [ValidFromUtc]");
                         });
                 });
@@ -1054,6 +1282,39 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_PurgeEventOutbox_EventId", "[EventId] BETWEEN 1 AND 65535");
                         });
+                });
+
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.RequesterNotificationSettingsEntity", b =>
+                {
+                    b.Property<Guid>("RequesterNotificationSettingsId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BccAddress")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<string>("CcAddress")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("RequesterNotificationSettingsId");
+
+                    b.ToTable("RequesterNotificationSettings", (string)null);
                 });
 
             modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.TargetGroupEntity", b =>
@@ -1576,6 +1837,24 @@ namespace ADDS.PIM.Infrastructure.Persistence.Migrations
                     b.HasOne("ADDS.PIM.Infrastructure.Persistence.Entities.TargetGroupEntity", null)
                         .WithMany()
                         .HasForeignKey("TargetGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.GroupNotificationRecipientEntity", b =>
+                {
+                    b.HasOne("ADDS.PIM.Infrastructure.Persistence.Entities.TargetGroupEntity", null)
+                        .WithMany()
+                        .HasForeignKey("TargetGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ADDS.PIM.Infrastructure.Persistence.Entities.MailNotificationOutboxEntity", b =>
+                {
+                    b.HasOne("ADDS.PIM.Infrastructure.Persistence.Entities.MembershipRequestEntity", null)
+                        .WithMany()
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

@@ -1,4 +1,5 @@
 using ADDS.PIM.Application.MembershipRequests;
+using ADDS.PIM.Application.Security;
 using ADDS.PIM.Domain.MembershipRequests;
 using ADDS.PIM.Domain.Security;
 
@@ -32,7 +33,7 @@ public sealed record VerifyTotpTransactionResult(
 public sealed class VerifyTotpTransactionUseCase(
     IMfaTransactionStore transactionStore,
     ITotpVerificationStore totpStore,
-    ITotpSecretProtector protector,
+    ICertificateSecretProtector protector,
     IMembershipRequestStateStore stateStore,
     TimeProvider timeProvider)
 {

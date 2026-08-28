@@ -179,7 +179,6 @@ else
                 <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresSecondFactor" @bind-Value:after="EnsureSecondFactorTypeSelected" /><label class="form-check-label">@Localizer["MfaRequiredLabel"]</label></div>
                 <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresTicket" /><label class="form-check-label">@Localizer["TicketRequiredLabel"]</label></div>
                 <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.RequiresApproval" /><label class="form-check-label">@Localizer["ApprovalRequiredLabel"]</label></div>
-                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="_editor.IsEnabledForRequests" /><label class="form-check-label">@Localizer["RequestsEnabledLabel"]</label></div>
             </div>
             @if (_editor.RequiresSecondFactor && _editor.AllowedSecondFactorTypes == 0)
             {
@@ -214,11 +213,16 @@ else
             else
             {
                 <table class="table table-sm">
+                    <thead><tr><th>@Localizer["ApproverColumnHeader"]</th><th>@Localizer["NotifyByEmailColumnHeader"]</th><th></th></tr></thead>
                     <tbody>
                         @foreach (var approver in activeApprovers)
                         {
                             <tr>
                                 <td>@approver.PersonDisplayName</td>
+                                <td>
+                                    <input type="checkbox" class="form-check-input" checked="@approver.NotifyByEmail" disabled="@_savingApprover"
+                                           @onchange="e => UpdateApproverNotificationPreferenceAsync(approver, (bool)e.Value!)" />
+                                </td>
                                 <td class="text-end"><button class="btn btn-sm btn-outline-danger" @onclick="() => DeactivateApproverAsync(approver)" disabled="@_savingApprover">@Localizer["RemoveButton"]</button></td>
                             </tr>
                         }
@@ -301,6 +305,20 @@ else
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity) { _approverError = Localizer["AddApproverUnprocessableError"]; }
         catch (HttpRequestException exception) when (exception.StatusCode == System.Net.HttpStatusCode.Conflict) { _approverError = Localizer["AddApproverConflictError"]; }
         catch (Exception ex) { Logger.LogError(ex, "Failed to add group approver PersonId {PersonId} to TargetGroupId {TargetGroupId}.", personId, _approversGroup.TargetGroupId); _approverError = Localizer["AddApproverGenericError"]; }
+        finally { _savingApprover = false; }
+    }
+
+    private async Task UpdateApproverNotificationPreferenceAsync(ManagedGroupApprover approver, bool notifyByEmail)
+    {
+        if (_approversGroup is null) return;
+        _savingApprover = true;
+        try
+        {
+            _approverError = null;
+            await AdministrationClient.UpdateGroupApproverNotificationPreferenceAsync(_approversGroup.TargetGroupId, approver, notifyByEmail, CancellationToken.None);
+            _approvers = await AdministrationClient.GetGroupApproversAsync(_approversGroup.TargetGroupId, CancellationToken.None);
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to update notification preference for group approver {GroupApproverId}.", approver.GroupApproverId); _approverError = Localizer["UpdateApproverNotificationPreferenceError"]; }
         finally { _savingApprover = false; }
     }
 
@@ -429,7 +447,7 @@ else
             MinimumHours = group.MinimumTtlSeconds / 3600m; MaximumHours = group.MaximumTtlSeconds / 3600m;
             DefaultHours = group.DefaultTtlSeconds / 3600m; StepHours = group.AllowedTtlStepSeconds / 3600m;
             RequiresSecondFactor = group.RequiresSecondFactor; AllowedSecondFactorTypes = group.AllowedSecondFactorTypes;
-            RequiresTicket = group.RequiresTicket; RequiresApproval = group.RequiresApproval; IsEnabledForRequests = group.IsEnabledForRequests;
+            RequiresTicket = group.RequiresTicket; RequiresApproval = group.RequiresApproval;
         }
         public ManagedTargetGroup Source { get; }
         public string DomainQualifiedName { get; }
@@ -441,10 +459,8 @@ else
         public int AllowedSecondFactorTypes { get; set; }
         public bool RequiresTicket { get; set; }
         public bool RequiresApproval { get; set; }
-        public bool IsEnabledForRequests { get; set; }
         public ManagedTargetGroup ToContract() => Source with
         {
-            IsEnabledForRequests = IsEnabledForRequests,
             MinimumTtlSeconds = checked((long)(MinimumHours * 3600m)),
             MaximumTtlSeconds = checked((long)(MaximumHours * 3600m)),
             DefaultTtlSeconds = checked((long)(DefaultHours * 3600m)),

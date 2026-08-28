@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Mail-Einstellungen</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Mail-Einstellungen</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>SMTP-Server für ausgehende E-Mails konfigurieren.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Mail-Einstellungen werden geladen…</value>
+  </data>
+  <data name="LoadError" xml:space="preserve">
+    <value>Die Mail-Einstellungen konnten nicht geladen werden.</value>
+  </data>
+  <data name="SmtpHeading" xml:space="preserve">
+    <value>SMTP-Server</value>
+  </data>
+  <data name="HostLabel" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="PortLabel" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="SenderAddressLabel" xml:space="preserve">
+    <value>Absenderadresse</value>
+  </data>
+  <data name="TlsModeLabel" xml:space="preserve">
+    <value>TLS</value>
+  </data>
+  <data name="TlsModeNone" xml:space="preserve">
+    <value>Keines</value>
+  </data>
+  <data name="TlsModeImplicit" xml:space="preserve">
+    <value>Implizit (SSL, z. B. Port 465)</value>
+  </data>
+  <data name="TlsModeExplicit" xml:space="preserve">
+    <value>Explizit (STARTTLS, z. B. Port 587)</value>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>Benutzername</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="PasswordStoredHint" xml:space="preserve">
+    <value>Ein Passwort ist bereits gespeichert. Leer lassen, um es unverändert zu übernehmen.</value>
+  </data>
+  <data name="PasswordNotStoredHint" xml:space="preserve">
+    <value>Es ist kein Passwort gespeichert. Leer lassen, wenn der Relay keine Authentifizierung benötigt.</value>
+  </data>
+  <data name="ClearPasswordLabel" xml:space="preserve">
+    <value>Gespeichertes Passwort entfernen</value>
+  </data>
+  <data name="MailEnabledLabel" xml:space="preserve">
+    <value>Mail-Versand aktiviert</value>
+  </data>
+  <data name="MailEnabledHint" xml:space="preserve">
+    <value>Deaktiviert den gesamten Mail-Versand (alle Benachrichtigungstypen). Bereits wartende Nachrichten werden nicht gelöscht und automatisch versendet, sobald wieder aktiviert wird.</value>
+  </data>
+  <data name="OutboxStatusHeading" xml:space="preserve">
+    <value>Warteschlangen-Status</value>
+  </data>
+  <data name="OutboxPendingLabel" xml:space="preserve">
+    <value>Wartend</value>
+  </data>
+  <data name="OutboxFailedLabel" xml:space="preserve">
+    <value>Fehlgeschlagene Zustellversuche</value>
+  </data>
+  <data name="OutboxStatusOk" xml:space="preserve">
+    <value>Keine wartenden Nachrichten</value>
+  </data>
+  <data name="OutboxStatusFailing" xml:space="preserve">
+    <value>{0} Nachricht(en) mit fehlgeschlagener Zustellung</value>
+  </data>
+  <data name="OutboxStatusPending" xml:space="preserve">
+    <value>{0} Nachricht(en) warten auf Zustellung</value>
+  </data>
+  <data name="PurgeQueueButton" xml:space="preserve">
+    <value>Warteschlange leeren</value>
+  </data>
+  <data name="PurgeQueueConfirmMessage" xml:space="preserve">
+    <value>Wirklich alle {0} wartenden Nachrichten unwiderruflich verwerfen? Sie werden nicht mehr zugestellt.</value>
+  </data>
+  <data name="PurgeQueueSuccessMessage" xml:space="preserve">
+    <value>Die Warteschlange wurde geleert.</value>
+  </data>
+  <data name="PurgeQueueError" xml:space="preserve">
+    <value>Die Warteschlange konnte nicht geleert werden.</value>
+  </data>
+  <data name="SaveSuccessMessage" xml:space="preserve">
+    <value>Mail-Einstellungen wurden gespeichert.</value>
+  </data>
+  <data name="SaveError" xml:space="preserve">
+    <value>Die Mail-Einstellungen konnten nicht gespeichert werden.</value>
+  </data>
+  <data name="TestHeading" xml:space="preserve">
+    <value>Verbindung testen</value>
+  </data>
+  <data name="TestDescription" xml:space="preserve">
+    <value>Sendet mit den zuletzt gespeicherten Einstellungen eine Test-E-Mail an die angegebene Adresse.</value>
+  </data>
+  <data name="RecipientLabel" xml:space="preserve">
+    <value>Empfängeradresse</value>
+  </data>
+  <data name="SendTestButton" xml:space="preserve">
+    <value>Test-E-Mail senden</value>
+  </data>
+  <data name="TestSuccessMessage" xml:space="preserve">
+    <value>Test-E-Mail wurde erfolgreich versendet.</value>
+  </data>
+  <data name="TestFailureMessage" xml:space="preserve">
+    <value>Test-E-Mail konnte nicht versendet werden.</value>
+  </data>
+</root>

@@ -1,5 +1,6 @@
 using ADDS.PIM.Application.MembershipRequests;
 using ADDS.PIM.Application.Mfa;
+using ADDS.PIM.Application.Security;
 using ADDS.PIM.Domain.MembershipRequests;
 using ADDS.PIM.Domain.Security;
 
@@ -172,7 +173,7 @@ public sealed class VerifyTotpTransactionUseCaseTests
     private static VerifyTotpTransactionUseCase NewUseCase(IMfaTransactionStore transactionStore, ITotpVerificationStore totpStore, IMembershipRequestStateStore stateStore, DateTimeOffset now)
         => new(transactionStore, totpStore, new PassthroughProtector(), stateStore, new FixedTime(now));
 
-    private sealed class PassthroughProtector : ITotpSecretProtector
+    private sealed class PassthroughProtector : ICertificateSecretProtector
     {
         public string KeyId => "key";
         public byte[] Protect(ReadOnlySpan<byte> secret) => secret.ToArray();

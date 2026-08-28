@@ -173,9 +173,6 @@
   <data name="ApprovalRequiredLabel" xml:space="preserve">
     <value>Approval required</value>
   </data>
-  <data name="RequestsEnabledLabel" xml:space="preserve">
-    <value>Requests enabled</value>
-  </data>
   <data name="SecondFactorWarning" xml:space="preserve">
     <value>When MFA is required, you must select TOTP, FIDO2, or both under "Second factors".</value>
   </data>
@@ -187,6 +184,15 @@
   </data>
   <data name="RemoveButton" xml:space="preserve">
     <value>Remove</value>
+  </data>
+  <data name="ApproverColumnHeader" xml:space="preserve">
+    <value>Approver</value>
+  </data>
+  <data name="NotifyByEmailColumnHeader" xml:space="preserve">
+    <value>Notify by email</value>
+  </data>
+  <data name="UpdateApproverNotificationPreferenceError" xml:space="preserve">
+    <value>The notification preference could not be saved.</value>
   </data>
   <data name="AddApproverIntro" xml:space="preserve">
     <value>Add a person as approver (the person must already have an active sign-in account with the Approver right):</value>

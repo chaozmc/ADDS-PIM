@@ -47,8 +47,77 @@
   <data name="IntroText" xml:space="preserve">
     <value>Wählen Sie einen Verwaltungsbereich.</value>
   </data>
-  <data name="CertificateStatusTitle" xml:space="preserve">
-    <value>Zertifikatsstatus:</value>
+  <data name="SystemHealthTitle" xml:space="preserve">
+    <value>Systemstatus:</value>
+  </data>
+  <data name="MailQueueLabel" xml:space="preserve">
+    <value>Mail-Warteschlange</value>
+  </data>
+  <data name="MailQueuePendingLabel" xml:space="preserve">
+    <value>Wartend</value>
+  </data>
+  <data name="MailQueueFailedLabel" xml:space="preserve">
+    <value>Fehlgeschlagene Zustellversuche</value>
+  </data>
+  <data name="MailQueueManageLink" xml:space="preserve">
+    <value>Mail-Einstellungen verwalten</value>
+  </data>
+  <data name="MailQueueStatusOk" xml:space="preserve">
+    <value>Keine wartenden Nachrichten</value>
+  </data>
+  <data name="MailQueueStatusPending" xml:space="preserve">
+    <value>{0} Nachricht(en) warten auf Zustellung</value>
+  </data>
+  <data name="MailQueueStatusFailing" xml:space="preserve">
+    <value>{0} Nachricht(en) mit fehlgeschlagener Zustellung</value>
+  </data>
+  <data name="OrphanedRequestsLabel" xml:space="preserve">
+    <value>Hängengebliebene Anfragen</value>
+  </data>
+  <data name="OrphanedApprovalsLabel" xml:space="preserve">
+    <value>Wartend auf Genehmigung</value>
+  </data>
+  <data name="OrphanedSecondFactorLabel" xml:space="preserve">
+    <value>Wartend auf zweiten Faktor</value>
+  </data>
+  <data name="OrphanedManageLink" xml:space="preserve">
+    <value>Bereinigung verwalten</value>
+  </data>
+  <data name="OrphanedRequestsStatusOk" xml:space="preserve">
+    <value>Keine hängengebliebenen Anfragen</value>
+  </data>
+  <data name="OrphanedRequestsStatusPending" xml:space="preserve">
+    <value>{0} hängengebliebene Anfrage(n)</value>
+  </data>
+  <data name="ReconciliationFindingsLabel" xml:space="preserve">
+    <value>AD-Abgleich-Befunde</value>
+  </data>
+  <data name="ReconciliationUnresolvedLabel" xml:space="preserve">
+    <value>Noch nicht überprüft</value>
+  </data>
+  <data name="ReconciliationManageLink" xml:space="preserve">
+    <value>Abgleich verwalten</value>
+  </data>
+  <data name="ReconciliationStatusOk" xml:space="preserve">
+    <value>Keine offenen Befunde</value>
+  </data>
+  <data name="ReconciliationStatusPending" xml:space="preserve">
+    <value>{0} offene(r) Befund(e)</value>
+  </data>
+  <data name="TechnicalErrorsLabel" xml:space="preserve">
+    <value>Technische Fehler</value>
+  </data>
+  <data name="TechnicalErrorsRecentLabel" xml:space="preserve">
+    <value>Letzte 24 Stunden</value>
+  </data>
+  <data name="TechnicalErrorsManageLink" xml:space="preserve">
+    <value>Fehlerprotokoll ansehen</value>
+  </data>
+  <data name="TechnicalErrorsStatusOk" xml:space="preserve">
+    <value>Keine Fehler in den letzten 24 Stunden</value>
+  </data>
+  <data name="TechnicalErrorsStatusPending" xml:space="preserve">
+    <value>{0} Fehler in den letzten 24 Stunden</value>
   </data>
   <data name="CertificateOverviewLoadError" xml:space="preserve">
     <value>Der Zertifikatsstatus konnte nicht geladen werden.</value>

@@ -1,3 +1,5 @@
+using ADDS.PIM.Application.Security;
+
 namespace ADDS.PIM.Application.Mfa;
 
 public sealed record StartFido2RegistrationCommand(
@@ -31,7 +33,7 @@ public sealed record Fido2RegistrationStartResult(
 /// </summary>
 public sealed class StartFido2RegistrationUseCase(
     ITotpVerificationStore totpStore,
-    ITotpSecretProtector totpProtector,
+    ICertificateSecretProtector totpProtector,
     IFido2CredentialStore credentialStore,
     IFido2ChallengeStore challengeStore,
     IFido2RegistrationCeremony registrationCeremony,

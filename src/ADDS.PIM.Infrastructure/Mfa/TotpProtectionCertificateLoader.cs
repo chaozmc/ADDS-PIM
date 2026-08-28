@@ -4,8 +4,8 @@ using ADDS.PIM.Infrastructure.Worker;
 namespace ADDS.PIM.Infrastructure.Mfa;
 
 /// <summary>Shared LocalMachine\My lookup/validation for TOTP secret-protection certificates, used both by the
-/// active <see cref="CertificateTotpSecretProtector"/> and by ad hoc rotation/status instances constructed for a
-/// specific thumbprint.</summary>
+/// active <see cref="ADDS.PIM.Infrastructure.Security.CertificateSecretProtector"/> and by ad hoc rotation/status
+/// instances constructed for a specific thumbprint.</summary>
 internal static class TotpProtectionCertificateLoader
 {
     /// <summary>Finds the certificate by thumbprint without validating its usability - for status/diagnostic
@@ -30,7 +30,7 @@ internal static class TotpProtectionCertificateLoader
     }
 
     /// <summary>Finds and validates a certificate for actual protect/unprotect use; throws with the same message
-    /// <see cref="CertificateTotpSecretProtector"/> has always thrown, for either a missing or an unusable
+    /// <see cref="ADDS.PIM.Infrastructure.Security.CertificateSecretProtector"/> has always thrown, for either a missing or an unusable
     /// certificate.</summary>
     public static X509Certificate2 LoadValidated(string? thumbprint)
     {

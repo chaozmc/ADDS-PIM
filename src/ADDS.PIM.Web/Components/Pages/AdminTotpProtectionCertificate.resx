@@ -42,13 +42,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="PageTitle" xml:space="preserve">
-    <value>ADDS-PIM – TOTP-Schutzzertifikat</value>
+    <value>ADDS-PIM – Secrets-Verschlüsselungszertifikat</value>
   </data>
   <data name="Heading" xml:space="preserve">
-    <value>TOTP-Schutzzertifikat</value>
+    <value>Secrets-Verschlüsselungszertifikat</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
-    <value>Zertifikat, das jedes TOTP-Secret in der Datenbank verschlüsselt. Der Rollover ist eine einmalige, auditierte Re-Encryption aller gespeicherten Secrets.</value>
+    <value>Zertifikat, das gespeicherte Secrets verschlüsselt – TOTP-Faktoren und das SMTP-Passwort der Mail-Einstellungen. Der Rollover ist eine einmalige, auditierte Re-Encryption aller damit geschützten Daten.</value>
   </data>
   <data name="StatusLoading" xml:space="preserve">
     <value>Zertifikatsstatus wird geladen …</value>
@@ -60,7 +60,7 @@
     <value>Nicht gefunden</value>
   </data>
   <data name="NotFoundMessage" xml:space="preserve">
-    <value>Das konfigurierte Zertifikat {0} wurde in LocalMachine\My nicht gefunden. TOTP-Verifikationen schlagen fehl.</value>
+    <value>Das konfigurierte Zertifikat {0} wurde in LocalMachine\My nicht gefunden. TOTP-Verifikationen und der Mailversand mit gespeichertem SMTP-Passwort schlagen fehl.</value>
   </data>
   <data name="ValidUntilLabel" xml:space="preserve">
     <value>Gültig bis (UTC)</value>
@@ -93,7 +93,7 @@
     <value>z. B. 0000000000000000000000000000000000CCCC</value>
   </data>
   <data name="RolloverConfirmationMessage" xml:space="preserve">
-    <value>Diese Aktion entschlüsselt alle gespeicherten TOTP-Secrets mit dem aktuellen Zertifikat und verschlüsselt sie neu mit dem angegebenen Zertifikat. Geben Sie zur Bestätigung genau ein: {0}</value>
+    <value>Diese Aktion entschlüsselt alle mit dem aktuellen Zertifikat geschützten Secrets (TOTP-Faktoren und das SMTP-Passwort) und verschlüsselt sie neu mit dem angegebenen Zertifikat. Geben Sie zur Bestätigung genau ein: {0}</value>
   </data>
   <data name="ExecuteRolloverButton" xml:space="preserve">
     <value>Rollover jetzt ausführen</value>
@@ -120,7 +120,7 @@
     <value>Der Zertifikatsstatus konnte nicht geladen werden.</value>
   </data>
   <data name="RolloverSuccessMessage" xml:space="preserve">
-    <value>Der Rollover wurde ausgeführt. Alle gespeicherten TOTP-Secrets sind jetzt mit dem neuen Zertifikat verschlüsselt.</value>
+    <value>Der Rollover wurde ausgeführt. Alle geschützten Secrets (TOTP-Faktoren und das SMTP-Passwort) sind jetzt mit dem neuen Zertifikat verschlüsselt.</value>
   </data>
   <data name="RolloverFailureMessage" xml:space="preserve">
     <value>Der Rollover wurde nicht ausgeführt. Prüfen Sie, ob das neue Zertifikat installiert und für die API-gMSA freigegeben ist, und ob die Bestätigung exakt übereinstimmt.</value>

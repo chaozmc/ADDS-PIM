@@ -3,10 +3,11 @@ using ADDS.PIM.Application.Audit;
 using AdministrationActor = ADDS.PIM.Contracts.Administration.V1.AdministrationActor;
 using ADDS.PIM.Domain.MembershipRequests;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ADDS.PIM.Infrastructure.Persistence;
 
-public sealed class EfIdentityPurgeScopeStore(PimDbContext dbContext, TimeProvider timeProvider) : IIdentityPurgeScopeStore
+public sealed class EfIdentityPurgeScopeStore(PimDbContext dbContext, TimeProvider timeProvider, ILogger<EfIdentityPurgeScopeStore> logger) : IIdentityPurgeScopeStore
 {
     public async Task<IReadOnlyList<IdentityPurgeCandidate>> ListCandidatesAsync(Guid directoryScopeId, CancellationToken cancellationToken)
     {
@@ -42,7 +43,11 @@ public sealed class EfIdentityPurgeScopeStore(PimDbContext dbContext, TimeProvid
         };
         if (scope is null) return AdministrationUpdateResult.NotFound;
         var preview = await CompleteAsync(scope, cancellationToken);
-        if (!preview.IsEligible) return AdministrationUpdateResult.Conflict;
+        if (!preview.IsEligible)
+        {
+            logger.LogWarning("ExecuteAsync conflict for {InitiatorType} InitiatorId {InitiatorId}: {BlockingReason}", initiatorType, initiatorId, preview.BlockingReason);
+            return AdministrationUpdateResult.Conflict;
+        }
 
         var links = await dbContext.PersonAccountLinks.Where(link => scope.PersonIds.Contains(link.PersonId) || scope.AccountIds.Contains(link.AccountId)).ToArrayAsync(cancellationToken);
         var accountIds = scope.AccountIds.Union(links.Select(link => link.AccountId)).Distinct().ToArray();
@@ -105,8 +110,9 @@ public sealed class EfIdentityPurgeScopeStore(PimDbContext dbContext, TimeProvid
             await transaction.CommitAsync(cancellationToken);
             return AdministrationUpdateResult.Updated;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
+            logger.LogError(ex, "ExecuteAsync failed to save the purge for {InitiatorType} InitiatorId {InitiatorId}; rolled back.", initiatorType, initiatorId);
             await transaction.RollbackAsync(cancellationToken);
             return AdministrationUpdateResult.Conflict;
         }

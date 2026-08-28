@@ -25,14 +25,41 @@ public sealed record TotpProtectionCertificateStatus(bool Found, string Thumbpri
 /// <summary>one-time, transactional re-encryption of every persisted TOTP secret from the currently configured (outgoing) certificate to <see cref="IncomingCertificateThumbprint"/>. <see cref="Confirmation"/> must equal <c>"ROTATE {IncomingCertificateThumbprint}"</c>, exactly, mirroring the identity-purge confirmation pattern.</summary>
 public sealed record RotateTotpProtectionCertificateRequest(AdministrationActor Actor, string IncomingCertificateThumbprint, string Confirmation);
 
+public enum SmtpTlsMode { None, Implicit, Explicit }
+
+/// <summary><see cref="HasPassword"/> reports whether a protected SMTP password is stored, without ever returning the password itself. <see cref="Configured"/> false means no mail settings row exists yet. <see cref="IsEnabled"/> is the global kill switch for the entire mail-notification feature - when false, every notification type (group, requester, approval pending/decision) keeps enqueuing normally but delivery is paused until re-enabled.</summary>
+public sealed record MailSettingsSnapshot(bool Configured, bool IsEnabled, string SmtpHost, int SmtpPort, string SenderAddress, string? Username, bool HasPassword, SmtpTlsMode TlsMode, string RowVersion);
+
+/// <summary><see cref="NewPassword"/> null/empty leaves an existing stored password unchanged; set <see cref="ClearPassword"/> to remove it (e.g. for an unauthenticated relay). <see cref="RowVersion"/> is required except for the very first save (no row exists yet).</summary>
+public sealed record UpsertMailSettingsRequest(AdministrationActor Actor, bool IsEnabled, string SmtpHost, int SmtpPort, string SenderAddress, string? Username, string? NewPassword, bool ClearPassword, SmtpTlsMode TlsMode, string? RowVersion);
+
+public sealed record TestMailSettingsRequest(AdministrationActor Actor, string RecipientAddress);
+
+/// <summary>Aggregate view of <c>MailNotificationOutbox</c> for the admin UI - counts only, never message bodies. <see cref="FailedCount"/> is the subset of <see cref="PendingCount"/> that has recorded at least one failed delivery attempt (<c>LastFailureMessage</c> set).</summary>
+public sealed record MailNotificationOutboxStatus(int PendingCount, int FailedCount);
+
+/// <summary>Permanently discards every currently pending (undelivered) <c>MailNotificationOutbox</c> row - e.g. after a long mail-sending outage, so a backlog of now-stale notifications is not sent all at once when re-enabled. Already-delivered rows are never touched.</summary>
+public sealed record PurgeMailNotificationOutboxRequest(AdministrationActor Actor);
+
+/// <summary>Global Cc/Bcc policy applied to every requester outcome notification (the email sent to the person
+/// who submitted a membership request), distinct from the SMTP transport settings above. <see cref="Configured"/>
+/// false means no row exists yet (both addresses treated as unset).</summary>
+public sealed record RequesterNotificationSettingsSnapshot(bool Configured, string? CcAddress, string? BccAddress, string RowVersion);
+public sealed record UpsertRequesterNotificationSettingsRequest(AdministrationActor Actor, string? CcAddress, string? BccAddress, string? RowVersion);
+
+public sealed record MailSettingsTestResult(bool Succeeded, string? ErrorMessage);
+
 /// <summary>One row of the admin certificate overview. <see cref="IsLiveCheck"/> true means <see cref="ObservedUtc"/> is effectively "now" (checked directly against LocalMachine\My or SQL on this request); false means it reflects the last actual API-to-Worker mTLS handshake, which can be stale during quiet periods. <see cref="WasAccepted"/> is only meaningful (non-null) for the Worker server certificate row.</summary>
 public sealed record MonitoredCertificateStatus(string Label, bool Found, string Thumbprint, DateTimeOffset? NotBefore, DateTimeOffset? NotAfter, bool IsLiveCheck, DateTimeOffset? ObservedUtc, bool? WasAccepted);
 
 public sealed record CertificateOverview(IReadOnlyList<MonitoredCertificateStatus> Certificates);
 
-public sealed record ManagedPerson(Guid PersonId, string DisplayName, bool IsActive, DateTimeOffset ValidFromUtc, DateTimeOffset? ValidUntilUtc, string RowVersion);
+/// <summary><see cref="NotificationEmailOverride"/> takes precedence over the AD-sourced email of the person's linked account when set; the AD value is used only as a fallback when this is empty.</summary>
+public sealed record ManagedPerson(Guid PersonId, string DisplayName, bool IsActive, DateTimeOffset ValidFromUtc, DateTimeOffset? ValidUntilUtc, string? NotificationEmailOverride, string RowVersion);
 public sealed record DeactivatePersonRequest(AdministrationActor Actor, Guid PersonId, string RowVersion);
 public sealed record ReactivatePersonRequest(AdministrationActor Actor, Guid PersonId, string RowVersion);
+/// <summary><see cref="NotificationEmailOverride"/> null/blank clears the override.</summary>
+public sealed record SetPersonNotificationEmailOverrideRequest(AdministrationActor Actor, Guid PersonId, string? NotificationEmailOverride, string RowVersion);
 public sealed record SearchDirectoryUsersRequest(AdministrationActor Actor, string SearchTerm);
 public sealed record DirectoryUserSearchResult(Guid ObjectGuid, string DisplayName, string DomainQualifiedName, string SamAccountName, string? UserPrincipalName, string? EmailAddress);
 public sealed record CreatePersonFromDirectoryAccountRequest(AdministrationActor Actor, Guid ObjectGuid);
@@ -87,6 +114,7 @@ public sealed record ManagedGroupApprover(
     Guid PersonId,
     string PersonDisplayName,
     bool IsActive,
+    bool NotifyByEmail,
     DateTimeOffset ValidFromUtc,
     DateTimeOffset? ValidUntilUtc,
     string RowVersion);
@@ -94,10 +122,23 @@ public sealed record ManagedGroupApprover(
 public sealed record QueryGroupApproversRequest(AdministrationActor Actor, Guid TargetGroupId);
 public sealed record AddGroupApproverRequest(AdministrationActor Actor, Guid TargetGroupId, Guid PersonId);
 public sealed record DeactivateGroupApproverRequest(AdministrationActor Actor, Guid TargetGroupId, Guid GroupApproverId, string RowVersion);
+public sealed record UpdateGroupApproverNotificationPreferenceRequest(AdministrationActor Actor, Guid TargetGroupId, Guid GroupApproverId, bool NotifyByEmail, string RowVersion);
 
 public sealed record ManagedTicketReferencePattern(Guid TicketReferencePatternId, Guid TargetGroupId, string TargetGroupDisplayName, string Label, string Expression, bool IsActive, string RowVersion);
 public sealed record UpsertTicketReferencePatternRequest(AdministrationActor Actor, Guid TicketReferencePatternId, Guid TargetGroupId, string Label, string Expression, bool IsActive, string? RowVersion);
 public sealed record DeleteTicketReferencePatternRequest(AdministrationActor Actor, Guid TicketReferencePatternId, string RowVersion);
+
+/// <summary>Which message header the recipient's address is placed in when a notification is sent.</summary>
+public enum MailRecipientType { To, Cc, Bcc }
+
+public sealed record ManagedGroupNotificationRecipient(Guid GroupNotificationRecipientId, Guid TargetGroupId, string TargetGroupDisplayName, string EmailAddress, MailRecipientType RecipientType, bool IsActive, string RowVersion);
+public sealed record UpsertGroupNotificationRecipientRequest(AdministrationActor Actor, Guid GroupNotificationRecipientId, Guid TargetGroupId, string EmailAddress, MailRecipientType RecipientType, bool IsActive, string? RowVersion);
+public sealed record DeleteGroupNotificationRecipientRequest(AdministrationActor Actor, Guid GroupNotificationRecipientId, string RowVersion);
+
+/// <summary><see cref="RowVersion"/> is null when the template has never been saved yet (first save creates the row).</summary>
+public sealed record NotificationTemplateSnapshot(string TemplateKey, string Subject, string Body, string? RowVersion);
+public sealed record QueryNotificationTemplateRequest(AdministrationActor Actor, string TemplateKey);
+public sealed record UpsertNotificationTemplateRequest(AdministrationActor Actor, string TemplateKey, string Subject, string Body, string? RowVersion);
 
 public sealed record UpdateTargetGroupPolicyRequest(
     AdministrationActor Actor,

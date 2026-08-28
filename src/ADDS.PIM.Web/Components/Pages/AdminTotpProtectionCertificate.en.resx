@@ -42,13 +42,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="PageTitle" xml:space="preserve">
-    <value>ADDS-PIM – TOTP protection certificate</value>
+    <value>ADDS-PIM – Secrets encryption certificate</value>
   </data>
   <data name="Heading" xml:space="preserve">
-    <value>TOTP protection certificate</value>
+    <value>Secrets encryption certificate</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
-    <value>The certificate that encrypts every TOTP secret in the database. Rollover is a one-time, audited re-encryption of all stored secrets.</value>
+    <value>The certificate that encrypts stored secrets - TOTP factors and the mail settings' SMTP password. Rollover is a one-time, audited re-encryption of everything it protects.</value>
   </data>
   <data name="StatusLoading" xml:space="preserve">
     <value>Loading certificate status …</value>
@@ -60,7 +60,7 @@
     <value>Not found</value>
   </data>
   <data name="NotFoundMessage" xml:space="preserve">
-    <value>The configured certificate {0} was not found in LocalMachine\My. TOTP verifications will fail.</value>
+    <value>The configured certificate {0} was not found in LocalMachine\My. TOTP verifications and sending mail with a stored SMTP password will fail.</value>
   </data>
   <data name="ValidUntilLabel" xml:space="preserve">
     <value>Valid until (UTC)</value>
@@ -93,7 +93,7 @@
     <value>e.g. 0000000000000000000000000000000000CCCC</value>
   </data>
   <data name="RolloverConfirmationMessage" xml:space="preserve">
-    <value>This action decrypts every stored TOTP secret with the current certificate and re-encrypts it with the specified certificate. To confirm, type exactly: {0}</value>
+    <value>This action decrypts every secret protected by the current certificate (TOTP factors and the SMTP password) and re-encrypts it with the specified certificate. To confirm, type exactly: {0}</value>
   </data>
   <data name="ExecuteRolloverButton" xml:space="preserve">
     <value>Execute rollover now</value>
@@ -120,7 +120,7 @@
     <value>The certificate status could not be loaded.</value>
   </data>
   <data name="RolloverSuccessMessage" xml:space="preserve">
-    <value>The rollover completed. All stored TOTP secrets are now encrypted with the new certificate.</value>
+    <value>The rollover completed. All protected secrets (TOTP factors and the SMTP password) are now encrypted with the new certificate.</value>
   </data>
   <data name="RolloverFailureMessage" xml:space="preserve">
     <value>The rollover did not complete. Check that the new certificate is installed and released to the API gMSA, and that the confirmation matches exactly.</value>

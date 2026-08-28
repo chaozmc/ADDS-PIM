@@ -48,4 +48,17 @@ public sealed class PersonAccountLinkModelTests
         Assert.True(index.IsUnique);
         Assert.Equal("[IsActive] = 1", index.GetFilter());
     }
+
+    [Fact]
+    public void Model_GroupApproverNotifyByEmailDefaultsToTrue()
+    {
+        var options = new DbContextOptionsBuilder<PimDbContext>()
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=ADDS_PIM_ModelTest;Integrated Security=True;TrustServerCertificate=True")
+            .Options;
+        using var context = new PimDbContext(options);
+        var entityType = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(GroupApproverEntity))!;
+        var property = entityType.FindProperty(nameof(GroupApproverEntity.NotifyByEmail))!;
+
+        Assert.Equal(true, property.GetDefaultValue());
+    }
 }

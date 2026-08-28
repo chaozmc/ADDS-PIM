@@ -16,7 +16,7 @@
 
     <aside class="card cert-status-card" aria-labelledby="certificate-overview-title">
         <div class="card-body">
-            <h2 id="certificate-overview-title" class="cert-status-title">@Localizer["CertificateStatusTitle"]</h2>
+            <h2 id="certificate-overview-title" class="cert-status-title">@Localizer["SystemHealthTitle"]</h2>
             @if (_certificateOverview is null && _certificateOverviewError is null)
             {
                 <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
@@ -35,6 +35,42 @@
                                 aria-label="@($"{certificate.Label}: {StatusText(certificate)}")"
                                 @onclick="() => ShowCertificateDetailsAsync(certificate)">
                             <i class="bi @Icon(certificate)" aria-hidden="true"></i>
+                        </button>
+                    }
+                    @if (_mailOutboxStatus is not null)
+                    {
+                        <button type="button" class="pim-cert-icon pim-cert-icon-lg pim-badge-@MailOutboxVariant().ToString().ToLowerInvariant()"
+                                title="@($"{Localizer["MailQueueLabel"]}: {MailOutboxStatusText()}")"
+                                aria-label="@($"{Localizer["MailQueueLabel"]}: {MailOutboxStatusText()}")"
+                                @onclick="ShowMailOutboxDetailsAsync">
+                            <i class="bi bi-envelope-fill" aria-hidden="true"></i>
+                        </button>
+                    }
+                    @if (_orphanedCount is not null)
+                    {
+                        <button type="button" class="pim-cert-icon pim-cert-icon-lg pim-badge-@OrphanedVariant().ToString().ToLowerInvariant()"
+                                title="@($"{Localizer["OrphanedRequestsLabel"]}: {OrphanedStatusText()}")"
+                                aria-label="@($"{Localizer["OrphanedRequestsLabel"]}: {OrphanedStatusText()}")"
+                                @onclick="ShowOrphanedDetailsAsync">
+                            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                        </button>
+                    }
+                    @if (_unresolvedFindingsCount is not null)
+                    {
+                        <button type="button" class="pim-cert-icon pim-cert-icon-lg pim-badge-@ReconciliationVariant().ToString().ToLowerInvariant()"
+                                title="@($"{Localizer["ReconciliationFindingsLabel"]}: {ReconciliationStatusText()}")"
+                                aria-label="@($"{Localizer["ReconciliationFindingsLabel"]}: {ReconciliationStatusText()}")"
+                                @onclick="ShowReconciliationDetailsAsync">
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                        </button>
+                    }
+                    @if (_recentErrorCount is not null)
+                    {
+                        <button type="button" class="pim-cert-icon pim-cert-icon-lg pim-badge-@TechnicalErrorVariant().ToString().ToLowerInvariant()"
+                                title="@($"{Localizer["TechnicalErrorsLabel"]}: {TechnicalErrorStatusText()}")"
+                                aria-label="@($"{Localizer["TechnicalErrorsLabel"]}: {TechnicalErrorStatusText()}")"
+                                @onclick="ShowTechnicalErrorDetailsAsync">
+                            <i class="bi bi-bug-fill" aria-hidden="true"></i>
                         </button>
                     }
                 </div>
@@ -70,6 +106,58 @@
     }
 </ConfirmDialog>
 
+<ConfirmDialog @ref="_mailOutboxDialog" Title="@Localizer["MailQueueLabel"]">
+    @if (_mailOutboxStatus is not null)
+    {
+        <div class="mb-3"><StatusBadge Text="@MailOutboxStatusText()" Variant="@MailOutboxVariant()" /></div>
+        <dl class="row mb-0">
+            <dt class="col-sm-6">@Localizer["MailQueuePendingLabel"]</dt>
+            <dd class="col-sm-6">@_mailOutboxStatus.PendingCount</dd>
+            <dt class="col-sm-6">@Localizer["MailQueueFailedLabel"]</dt>
+            <dd class="col-sm-6">@_mailOutboxStatus.FailedCount</dd>
+        </dl>
+        <p class="mt-3 mb-0"><a href="/admin/settings/mail">@Localizer["MailQueueManageLink"]</a></p>
+    }
+</ConfirmDialog>
+
+<ConfirmDialog @ref="_orphanedDialog" Title="@Localizer["OrphanedRequestsLabel"]">
+    @if (_orphanedApprovalCount is not null && _orphanedSecondFactorCount is not null)
+    {
+        <div class="mb-3"><StatusBadge Text="@OrphanedStatusText()" Variant="@OrphanedVariant()" /></div>
+        <dl class="row mb-0">
+            <dt class="col-sm-8">@Localizer["OrphanedApprovalsLabel"]</dt>
+            <dd class="col-sm-4">@_orphanedApprovalCount</dd>
+            <dt class="col-sm-8">@Localizer["OrphanedSecondFactorLabel"]</dt>
+            <dd class="col-sm-4">@_orphanedSecondFactorCount</dd>
+        </dl>
+        <p class="mt-3 mb-0"><a href="/admin/identity-purge">@Localizer["OrphanedManageLink"]</a></p>
+    }
+</ConfirmDialog>
+
+<ConfirmDialog @ref="_reconciliationDialog" Title="@Localizer["ReconciliationFindingsLabel"]">
+    @if (_unresolvedFindingsCount is not null)
+    {
+        <div class="mb-3"><StatusBadge Text="@ReconciliationStatusText()" Variant="@ReconciliationVariant()" /></div>
+        <dl class="row mb-0">
+            <dt class="col-sm-8">@Localizer["ReconciliationUnresolvedLabel"]</dt>
+            <dd class="col-sm-4">@_unresolvedFindingsCount</dd>
+        </dl>
+        <p class="mt-3 mb-0"><a href="/admin/directory-reconciliation">@Localizer["ReconciliationManageLink"]</a></p>
+    }
+</ConfirmDialog>
+
+<ConfirmDialog @ref="_technicalErrorDialog" Title="@Localizer["TechnicalErrorsLabel"]">
+    @if (_recentErrorCount is not null)
+    {
+        <div class="mb-3"><StatusBadge Text="@TechnicalErrorStatusText()" Variant="@TechnicalErrorVariant()" /></div>
+        <dl class="row mb-0">
+            <dt class="col-sm-8">@Localizer["TechnicalErrorsRecentLabel"]</dt>
+            <dd class="col-sm-4">@_recentErrorCount</dd>
+        </dl>
+        <p class="mt-3 mb-0"><a href="/admin/technical-errors">@Localizer["TechnicalErrorsManageLink"]</a></p>
+    }
+</ConfirmDialog>
+
 <section aria-label="@Localizer["AdminAreasAriaLabel"]" class="row g-3">
     <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-people-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["PersonsTitle"]</h2><p>@Localizer["PersonsDescription"]</p><a class="btn btn-primary" href="/admin/persons">@Localizer["PersonsLinkText"]</a></div></article></div>
     <div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="card h-100"><div class="card-body"><h2 class="h4"><i class="bi bi-diagram-3-fill" style="color: var(--pim-primary);" aria-hidden="true"></i> @Localizer["GroupsTitle"]</h2><p>@Localizer["GroupsDescription"]</p><a class="btn btn-primary" href="/admin/groups">@Localizer["GroupsLinkText"]</a></div></article></div>
@@ -85,11 +173,48 @@
     private string? _certificateOverviewError;
     private ConfirmDialog? _certificateDialog;
     private MonitoredCertificateStatus? _selectedCertificate;
+    private MailNotificationOutboxStatus? _mailOutboxStatus;
+    private ConfirmDialog? _mailOutboxDialog;
+    private int? _orphanedApprovalCount;
+    private int? _orphanedSecondFactorCount;
+    private int? _orphanedCount;
+    private ConfirmDialog? _orphanedDialog;
+    private int? _unresolvedFindingsCount;
+    private ConfirmDialog? _reconciliationDialog;
+    private int? _recentErrorCount;
+    private ConfirmDialog? _technicalErrorDialog;
 
     protected override async Task OnInitializedAsync()
     {
         try { _certificateOverview = await AdministrationClient.GetCertificateOverviewAsync(CancellationToken.None); }
         catch (Exception ex) { Logger.LogError(ex, "Failed to load certificate overview status."); _certificateOverviewError = Localizer["CertificateOverviewLoadError"]; }
+
+        try { _mailOutboxStatus = await AdministrationClient.GetMailNotificationOutboxStatusAsync(CancellationToken.None); }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load mail notification outbox status."); }
+
+        try
+        {
+            var orphanedApprovals = await AdministrationClient.GetOrphanedApprovalRequestsAsync(CancellationToken.None);
+            var orphanedSecondFactors = await AdministrationClient.GetOrphanedSecondFactorRequestsAsync(CancellationToken.None);
+            _orphanedApprovalCount = orphanedApprovals.Count;
+            _orphanedSecondFactorCount = orphanedSecondFactors.Count;
+            _orphanedCount = _orphanedApprovalCount + _orphanedSecondFactorCount;
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load orphaned-request counts."); }
+
+        try
+        {
+            var reconciliation = await AdministrationClient.GetDirectoryReconciliationAsync(CancellationToken.None);
+            _unresolvedFindingsCount = reconciliation.Findings.Count(finding => !finding.IsResolved);
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load directory reconciliation findings count."); }
+
+        try
+        {
+            var recentErrors = await AdministrationClient.GetTechnicalErrorsAsync(1, 1, DateTimeOffset.UtcNow.AddHours(-24), null, null, null, CancellationToken.None);
+            _recentErrorCount = recentErrors.TotalCount;
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Failed to load recent technical error count."); }
     }
 
     private async Task ShowCertificateDetailsAsync(MonitoredCertificateStatus certificate)
@@ -98,9 +223,79 @@
         if (_certificateDialog is not null) await _certificateDialog.ShowAsync();
     }
 
+    private async Task ShowMailOutboxDetailsAsync()
+    {
+        if (_mailOutboxDialog is not null) await _mailOutboxDialog.ShowAsync();
+    }
+
+    private async Task ShowOrphanedDetailsAsync()
+    {
+        if (_orphanedDialog is not null) await _orphanedDialog.ShowAsync();
+    }
+
+    private async Task ShowReconciliationDetailsAsync()
+    {
+        if (_reconciliationDialog is not null) await _reconciliationDialog.ShowAsync();
+    }
+
+    private async Task ShowTechnicalErrorDetailsAsync()
+    {
+        if (_technicalErrorDialog is not null) await _technicalErrorDialog.ShowAsync();
+    }
+
+    private StatusBadge.BadgeVariant MailOutboxVariant() => _mailOutboxStatus switch
+    {
+        { FailedCount: > 0 } => StatusBadge.BadgeVariant.Critical,
+        { PendingCount: > 0 } => StatusBadge.BadgeVariant.Warning,
+        _ => StatusBadge.BadgeVariant.Success,
+    };
+
+    private string MailOutboxStatusText() => _mailOutboxStatus switch
+    {
+        { FailedCount: > 0 } => Localizer["MailQueueStatusFailing", _mailOutboxStatus.FailedCount],
+        { PendingCount: > 0 } => Localizer["MailQueueStatusPending", _mailOutboxStatus.PendingCount],
+        _ => Localizer["MailQueueStatusOk"],
+    };
+
+    private StatusBadge.BadgeVariant OrphanedVariant() => _orphanedCount switch
+    {
+        > 0 => StatusBadge.BadgeVariant.Warning,
+        _ => StatusBadge.BadgeVariant.Success,
+    };
+
+    private string OrphanedStatusText() => _orphanedCount switch
+    {
+        > 0 => Localizer["OrphanedRequestsStatusPending", _orphanedCount],
+        _ => Localizer["OrphanedRequestsStatusOk"],
+    };
+
+    private StatusBadge.BadgeVariant ReconciliationVariant() => _unresolvedFindingsCount switch
+    {
+        > 0 => StatusBadge.BadgeVariant.Warning,
+        _ => StatusBadge.BadgeVariant.Success,
+    };
+
+    private string ReconciliationStatusText() => _unresolvedFindingsCount switch
+    {
+        > 0 => Localizer["ReconciliationStatusPending", _unresolvedFindingsCount],
+        _ => Localizer["ReconciliationStatusOk"],
+    };
+
+    private StatusBadge.BadgeVariant TechnicalErrorVariant() => _recentErrorCount switch
+    {
+        > 0 => StatusBadge.BadgeVariant.Critical,
+        _ => StatusBadge.BadgeVariant.Success,
+    };
+
+    private string TechnicalErrorStatusText() => _recentErrorCount switch
+    {
+        > 0 => Localizer["TechnicalErrorsStatusPending", _recentErrorCount],
+        _ => Localizer["TechnicalErrorsStatusOk"],
+    };
+
     private static string Icon(MonitoredCertificateStatus certificate) => certificate.Label switch
     {
-        "TOTP-Schutzzertifikat" => "bi-shield-lock-fill",
+        "Secrets-Verschlüsselungszertifikat" => "bi-shield-lock-fill",
         "API-zu-Worker mTLS-Client-Zertifikat" => "bi-arrow-left-right",
         "Web-Signaturzertifikat" => "bi-pen-fill",
         "Worker-Server-Zertifikat (mTLS)" => "bi-hdd-network-fill",

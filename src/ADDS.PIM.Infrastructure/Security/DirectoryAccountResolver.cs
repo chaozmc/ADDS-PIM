@@ -1,11 +1,12 @@
 using System.DirectoryServices.Protocols;
 using ADDS.PIM.Application.Administration;
 using ADDS.PIM.Application.Authorization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ADDS.PIM.Infrastructure.Security;
 
-internal sealed class DirectoryAccountResolver(IOptions<ApplicationAccessOptions> options, DirectoryScopeConfiguration directoryScope) : IDirectoryAccountResolver
+internal sealed class DirectoryAccountResolver(IOptions<ApplicationAccessOptions> options, DirectoryScopeConfiguration directoryScope, ILogger<DirectoryAccountResolver> logger) : IDirectoryAccountResolver
 {
     public Task<IReadOnlyList<ResolvedDirectoryAccount>> SearchPimUsersAsync(string searchTerm, CancellationToken cancellationToken)
     {
@@ -57,8 +58,8 @@ internal sealed class DirectoryAccountResolver(IOptions<ApplicationAccessOptions
             var results = response.Entries.Cast<SearchResultEntry>().Select(ToAccount).Where(account => account is not null).Cast<ResolvedDirectoryAccount>().OrderBy(account => account.DomainQualifiedName, StringComparer.OrdinalIgnoreCase).ToArray();
             return Task.FromResult<IReadOnlyList<ResolvedDirectoryAccount>>(results);
         }
-        catch (DirectoryOperationException) { return Task.FromResult<IReadOnlyList<ResolvedDirectoryAccount>>([]); }
-        catch (LdapException) { return Task.FromResult<IReadOnlyList<ResolvedDirectoryAccount>>([]); }
+        catch (DirectoryOperationException ex) { logger.LogError(ex, "SearchAsync LDAP directory operation failed for search term {SearchTerm}, ObjectGuid {ObjectGuid}.", searchTerm, objectGuid); return Task.FromResult<IReadOnlyList<ResolvedDirectoryAccount>>([]); }
+        catch (LdapException ex) { logger.LogError(ex, "SearchAsync LDAP bind/search failed (ErrorCode={ErrorCode}) for search term {SearchTerm}, ObjectGuid {ObjectGuid}.", ex.ErrorCode, searchTerm, objectGuid); return Task.FromResult<IReadOnlyList<ResolvedDirectoryAccount>>([]); }
     }
 
     private ResolvedDirectoryAccount? ToAccount(SearchResultEntry entry)

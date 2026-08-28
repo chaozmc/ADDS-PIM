@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>ADDS-PIM - Benachrichtigungsempfänger</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Benachrichtigungsempfänger</value>
+  </data>
+  <data name="IntroText" xml:space="preserve">
+    <value>E-Mailadressen je Zielgruppe, die benachrichtigt werden, sobald ein Antrag für diese Gruppe erfolgreich oder nicht erfolgreich abgeschlossen wird.</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Einstellungen werden geladen …</value>
+  </data>
+  <data name="AddRecipientButton" xml:space="preserve">
+    <value>Empfänger hinzufügen</value>
+  </data>
+  <data name="GroupFilterLabel" xml:space="preserve">
+    <value>Gruppe filtern</value>
+  </data>
+  <data name="GroupFilterPlaceholder" xml:space="preserve">
+    <value>Gruppenname eingeben ...</value>
+  </data>
+  <data name="EmptyStateTitle" xml:space="preserve">
+    <value>Keine Benachrichtigungsempfänger gefunden</value>
+  </data>
+  <data name="EmptyStateDescription" xml:space="preserve">
+    <value>Legen Sie einen Empfänger an oder passen Sie den Gruppenfilter an.</value>
+  </data>
+  <data name="RecipientCountSingular" xml:space="preserve">
+    <value>{0} Empfänger</value>
+  </data>
+  <data name="RecipientCountPlural" xml:space="preserve">
+    <value>{0} Empfänger</value>
+  </data>
+  <data name="EmailColumnHeader" xml:space="preserve">
+    <value>E-Mailadresse</value>
+  </data>
+  <data name="RecipientTypeColumnHeader" xml:space="preserve">
+    <value>Empfängertyp</value>
+  </data>
+  <data name="EditButton" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
+  <data name="DeleteConfirmMessage" xml:space="preserve">
+    <value>{0} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="DeletePermanentlyButton" xml:space="preserve">
+    <value>Endgültig löschen</value>
+  </data>
+  <data name="AddRecipientHeading" xml:space="preserve">
+    <value>Empfänger hinzufügen</value>
+  </data>
+  <data name="EditRecipientHeading" xml:space="preserve">
+    <value>Empfänger bearbeiten</value>
+  </data>
+  <data name="GroupLabel" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="PleaseSelectOption" xml:space="preserve">
+    <value>Bitte wählen</value>
+  </data>
+  <data name="EmailAddressLabel" xml:space="preserve">
+    <value>E-Mailadresse</value>
+  </data>
+  <data name="RecipientTypeLabel" xml:space="preserve">
+    <value>Empfängertyp</value>
+  </data>
+  <data name="RecipientTypeTo" xml:space="preserve">
+    <value>An (To)</value>
+  </data>
+  <data name="RecipientTypeCc" xml:space="preserve">
+    <value>Kopie (Cc)</value>
+  </data>
+  <data name="RecipientTypeBcc" xml:space="preserve">
+    <value>Blindkopie (Bcc)</value>
+  </data>
+  <data name="ActiveLabel" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="LoadRecipientsError" xml:space="preserve">
+    <value>Die Benachrichtigungsempfänger konnten nicht geladen werden.</value>
+  </data>
+  <data name="SelectGroupRequired" xml:space="preserve">
+    <value>Bitte wählen Sie eine Zielgruppe.</value>
+  </data>
+  <data name="SaveRecipientError" xml:space="preserve">
+    <value>Der Empfänger konnte nicht gespeichert werden. Prüfen Sie das E-Mail-Format, Eindeutigkeit und parallele Änderungen.</value>
+  </data>
+  <data name="DeleteRecipientError" xml:space="preserve">
+    <value>Der Empfänger konnte nicht gelöscht werden; er wurde möglicherweise zwischenzeitlich geändert.</value>
+  </data>
+</root>

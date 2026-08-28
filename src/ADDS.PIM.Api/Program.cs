@@ -71,6 +71,7 @@ builder.Services.AddScoped<RecordTechnicalErrorUseCase>();
 builder.Services.AddScoped<TechnicalErrorLogUseCase>();
 builder.Services.AddHostedService<DirectoryReconciliationHostedService>();
 builder.Services.AddHostedService<PurgeEventOutboxDispatcher>();
+builder.Services.AddHostedService<MailNotificationOutboxDispatcher>();
 builder.Services.AddPimWorkerClient(builder.Configuration);
 builder.Services.AddPimTotpSecretProtection(builder.Configuration);
 var app = builder.Build();
@@ -482,6 +483,15 @@ app.MapPost("/api/v1/admin/target-groups/{targetGroupId:guid}/approvers/{groupAp
     return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
 });
 
+app.MapPost("/api/v1/admin/target-groups/{targetGroupId:guid}/approvers/{groupApproverId:guid}/notification-preference", async (Guid targetGroupId, Guid groupApproverId, HttpContext context, UpdateGroupApproverNotificationPreferenceRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    if (targetGroupId != body.TargetGroupId || groupApproverId != body.GroupApproverId) return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Request is invalid.");
+    var path = $"/api/v1/admin/target-groups/{targetGroupId:D}/approvers/{groupApproverId:D}/notification-preference"; var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.UpdateGroupApproverNotificationPreferenceAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
 app.MapPost("/api/v1/admin/orphaned-approvals/query", async (HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, OrphanedApprovalRequestCleanupUseCase cleanup, CancellationToken cancellationToken) =>
 {
     const string path = "/api/v1/admin/orphaned-approvals/query";
@@ -650,6 +660,53 @@ app.MapDelete("/api/v1/admin/settings/ticket-reference-patterns/{patternId:guid}
     return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
 });
 
+// Group notification recipients.
+app.MapPost("/api/v1/admin/settings/group-notification-recipients/query", async (HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/group-notification-recipients/query";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    return Results.Ok(await administration.ListGroupNotificationRecipientsAsync(cancellationToken));
+});
+
+app.MapPut("/api/v1/admin/settings/group-notification-recipients/{recipientId:guid}", async (Guid recipientId, HttpContext context, UpsertGroupNotificationRecipientRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    if (recipientId != body.GroupNotificationRecipientId) return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Request is invalid.");
+    var path = $"/api/v1/admin/settings/group-notification-recipients/{recipientId:D}";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.UpsertGroupNotificationRecipientAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
+app.MapDelete("/api/v1/admin/settings/group-notification-recipients/{recipientId:guid}", async (Guid recipientId, HttpContext context, [FromBody] DeleteGroupNotificationRecipientRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    if (recipientId != body.GroupNotificationRecipientId) return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Request is invalid.");
+    var path = $"/api/v1/admin/settings/group-notification-recipients/{recipientId:D}";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.DeleteGroupNotificationRecipientAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
+// Notification templates.
+app.MapPost("/api/v1/admin/settings/notification-templates/query", async (HttpContext context, QueryNotificationTemplateRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/notification-templates/query";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    return Results.Ok(await administration.GetNotificationTemplateAsync(body.TemplateKey, cancellationToken));
+});
+
+app.MapPost("/api/v1/admin/settings/notification-templates/upsert", async (HttpContext context, UpsertNotificationTemplateRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/notification-templates/upsert";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.UpsertNotificationTemplateAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
 // TOTP secret-protection certificate rollover.
 app.MapPost("/api/v1/admin/settings/totp-protection-certificate/status/query", async (HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
 {
@@ -665,6 +722,67 @@ app.MapPost("/api/v1/admin/settings/totp-protection-certificate/rotate", async (
     var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
     if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
     var result = await administration.RotateTotpProtectionCertificateAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
+// Mail settings.
+app.MapPost("/api/v1/admin/settings/mail/query", async (HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/mail/query";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    return Results.Ok(await administration.GetMailSettingsAsync(cancellationToken));
+});
+
+app.MapPost("/api/v1/admin/settings/mail/upsert", async (HttpContext context, UpsertMailSettingsRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/mail/upsert";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.UpsertMailSettingsAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
+app.MapPost("/api/v1/admin/settings/mail/test", async (HttpContext context, TestMailSettingsRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/mail/test";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    return Results.Ok(await administration.TestMailSettingsAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken));
+});
+
+app.MapPost("/api/v1/admin/settings/mail/outbox-status/query", async (HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/mail/outbox-status/query";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    return Results.Ok(await administration.GetMailNotificationOutboxStatusAsync(cancellationToken));
+});
+
+app.MapPost("/api/v1/admin/settings/mail/outbox/purge", async (HttpContext context, PurgeMailNotificationOutboxRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/mail/outbox/purge";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.PurgeMailNotificationOutboxAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
+    return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
+// Requester outcome notification settings (global Cc/Bcc for the "notify the requester themselves" email).
+app.MapPost("/api/v1/admin/settings/notification-requester/query", async (HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/notification-requester/query";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    return Results.Ok(await administration.GetRequesterNotificationSettingsAsync(cancellationToken));
+});
+
+app.MapPost("/api/v1/admin/settings/notification-requester/upsert", async (HttpContext context, UpsertRequesterNotificationSettingsRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    const string path = "/api/v1/admin/settings/notification-requester/upsert";
+    var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.UpsertRequesterNotificationSettingsAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken);
     return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
 });
 
@@ -710,6 +828,13 @@ app.MapPost("/api/v1/admin/persons/{personId:guid}/reactivate", async (Guid pers
     if (personId != body.PersonId) return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Request is invalid."); var path = $"/api/v1/admin/persons/{personId:D}/reactivate"; var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
     if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
     var result = await administration.ReactivatePersonAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken); return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
+});
+
+app.MapPost("/api/v1/admin/persons/{personId:guid}/notification-email-override", async (Guid personId, HttpContext context, SetPersonNotificationEmailOverrideRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>
+{
+    if (personId != body.PersonId) return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Request is invalid."); var path = $"/api/v1/admin/persons/{personId:D}/notification-email-override"; var signature = ReadSignature(context, path, JsonSerializer.SerializeToUtf8Bytes(body));
+    if (signature is null || (await signatureValidator.ExecuteAsync(signature, cancellationToken)).Kind != ApiRequestReplayRegistrationKind.Accepted || !await accessAuthorizer.IsAuthorizedAsync(body.Actor.ObjectGuid, ApplicationAccessLevel.Administrator, cancellationToken)) return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Request is not authorized.");
+    var result = await administration.SetPersonNotificationEmailOverrideAsync(body, new(signature.CorrelationId, signature.KeyId, context.Connection.RemoteIpAddress?.ToString(), ReadClientIp(context)), cancellationToken); return result switch { AdministrationUpdateResult.Updated => Results.NoContent(), AdministrationUpdateResult.NotFound => Results.NotFound(), AdministrationUpdateResult.Conflict => Results.Conflict(), _ => Results.UnprocessableEntity() };
 });
 
 app.MapPost("/api/v1/admin/persons/{personId:guid}/detail/query", async (Guid personId, HttpContext context, QueryAdministrationRequest body, ValidateApiRequestSignatureUseCase signatureValidator, IApplicationAccessAuthorizer accessAuthorizer, AdministrationUseCases administration, CancellationToken cancellationToken) =>

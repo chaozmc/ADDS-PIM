@@ -1,4 +1,5 @@
 using ADDS.PIM.Application.Mfa;
+using ADDS.PIM.Application.Security;
 
 namespace ADDS.PIM.Application.Tests.Mfa;
 
@@ -15,7 +16,7 @@ public sealed class ConfirmTotpEnrollmentUseCaseTests
         var result = await new ConfirmTotpEnrollmentUseCase(new Protector(), store, new FixedTime(now)).ExecuteAsync(command, CancellationToken.None);
         Assert.True(result); Assert.True(store.Confirmed);
     }
-    private sealed class Protector : ITotpSecretProtector { public string KeyId => "key"; public byte[] Protect(ReadOnlySpan<byte> value) => value.ToArray(); public byte[] Unprotect(ReadOnlySpan<byte> value, string keyId) => value.ToArray(); }
+    private sealed class Protector : ICertificateSecretProtector { public string KeyId => "key"; public byte[] Protect(ReadOnlySpan<byte> value) => value.ToArray(); public byte[] Unprotect(ReadOnlySpan<byte> value, string keyId) => value.ToArray(); }
     private sealed class FakeStore(PendingTotpEnrollment factor) : ITotpEnrollmentConfirmationStore
     {
         public PendingTotpEnrollment Factor { get; } = factor;

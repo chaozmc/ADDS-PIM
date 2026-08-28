@@ -32,6 +32,11 @@ public interface IAdministrationDataStore
     Task<IReadOnlyList<ManagedTicketReferencePattern>> ListTicketReferencePatternsAsync(CancellationToken cancellationToken);
     Task<AdministrationUpdateResult> UpsertTicketReferencePatternAsync(UpsertTicketReferencePatternRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
     Task<AdministrationUpdateResult> DeleteTicketReferencePatternAsync(DeleteTicketReferencePatternRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ManagedGroupNotificationRecipient>> ListGroupNotificationRecipientsAsync(CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> UpsertGroupNotificationRecipientAsync(UpsertGroupNotificationRecipientRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> DeleteGroupNotificationRecipientAsync(DeleteGroupNotificationRecipientRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<NotificationTemplateSnapshot> GetNotificationTemplateAsync(string templateKey, CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> UpsertNotificationTemplateAsync(UpsertNotificationTemplateRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
     Task<IReadOnlyList<ManagedDirectEntitlement>> ListDirectEntitlementsAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<EntitlementSubject>> ListEligibleEntitlementSubjectsAsync(CancellationToken cancellationToken);
     Task<AdministrationUpdateResult> CreateDirectEntitlementAsync(CreateDirectEntitlementRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
@@ -46,9 +51,18 @@ public interface IAdministrationDataStore
     Task<IReadOnlyList<ManagedGroupApprover>> ListGroupApproversAsync(Guid targetGroupId, CancellationToken cancellationToken);
     Task<AdministrationUpdateResult> AddGroupApproverAsync(AddGroupApproverRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
     Task<AdministrationUpdateResult> DeactivateGroupApproverAsync(DeactivateGroupApproverRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> UpdateGroupApproverNotificationPreferenceAsync(UpdateGroupApproverNotificationPreferenceRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
     Task<TotpProtectionCertificateStatus> GetTotpProtectionCertificateStatusAsync(CancellationToken cancellationToken);
     Task<AdministrationUpdateResult> RotateTotpProtectionCertificateAsync(RotateTotpProtectionCertificateRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
     Task<CertificateOverview> GetCertificateOverviewAsync(CancellationToken cancellationToken);
+    Task<MailSettingsSnapshot> GetMailSettingsAsync(CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> UpsertMailSettingsAsync(UpsertMailSettingsRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<MailSettingsTestResult> TestMailSettingsAsync(TestMailSettingsRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<MailNotificationOutboxStatus> GetMailNotificationOutboxStatusAsync(CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> PurgeMailNotificationOutboxAsync(PurgeMailNotificationOutboxRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<RequesterNotificationSettingsSnapshot> GetRequesterNotificationSettingsAsync(CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> UpsertRequesterNotificationSettingsAsync(UpsertRequesterNotificationSettingsRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
+    Task<AdministrationUpdateResult> SetPersonNotificationEmailOverrideAsync(SetPersonNotificationEmailOverrideRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken);
 }
 
 public sealed record ResolvedDirectoryGroup(Guid ObjectGuid, string SamAccountName, string DistinguishedName, string DomainQualifiedName, string DisplayName, string? ObjectSid);
@@ -76,6 +90,28 @@ public sealed class AdministrationUseCases(IAdministrationDataStore store, IDire
     public Task<AdministrationUpdateResult> DeleteTicketReferencePatternAsync(DeleteTicketReferencePatternRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
         => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty && request.TicketReferencePatternId != Guid.Empty && !string.IsNullOrWhiteSpace(request.RowVersion)
             ? store.DeleteTicketReferencePatternAsync(request, auditContext, cancellationToken) : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    public Task<IReadOnlyList<ManagedGroupNotificationRecipient>> ListGroupNotificationRecipientsAsync(CancellationToken cancellationToken) => store.ListGroupNotificationRecipientsAsync(cancellationToken);
+
+    public Task<AdministrationUpdateResult> UpsertGroupNotificationRecipientAsync(UpsertGroupNotificationRecipientRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty && request.TargetGroupId != Guid.Empty && IsValidEmailAddress(request.EmailAddress)
+           && request.RecipientType is MailRecipientType.To or MailRecipientType.Cc or MailRecipientType.Bcc
+            ? store.UpsertGroupNotificationRecipientAsync(request with { EmailAddress = request.EmailAddress.Trim() }, auditContext, cancellationToken)
+            : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    public Task<AdministrationUpdateResult> DeleteGroupNotificationRecipientAsync(DeleteGroupNotificationRecipientRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty && request.GroupNotificationRecipientId != Guid.Empty && !string.IsNullOrWhiteSpace(request.RowVersion)
+            ? store.DeleteGroupNotificationRecipientAsync(request, auditContext, cancellationToken) : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    public Task<NotificationTemplateSnapshot> GetNotificationTemplateAsync(string templateKey, CancellationToken cancellationToken)
+        => store.GetNotificationTemplateAsync(templateKey, cancellationToken);
+
+    public Task<AdministrationUpdateResult> UpsertNotificationTemplateAsync(UpsertNotificationTemplateRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty
+           && !string.IsNullOrWhiteSpace(request.TemplateKey) && !string.IsNullOrWhiteSpace(request.Subject) && request.Subject.Trim().Length <= 256
+           && !string.IsNullOrWhiteSpace(request.Body) && request.Body.Trim().Length <= 4000
+            ? store.UpsertNotificationTemplateAsync(request with { Subject = request.Subject.Trim(), Body = request.Body.Trim() }, auditContext, cancellationToken)
+            : Task.FromResult(AdministrationUpdateResult.Invalid);
     public Task<IReadOnlyList<ManagedPerson>> ListPersonsAsync(CancellationToken cancellationToken) => store.ListPersonsAsync(cancellationToken);
     public Task<ManagedPersonDetail?> GetPersonDetailAsync(Guid personId, CancellationToken cancellationToken)
         => personId == Guid.Empty ? Task.FromResult<ManagedPersonDetail?>(null) : store.GetPersonDetailAsync(personId, cancellationToken);
@@ -235,6 +271,10 @@ public sealed class AdministrationUseCases(IAdministrationDataStore store, IDire
         => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty && request.TargetGroupId != Guid.Empty && request.GroupApproverId != Guid.Empty && !string.IsNullOrWhiteSpace(request.RowVersion)
             ? store.DeactivateGroupApproverAsync(request, auditContext, cancellationToken) : Task.FromResult(AdministrationUpdateResult.Invalid);
 
+    public Task<AdministrationUpdateResult> UpdateGroupApproverNotificationPreferenceAsync(UpdateGroupApproverNotificationPreferenceRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty && request.TargetGroupId != Guid.Empty && request.GroupApproverId != Guid.Empty && !string.IsNullOrWhiteSpace(request.RowVersion)
+            ? store.UpdateGroupApproverNotificationPreferenceAsync(request, auditContext, cancellationToken) : Task.FromResult(AdministrationUpdateResult.Invalid);
+
     public Task<TotpProtectionCertificateStatus> GetTotpProtectionCertificateStatusAsync(CancellationToken cancellationToken) => store.GetTotpProtectionCertificateStatusAsync(cancellationToken);
 
     /// <summary>one-time, audited re-encryption of every TOTP secret to a new protection certificate. The typed confirmation gate mirrors <see cref="ADDS.PIM.Application.Administration.IdentityPurgeUseCase.ExecuteAsync"/>'s "PURGE {id}" pattern for a similarly high-blast-radius, irreversible administrative action.</summary>
@@ -245,6 +285,53 @@ public sealed class AdministrationUseCases(IAdministrationDataStore store, IDire
             ? store.RotateTotpProtectionCertificateAsync(request, auditContext, cancellationToken) : Task.FromResult(AdministrationUpdateResult.Invalid);
 
     public Task<CertificateOverview> GetCertificateOverviewAsync(CancellationToken cancellationToken) => store.GetCertificateOverviewAsync(cancellationToken);
+
+    public Task<MailSettingsSnapshot> GetMailSettingsAsync(CancellationToken cancellationToken) => store.GetMailSettingsAsync(cancellationToken);
+
+    public Task<AdministrationUpdateResult> UpsertMailSettingsAsync(UpsertMailSettingsRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty
+           && !string.IsNullOrWhiteSpace(request.SmtpHost) && request.SmtpHost.Trim().Length <= 256
+           && request.SmtpPort is > 0 and <= 65535
+           && IsValidEmailAddress(request.SenderAddress)
+           && (request.Username is null || request.Username.Trim().Length <= 256)
+           && request.TlsMode is SmtpTlsMode.None or SmtpTlsMode.Implicit or SmtpTlsMode.Explicit
+           && !(request.ClearPassword && !string.IsNullOrEmpty(request.NewPassword))
+            ? store.UpsertMailSettingsAsync(request with { SmtpHost = request.SmtpHost.Trim(), SenderAddress = request.SenderAddress.Trim(), Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username.Trim() }, auditContext, cancellationToken)
+            : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    public Task<MailSettingsTestResult> TestMailSettingsAsync(TestMailSettingsRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty && IsValidEmailAddress(request.RecipientAddress)
+            ? store.TestMailSettingsAsync(request with { RecipientAddress = request.RecipientAddress.Trim() }, auditContext, cancellationToken)
+            : Task.FromResult(new MailSettingsTestResult(false, "Ungültige Empfängeradresse."));
+
+    public Task<MailNotificationOutboxStatus> GetMailNotificationOutboxStatusAsync(CancellationToken cancellationToken) => store.GetMailNotificationOutboxStatusAsync(cancellationToken);
+
+    public Task<AdministrationUpdateResult> PurgeMailNotificationOutboxAsync(PurgeMailNotificationOutboxRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty
+            ? store.PurgeMailNotificationOutboxAsync(request, auditContext, cancellationToken) : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    public Task<RequesterNotificationSettingsSnapshot> GetRequesterNotificationSettingsAsync(CancellationToken cancellationToken) => store.GetRequesterNotificationSettingsAsync(cancellationToken);
+
+    public Task<AdministrationUpdateResult> UpsertRequesterNotificationSettingsAsync(UpsertRequesterNotificationSettingsRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => request.Actor.DirectoryScopeId == directoryScope.DirectoryScopeId && request.Actor.ObjectGuid != Guid.Empty
+           && (string.IsNullOrWhiteSpace(request.CcAddress) || IsValidEmailAddress(request.CcAddress))
+           && (string.IsNullOrWhiteSpace(request.BccAddress) || IsValidEmailAddress(request.BccAddress))
+            ? store.UpsertRequesterNotificationSettingsAsync(request with { CcAddress = string.IsNullOrWhiteSpace(request.CcAddress) ? null : request.CcAddress.Trim(), BccAddress = string.IsNullOrWhiteSpace(request.BccAddress) ? null : request.BccAddress.Trim() }, auditContext, cancellationToken)
+            : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    public Task<AdministrationUpdateResult> SetPersonNotificationEmailOverrideAsync(SetPersonNotificationEmailOverrideRequest request, AdministrationAuditContext auditContext, CancellationToken cancellationToken)
+        => IsValidPersonMutation(request.Actor, request.PersonId, request.RowVersion)
+           && (string.IsNullOrWhiteSpace(request.NotificationEmailOverride) || IsValidEmailAddress(request.NotificationEmailOverride))
+            ? store.SetPersonNotificationEmailOverrideAsync(request with { NotificationEmailOverride = string.IsNullOrWhiteSpace(request.NotificationEmailOverride) ? null : request.NotificationEmailOverride.Trim() }, auditContext, cancellationToken)
+            : Task.FromResult(AdministrationUpdateResult.Invalid);
+
+    private static bool IsValidEmailAddress(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address) || address.Trim().Length > 320) return false;
+        var trimmed = address.Trim();
+        var atIndex = trimmed.IndexOf('@');
+        return atIndex > 0 && atIndex < trimmed.Length - 1 && trimmed.IndexOf('@', atIndex + 1) < 0;
+    }
 
     private static bool IsValidPolicy(long minimum, long maximum, long defaultTtl, long step, bool requiresSecondFactor, int allowedSecondFactorTypes)
         => minimum > 0 && maximum >= minimum && defaultTtl >= minimum && defaultTtl <= maximum && step > 0 && allowedSecondFactorTypes is >= 0 and <= 3 && (!requiresSecondFactor || allowedSecondFactorTypes != 0);

@@ -22,7 +22,13 @@ public sealed record MembershipRequestTransitionAuditContext(
     string? AdministratorDisplayName = null,
     // The browser's own remote IP (Web-captured, forwarded via X-Client-Ip) - informational only, distinct
     // from SourceIpAddress (the Web frontend instance's own IP as seen by the API).
-    string? ClientSourceIpAddress = null);
+    string? ClientSourceIpAddress = null,
+    // Set only when this transition is an explicit approve/reject decision (never for e.g. orphaned-request
+    // cleanup) - lets EfMembershipRequestStateStore notify the group's other approvers of the decision while
+    // excluding the one who made it. Deliberately separate from AdministratorAccountId/AdministratorDisplayName
+    // above (a DirectoryAccountId, not a PersonId) since resolving Person from that would require an extra join.
+    Guid? DecidingApproverPersonId = null,
+    string? DecidingApproverDisplayName = null);
 
 public sealed record ExecuteMembershipRequestCommand(
     Guid RequestId,

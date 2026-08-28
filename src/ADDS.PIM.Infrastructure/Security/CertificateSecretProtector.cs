@@ -1,26 +1,27 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using ADDS.PIM.Application.Mfa;
+using ADDS.PIM.Application.Security;
+using ADDS.PIM.Infrastructure.Mfa;
 using Microsoft.Extensions.Options;
 
-namespace ADDS.PIM.Infrastructure.Mfa;
+namespace ADDS.PIM.Infrastructure.Security;
 
 /// <summary>
-/// Certificate-backed TOTP-secret protector. The private key must be ACLed to
+/// Certificate-backed secret protector. The private key must be ACLed to
 /// the API identity; no key material is persisted in SQL or configuration.
 /// </summary>
-public sealed class CertificateTotpSecretProtector : ITotpSecretProtector, IDisposable
+public sealed class CertificateSecretProtector : ICertificateSecretProtector, IDisposable
 {
     private readonly X509Certificate2 certificate;
 
-    /// <summary>DI-registered singleton, backed by the configured <c>TotpSecretProtection:CertificateThumbprint</c>. Used for every normal enrollment/verification flow.</summary>
-    public CertificateTotpSecretProtector(IOptions<TotpSecretProtectionOptions> options)
+    /// <summary>DI-registered singleton, backed by the configured <c>TotpSecretProtection:CertificateThumbprint</c>. Used for every normal enrollment/verification/mail-settings flow.</summary>
+    public CertificateSecretProtector(IOptions<TotpSecretProtectionOptions> options)
         : this(options.Value.CertificateThumbprint ?? throw new InvalidOperationException("TotpSecretProtection:CertificateThumbprint is required."))
     {
     }
 
-    /// <summary>Constructs a protector for an arbitrary certificate thumbprint - used by <see cref="CertificateTotpSecretProtectorFactory"/> to build the outgoing/incoming protectors for a certificate rotation, independent of the singleton's configured thumbprint.</summary>
-    public CertificateTotpSecretProtector(string thumbprint)
+    /// <summary>Constructs a protector for an arbitrary certificate thumbprint - used by <see cref="CertificateSecretProtectorFactory"/> to build the outgoing/incoming protectors for a certificate rotation, independent of the singleton's configured thumbprint.</summary>
+    public CertificateSecretProtector(string thumbprint)
     {
         certificate = TotpProtectionCertificateLoader.LoadValidated(thumbprint);
         KeyId = certificate.Thumbprint;
@@ -30,7 +31,6 @@ public sealed class CertificateTotpSecretProtector : ITotpSecretProtector, IDisp
 
     public byte[] Protect(ReadOnlySpan<byte> secret)
     {
-        if (secret.Length < 20) throw new ArgumentException("A TOTP secret must contain at least 160 bits.", nameof(secret));
         using var key = certificate.GetRSAPublicKey() ?? throw new InvalidOperationException("The protection certificate has no RSA public key.");
         return key.Encrypt(secret, RSAEncryptionPadding.OaepSHA256);
     }
@@ -39,7 +39,7 @@ public sealed class CertificateTotpSecretProtector : ITotpSecretProtector, IDisp
     {
         if (!StringComparer.OrdinalIgnoreCase.Equals(KeyId, keyId))
         {
-            throw new CryptographicException("The persisted TOTP secret is protected by a different certificate key ID.");
+            throw new CryptographicException("The persisted secret is protected by a different certificate key ID.");
         }
 
         using var key = certificate.GetRSAPrivateKey() ?? throw new InvalidOperationException("The protection certificate private key is unavailable.");

@@ -21,6 +21,11 @@ public sealed class PimDbContext(DbContextOptions<PimDbContext> options) : DbCon
     public DbSet<WorkerCommandEntity> WorkerCommands => Set<WorkerCommandEntity>();
     public DbSet<ApiRequestReplayEntity> ApiRequestReplays => Set<ApiRequestReplayEntity>();
     public DbSet<WebSigningCertificateEntity> WebSigningCertificates => Set<WebSigningCertificateEntity>();
+    public DbSet<MailSettingsEntity> MailSettings => Set<MailSettingsEntity>();
+    public DbSet<RequesterNotificationSettingsEntity> RequesterNotificationSettings => Set<RequesterNotificationSettingsEntity>();
+    public DbSet<GroupNotificationRecipientEntity> GroupNotificationRecipients => Set<GroupNotificationRecipientEntity>();
+    public DbSet<NotificationTemplateEntity> NotificationTemplates => Set<NotificationTemplateEntity>();
+    public DbSet<MailNotificationOutboxEntity> MailNotificationOutbox => Set<MailNotificationOutboxEntity>();
     public DbSet<TotpFactorEntity> TotpFactors => Set<TotpFactorEntity>();
     public DbSet<TotpUsedTimeStepEntity> TotpUsedTimeSteps => Set<TotpUsedTimeStepEntity>();
     public DbSet<Fido2CredentialEntity> Fido2Credentials => Set<Fido2CredentialEntity>();
@@ -39,6 +44,7 @@ public sealed class PimDbContext(DbContextOptions<PimDbContext> options) : DbCon
         ConfigureDirectoryReconciliationModel(modelBuilder);
         ConfigurePurgeEventOutboxModel(modelBuilder);
         ConfigureDiagnosticsModel(modelBuilder);
+        ConfigureNotificationModel(modelBuilder);
     }
 
     private static void ConfigureDiagnosticsModel(ModelBuilder modelBuilder)
@@ -91,8 +97,12 @@ public sealed class PimDbContext(DbContextOptions<PimDbContext> options) : DbCon
         });
         modelBuilder.Entity<PersonEntity>(entity =>
         {
-            entity.ToTable("Persons", table => table.HasCheckConstraint("CK_Persons_Validity", "[ValidUntilUtc] IS NULL OR [ValidUntilUtc] > [ValidFromUtc]"));
-            entity.HasKey(x => x.PersonId); entity.Property(x => x.DisplayName).HasMaxLength(256).IsRequired(); entity.Property(x => x.ExternalReference).HasMaxLength(256); entity.Property(x => x.RowVersion).IsRowVersion();
+            entity.ToTable("Persons", table =>
+            {
+                table.HasCheckConstraint("CK_Persons_Validity", "[ValidUntilUtc] IS NULL OR [ValidUntilUtc] > [ValidFromUtc]");
+                table.HasCheckConstraint("CK_Persons_NotificationEmailOverride", "[NotificationEmailOverride] IS NULL OR LEN([NotificationEmailOverride]) > 0");
+            });
+            entity.HasKey(x => x.PersonId); entity.Property(x => x.DisplayName).HasMaxLength(256).IsRequired(); entity.Property(x => x.ExternalReference).HasMaxLength(256); entity.Property(x => x.NotificationEmailOverride).HasMaxLength(320); entity.Property(x => x.RowVersion).IsRowVersion();
         });
         modelBuilder.Entity<DirectoryAccountEntity>(entity =>
         {
@@ -148,11 +158,51 @@ public sealed class PimDbContext(DbContextOptions<PimDbContext> options) : DbCon
         modelBuilder.Entity<GroupApproverEntity>(entity =>
         {
             entity.ToTable("GroupApprovers", table => table.HasCheckConstraint("CK_GroupApprovers_Validity", "[ValidUntilUtc] IS NULL OR [ValidUntilUtc] > [ValidFromUtc]"));
-            entity.HasKey(x => x.GroupApproverId); entity.Property(x => x.CreatedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.ModifiedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.RowVersion).IsRowVersion();
+            entity.HasKey(x => x.GroupApproverId); entity.Property(x => x.CreatedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.ModifiedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.NotifyByEmail).HasDefaultValue(true); entity.Property(x => x.RowVersion).IsRowVersion();
             entity.HasIndex(x => x.TargetGroupId);
             entity.HasIndex(x => new { x.TargetGroupId, x.PersonId }).IsUnique().HasFilter("[IsActive] = 1");
             entity.HasOne<TargetGroupEntity>().WithMany().HasForeignKey(x => x.TargetGroupId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<PersonEntity>().WithMany().HasForeignKey(x => x.PersonId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<GroupNotificationRecipientEntity>(entity =>
+        {
+            entity.ToTable("GroupNotificationRecipients", table =>
+            {
+                table.HasCheckConstraint("CK_GroupNotificationRecipients_EmailAddress", "LEN([EmailAddress]) > 0");
+                table.HasCheckConstraint("CK_GroupNotificationRecipients_RecipientType", "[RecipientType] IN (0, 1, 2)");
+            });
+            entity.HasKey(x => x.GroupNotificationRecipientId); entity.Property(x => x.EmailAddress).HasMaxLength(320).IsRequired(); entity.Property(x => x.RowVersion).IsRowVersion();
+            entity.HasIndex(x => new { x.TargetGroupId, x.EmailAddress }).IsUnique().HasFilter("[IsActive] = 1");
+            entity.HasOne<TargetGroupEntity>().WithMany().HasForeignKey(x => x.TargetGroupId).OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureNotificationModel(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<NotificationTemplateEntity>(entity =>
+        {
+            entity.ToTable("NotificationTemplates");
+            entity.HasKey(x => x.NotificationTemplateId);
+            entity.Property(x => x.TemplateKey).HasMaxLength(128).IsRequired();
+            entity.Property(x => x.Subject).HasMaxLength(256).IsRequired();
+            entity.Property(x => x.Body).HasMaxLength(4000).IsRequired();
+            entity.Property(x => x.UpdatedBy).HasMaxLength(256).IsRequired();
+            entity.Property(x => x.RowVersion).IsRowVersion();
+            entity.HasIndex(x => x.TemplateKey).IsUnique();
+        });
+        modelBuilder.Entity<MailNotificationOutboxEntity>(entity =>
+        {
+            entity.ToTable("MailNotificationOutbox", table => table.HasCheckConstraint("CK_MailNotificationOutbox_DeliveryAttempts", "[DeliveryAttemptCount] >= 0"));
+            entity.HasKey(x => x.OutboxId);
+            entity.Property(x => x.ToAddresses).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.CcAddresses).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.BccAddresses).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.Subject).HasMaxLength(256).IsRequired();
+            entity.Property(x => x.Body).HasMaxLength(4000).IsRequired();
+            entity.Property(x => x.LastFailureMessage).HasMaxLength(512);
+            entity.Property(x => x.RowVersion).IsRowVersion();
+            entity.HasIndex(x => new { x.DeliveredUtc, x.CreatedUtc });
+            entity.HasOne<MembershipRequestEntity>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 
@@ -169,6 +219,16 @@ public sealed class PimDbContext(DbContextOptions<PimDbContext> options) : DbCon
             entity.ToTable("WebSigningCertificates", table => table.HasCheckConstraint("CK_WebSigningCertificates_Validity", "[ValidUntilUtc] IS NULL OR [ValidUntilUtc] > [ValidFromUtc]"));
             entity.HasKey(x => x.WebSigningCertificateId); entity.Property(x => x.KeyId).HasMaxLength(128).IsRequired(); entity.Property(x => x.Thumbprint).HasMaxLength(128).IsRequired(); entity.Property(x => x.Purpose).HasMaxLength(64).IsRequired(); entity.Property(x => x.CreatedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.RowVersion).IsRowVersion();
             entity.HasIndex(x => x.KeyId).IsUnique(); entity.HasIndex(x => x.Thumbprint).IsUnique();
+        });
+        modelBuilder.Entity<MailSettingsEntity>(entity =>
+        {
+            entity.ToTable("MailSettings", table => table.HasCheckConstraint("CK_MailSettings_TlsMode", "[TlsMode] IN (0, 1, 2)"));
+            entity.HasKey(x => x.MailSettingsId); entity.Property(x => x.IsEnabled).HasDefaultValue(true); entity.Property(x => x.SmtpHost).HasMaxLength(256).IsRequired(); entity.Property(x => x.SenderAddress).HasMaxLength(256).IsRequired(); entity.Property(x => x.Username).HasMaxLength(256); entity.Property(x => x.ProtectionKeyId).HasMaxLength(256); entity.Property(x => x.UpdatedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.RowVersion).IsRowVersion();
+        });
+        modelBuilder.Entity<RequesterNotificationSettingsEntity>(entity =>
+        {
+            entity.ToTable("RequesterNotificationSettings");
+            entity.HasKey(x => x.RequesterNotificationSettingsId); entity.Property(x => x.CcAddress).HasMaxLength(320); entity.Property(x => x.BccAddress).HasMaxLength(320); entity.Property(x => x.UpdatedBy).HasMaxLength(256).IsRequired(); entity.Property(x => x.RowVersion).IsRowVersion();
         });
         modelBuilder.Entity<WorkerServerCertificateObservationEntity>(entity =>
         {

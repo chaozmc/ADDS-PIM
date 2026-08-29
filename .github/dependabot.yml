@@ -1,0 +1,97 @@
+version: 2
+
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Vienna"
+
+    open-pull-requests-limit: 10
+
+    labels:
+      - "dependencies"
+
+    commit-message:
+      prefix: "deps"
+
+    groups:
+
+      # EF Core should stay version-aligned.
+      entity-framework-core:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Authentication / identity libraries deserve their own PR group.
+      authentication-identity:
+        patterns:
+          - "Microsoft.AspNetCore.Authentication*"
+          - "Microsoft.IdentityModel.*"
+          - "System.IdentityModel.*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Remaining Microsoft/.NET dependencies.
+      microsoft-dotnet:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+        exclude-patterns:
+          - "Microsoft.EntityFrameworkCore*"
+          - "Microsoft.AspNetCore.Authentication*"
+          - "Microsoft.IdentityModel.*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      logging-diagnostics:
+        patterns:
+          - "Serilog*"
+          - "OpenTelemetry*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      testing:
+        patterns:
+          - "xunit*"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet*"
+          - "Moq"
+          - "FluentAssertions"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "Europe/Vienna"
+
+    open-pull-requests-limit: 5
+
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+    commit-message:
+      prefix: "ci"
+
+    groups:
+      github-actions-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

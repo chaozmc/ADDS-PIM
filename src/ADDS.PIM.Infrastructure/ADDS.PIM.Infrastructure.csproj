@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="MailKit" Version="4.17.0" />
-    <PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.2" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.11" />
     <ProjectReference Include="..\ADDS.PIM.Application\ADDS.PIM.Application.csproj" />
     <ProjectReference Include="..\ADDS.PIM.Domain\ADDS.PIM.Domain.csproj" />
   </ItemGroup>
@@ -14,9 +14,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
-    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.11" />
   </ItemGroup>
 
   <PropertyGroup>

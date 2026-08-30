@@ -4,9 +4,12 @@
 Step 2 of the ADDS-PIM installer: validate gMSAs and prepare certificates.
 
 .DESCRIPTION
-Validates the three gMSAs are installed and usable on this host (never
-creates or delegates them - that stays separately-approved AD
-administration). For the four "bring your own" certificates (Web TLS, API
+Confirms the Active Directory Privileged Access Management optional
+feature is enabled in the forest (ADDS-PIM's time-limited memberships
+depend on it) and validates the three gMSAs are installed and usable on
+this host (never creates or delegates them - that stays
+separately-approved AD administration). For the four "bring your own"
+certificates (Web TLS, API
 TLS, Worker TLS, API-to-Worker mTLS client) prompts for an existing
 thumbprint or generates a self-signed one if left blank. Always generates
 the Web signing certificate and the TOTP protection certificate unless an
@@ -26,6 +29,7 @@ param(
     [Parameter(Mandatory)] [string] $WebHostName,
     [Parameter(Mandatory)] [string] $ApiHostName,
     [Parameter(Mandatory)] [string] $WorkerHostName,
+    [Parameter(Mandatory)] [string] $DomainController,
 
     [string] $WebTlsCertificateThumbprint,
     [string] $ApiTlsCertificateThumbprint,
@@ -40,6 +44,9 @@ param(
 . (Join-Path $PSScriptRoot '_Common.ps1')
 Assert-AddsPimElevated
 Write-AddsPimStepHeader '02 - gMSAs and certificates'
+
+Write-Host "Validating the Active Directory forest via $DomainController ..."
+Assert-AddsPimPamFeatureEnabled -DomainController $DomainController
 
 Write-Host 'Validating gMSAs ...'
 Assert-AddsPimGmsaUsable -Account $WebGmsaAccount

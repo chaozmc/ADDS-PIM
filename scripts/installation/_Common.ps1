@@ -98,6 +98,75 @@ function Assert-AddsPimGmsaUsable {
     finally { $WhatIfPreference = $originalWhatIfPreference }
 }
 
+function Resolve-AddsPimWritableDomainController {
+    <# Returns the FQDN of a reachable, writable domain controller for the
+       given domain. With -Preferred set, that DC is only validated (must
+       exist, answer AD queries, and be writable - an RODC is rejected).
+       Otherwise the AD DS locator discovers one, preferring this host's
+       own AD site and then the next-closest site. Requires the RSAT
+       ActiveDirectory module, which 01_HostPrerequisites.ps1 installs and
+       which is needed anyway to validate the gMSAs. #>
+    param(
+        [Parameter(Mandatory)] [string] $DomainDnsName,
+        [string] $Preferred
+    )
+    if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
+        throw 'RSAT Active Directory PowerShell tools are required to locate a domain controller. Run 01_HostPrerequisites.ps1 first.'
+    }
+    Import-Module ActiveDirectory -ErrorAction Stop
+
+    if ($Preferred) {
+        try { $controller = Get-ADDomainController -Identity $Preferred -Server $Preferred -ErrorAction Stop }
+        catch { throw "The specified domain controller '$Preferred' could not be contacted: $_" }
+        if ($controller.IsReadOnly) {
+            throw "Domain controller '$Preferred' is a read-only domain controller (RODC). ADDS-PIM needs a writable controller for TTL membership writes and read-back verification."
+        }
+        $hostName = [string] $controller.HostName
+    }
+    else {
+        Write-Host "Discovering a writable domain controller for $DomainDnsName ..."
+        try { $controller = Get-ADDomainController -DomainName $DomainDnsName -Discover -Writable -NextClosestSite -ErrorAction Stop }
+        catch { throw "Automatic domain controller discovery for '$DomainDnsName' failed: $_. Re-run the installer and supply a writable domain controller FQDN explicitly." }
+        $hostName = @($controller.HostName)[0]
+    }
+    if ([string]::IsNullOrWhiteSpace($hostName)) {
+        throw "Domain controller resolution for '$DomainDnsName' produced no host name."
+    }
+
+    try { $domain = Get-ADDomain -Server $hostName -ErrorAction Stop }
+    catch { throw "The domain controller '$hostName' did not answer an Active Directory query: $_" }
+    if (-not $domain.DNSRoot.Equals($DomainDnsName, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Domain controller '$hostName' serves domain '$($domain.DNSRoot)', not the expected '$DomainDnsName'."
+    }
+    return $hostName
+}
+
+function Assert-AddsPimPamFeatureEnabled {
+    <# Confirms the Active Directory Privileged Access Management optional
+       feature is enabled in the forest. ADDS-PIM's whole time-limited
+       access model depends on it: it is what lets a group member be added
+       with a TTL (expiring link), and what makes the KDC cap the Kerberos
+       ticket lifetime to that TTL so access actually ends when the
+       membership does. Enabling PAM needs forest functional level 2016 or
+       higher, so an enabled feature also proves the forest is new enough. #>
+    param([Parameter(Mandatory)] [string] $DomainController)
+    if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
+        throw 'RSAT Active Directory PowerShell tools are required. Run 01_HostPrerequisites.ps1 first.'
+    }
+    Import-Module ActiveDirectory -ErrorAction Stop
+    try { $feature = Get-ADOptionalFeature -Filter "Name -eq 'Privileged Access Management Feature'" -Server $DomainController -ErrorAction Stop }
+    catch { throw "Could not query the Privileged Access Management optional feature on '$DomainController': $_" }
+    if ($null -eq $feature -or @($feature.EnabledScopes).Count -eq 0) {
+        throw @'
+The Active Directory 'Privileged Access Management Feature' is not enabled in this forest.
+ADDS-PIM cannot grant time-limited group memberships without it.
+Enable it once (requires forest functional level 2016 or higher), then re-run the installer:
+  Enable-ADOptionalFeature 'Privileged Access Management Feature' -Scope ForestOrConfigurationSet -Target (Get-ADForest).Name
+'@
+    }
+    Write-Host "Privileged Access Management optional feature is enabled (scopes: $(@($feature.EnabledScopes) -join ', '))."
+}
+
 function Get-AddsPimLocalMachineCertificate {
     <# Validates a certificate exists in LocalMachine\My with a usable
        private key; optionally checks it identifies an expected DNS name. #>

@@ -11,7 +11,7 @@ mean re-typing everything), then runs each numbered step script in
 scripts\installation\ in order:
 
   01_HostPrerequisites.ps1          IIS, .NET Hosting Bundle, RSAT AD tools, optional SQL Express
-  02_CertificatesAndIdentities.ps1  Validate gMSAs, prepare certificates
+  02_CertificatesAndIdentities.ps1  Resolve/validate the writable DC, check the PAM feature, validate gMSAs, prepare certificates
   03_PublishApplication.ps1         dotnet publish Web, API, AD Worker
   04_InitializeDatabase.ps1         EF migrations, DB bootstrap/grants, DirectoryScope
   05_RegisterWebSigningCertificate.ps1  Register Web signing key (ADR-0011)
@@ -91,7 +91,7 @@ if ($StartAtStep -eq 1) {
 
     $state.DomainDnsName = Read-AddsPimValue -Prompt 'Domain DNS name (e.g. home.local)' -Default (Get-AddsPimStateValue $saved 'DomainDnsName')
     $state.ForestDnsName = Read-AddsPimValue -Prompt 'Forest DNS name' -Default (Get-AddsPimStateValue $saved 'ForestDnsName' $state.DomainDnsName)
-    $state.DomainController = Read-AddsPimValue -Prompt 'Writable domain controller FQDN' -Default (Get-AddsPimStateValue $saved 'DomainController')
+    $state.DomainController = Read-AddsPimOptionalValue -Prompt 'Writable domain controller FQDN (blank = auto-discover after step 01)' -Default (Get-AddsPimStateValue $saved 'DomainController')
 
     $state.WebGmsaAccount = Read-AddsPimValue -Prompt 'Web gMSA account (DOMAIN\name$)' -Default (Get-AddsPimStateValue $saved 'WebGmsaAccount')
     $state.ApiGmsaAccount = Read-AddsPimValue -Prompt 'API gMSA account (DOMAIN\name$)' -Default (Get-AddsPimStateValue $saved 'ApiGmsaAccount')
@@ -130,9 +130,20 @@ if ($StartAtStep -le 1) {
 }
 
 if ($StartAtStep -le 2) {
+    # RSAT AD tools exist now (step 01), so resolve/validate the writable
+    # domain controller here rather than at the upfront prompt. The result
+    # is pinned into state and flows unchanged into appsettings and the
+    # worker config (ADR-0006: one configured controller for the write,
+    # the precondition lookup, and every verification read).
+    $preferredController = if ([string]::IsNullOrWhiteSpace([string] $state.DomainController)) { $null } else { [string] $state.DomainController }
+    $state.DomainController = Resolve-AddsPimWritableDomainController -DomainDnsName $state.DomainDnsName -Preferred $preferredController
+    Write-Host "Writable domain controller: $($state.DomainController)" -ForegroundColor Cyan
+    Save-AddsPimState -State $state -Path $StatePath
+
     $certs = & (Join-Path $PSScriptRoot '02_CertificatesAndIdentities.ps1') `
         -WebGmsaAccount $state.WebGmsaAccount -ApiGmsaAccount $state.ApiGmsaAccount -WorkerGmsaAccount $state.WorkerGmsaAccount `
-        -WebHostName $state.WebHostName -ApiHostName $state.ApiHostName -WorkerHostName $state.WorkerHostName -WhatIf:$whatIf
+        -WebHostName $state.WebHostName -ApiHostName $state.ApiHostName -WorkerHostName $state.WorkerHostName `
+        -DomainController $state.DomainController -WhatIf:$whatIf
     if ($certs) {
         $state.WebTlsCertificateThumbprint = $certs.WebTlsCertificateThumbprint
         $state.ApiTlsCertificateThumbprint = $certs.ApiTlsCertificateThumbprint

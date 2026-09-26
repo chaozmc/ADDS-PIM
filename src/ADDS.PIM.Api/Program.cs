@@ -29,8 +29,8 @@ fido2Configuration.Validate();
 builder.Services.AddSingleton(fido2Configuration);
 builder.Services.AddSingleton<Fido2NetLib.IFido2>(_ => new Fido2NetLib.Fido2(new Fido2NetLib.Fido2Configuration
 {
-    ServerDomain = fido2Configuration.RelyingPartyId,
-    ServerName = "ADDS-PIM",
+    RPID = fido2Configuration.RelyingPartyId,
+    RPName = "ADDS-PIM",
     Origins = new HashSet<string> { fido2Configuration.Origin }
 }));
 builder.Services.AddSingleton(new TechnicalErrorLogFileOptions(builder.Configuration["Diagnostics:TechnicalErrorLogFilePath"]));
